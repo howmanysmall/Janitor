@@ -1,0 +1,7 @@
+[package]
+name = "howmanysmall/Janitor"
+version = "1.0.0"
+author = "howmanysmall"
+dependencies_root="./src/Janitor/"
+content_root = "./src/Janitor"
+license = "MIT"
