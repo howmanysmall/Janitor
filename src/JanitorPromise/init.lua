@@ -142,19 +142,6 @@ function Janitor.__index:Cleanup()
 			self[Object] = nil
 		end
 
-		-- This is just to be safe. Hopefully fixes the concerns brought up in issue #1.
-		local Object, MethodName = next(self)
-		while Object ~= nil do
-			self[Object] = nil
-			if MethodName == true then
-				Object()
-			else
-				Object[MethodName](Object)
-			end
-
-			Object, MethodName = next(self)
-		end
-
 		local This = Janitors[self]
 		if This then
 			for Index in next, This do
