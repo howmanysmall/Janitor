@@ -6,6 +6,8 @@
 
 local RunService = game:GetService("RunService")
 local Heartbeat = RunService.Heartbeat
+local TimeFunction = RunService:IsRunning() and time or os.clock
+
 local Scheduler = {}
 
 local Queue = {}
@@ -13,7 +15,7 @@ local CurrentLength = 0
 local Connection
 
 local function HeartbeatStep()
-	local ClockTick = os.clock()
+	local ClockTick = TimeFunction()
 
 	repeat
 		local Current = Queue[1]
@@ -68,7 +70,7 @@ local function HeartbeatStep()
 			if Arguments then
 				Function:Fire(table.unpack(Arguments, 2, Arguments[1]))
 			else
-				Function:Fire(os.clock() - Current.StartTime)
+				Function:Fire(TimeFunction() - Current.StartTime)
 			end
 		else
 			local BindableEvent = Instance.new("BindableEvent")
@@ -81,7 +83,7 @@ local function HeartbeatStep()
 				BindableEvent.Event:Connect(Function)
 			end
 
-			BindableEvent:Fire(os.clock() - Current.StartTime)
+			BindableEvent:Fire(TimeFunction() - Current.StartTime)
 			BindableEvent:Destroy()
 		end
 	until Done
@@ -100,7 +102,7 @@ function Scheduler.Delay(Seconds, Function, ...)
 		Seconds = 0
 	end
 
-	local StartTime = os.clock()
+	local StartTime = TimeFunction()
 	local EndTime = StartTime + Seconds
 	local Length = select("#", ...)
 
@@ -234,7 +236,7 @@ end
 	@returns [void]
 **--]]
 function Scheduler.NewSpawn(Function, ...)
-	local StartTime = os.clock()
+	local StartTime = TimeFunction()
 	local EndTime = StartTime + 0.03
 	local Length = select("#", ...)
 

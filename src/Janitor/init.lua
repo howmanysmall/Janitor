@@ -112,15 +112,15 @@ end
 function Janitor.__index:Cleanup()
 	if not self.CurrentlyCleaning then
 		self.CurrentlyCleaning = nil
-		-- for Object, MethodName in next, self do
-		-- 	if MethodName == true then
-		-- 		Object()
-		-- 	else
-		-- 		Object[MethodName](Object)
-		-- 	end
+		for Object, MethodName in next, self do
+			if MethodName == true then
+				Object()
+			else
+				Object[MethodName](Object)
+			end
 
-		-- 	self[Object] = nil
-		-- end
+			self[Object] = nil
+		end
 
 		local This = Janitors[self]
 		if This then
