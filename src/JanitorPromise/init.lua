@@ -1,4 +1,3 @@
---!nocheck
 -- Janitor
 -- Original by Validark
 -- Modifications by pobammer
