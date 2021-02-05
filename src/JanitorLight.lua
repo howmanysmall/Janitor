@@ -3,7 +3,9 @@
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
 
-local Scheduler = require(script.Scheduler)
+local RunService = game:GetService("RunService")
+local Heartbeat = RunService.Heartbeat
+
 local Janitors = setmetatable({}, {__mode = "k"})
 local Janitor = {__index = {CurrentlyCleaning = true}}
 
@@ -12,8 +14,24 @@ getmetatable(LinkToInstanceIndex).__tostring = function()
 	return "LinkToInstanceIndex"
 end
 
-local FastSpawn = Scheduler.FastSpawn
-local Wait = Scheduler.Wait
+local function Wait(Seconds)
+	local TimeRemaining = Seconds
+	while TimeRemaining > 0 do
+		TimeRemaining -= Heartbeat:Wait()
+	end
+end
+
+local function FastSpawn(Function, ...)
+	local Arguments = table.pack(...)
+	local BindableEvent = Instance.new("BindableEvent")
+
+	BindableEvent.Event:Connect(function()
+		Function(table.unpack(Arguments, 1, Arguments.n))
+	end)
+
+	BindableEvent:Fire()
+	BindableEvent:Destroy()
+end
 
 local TypeDefaults = {
 	["function"] = true;

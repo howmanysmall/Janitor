@@ -3,7 +3,11 @@
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
 
-local Scheduler = require(script.Scheduler)
+local RunService = game:GetService("RunService")
+local Promise = require("Promise")
+
+local Heartbeat = RunService.Heartbeat
+
 local Janitors = setmetatable({}, {__mode = "k"})
 local Janitor = {__index = {CurrentlyCleaning = true}}
 
@@ -12,8 +16,24 @@ getmetatable(LinkToInstanceIndex).__tostring = function()
 	return "LinkToInstanceIndex"
 end
 
-local FastSpawn = Scheduler.FastSpawn
-local Wait = Scheduler.Wait
+local function Wait(Seconds)
+	local TimeRemaining = Seconds
+	while TimeRemaining > 0 do
+		TimeRemaining -= Heartbeat:Wait()
+	end
+end
+
+local function FastSpawn(Function, ...)
+	local Arguments = table.pack(...)
+	local BindableEvent = Instance.new("BindableEvent")
+
+	BindableEvent.Event:Connect(function()
+		Function(table.unpack(Arguments, 1, Arguments.n))
+	end)
+
+	BindableEvent:Fire()
+	BindableEvent:Destroy()
+end
 
 local TypeDefaults = {
 	["function"] = true;
@@ -60,6 +80,24 @@ function Janitor.__index:Add(Object, MethodName, Index)
 
 	self[Object] = MethodName or TypeDefaults[typeof(Object)] or "Destroy"
 	return Object
+end
+
+-- My version of Promise has PascalCase, but I converted it to use lowerCamelCase for this release since obviously that's important to do.
+
+--[[**
+	Adds a promise to the janitor. If the janitor is cleaned up and the promise is not completed, the promise will be cancelled.
+	@param [Promise] PromiseObject The promise you want to add to the janitor.
+	@returns [Promise]
+**--]]
+function Janitor.__index:AddPromise(PromiseObject)
+	if PromiseObject:getStatus() == Promise.Status.Started then
+		local Id = newproxy(false)
+		local NewPromise = self:Add(Promise.resolve(PromiseObject), "cancel", Id)
+		NewPromise:finallyCall(self.Remove, self, Id)
+		return NewPromise
+	else
+		return PromiseObject
+	end
 end
 
 --[[**
