@@ -1,0 +1,7 @@
+{
+	"name": "JanitorPromise",
+	"tree": {
+		"$path": "src/JanitorPromise",
+		"$ignoreUnknownInstances": true
+	}
+}
