@@ -41,3 +41,139 @@ Janitor runs incredibly well. It is quite a bit faster than [Maid](https://githu
 ![Benchmark results](https://cdn.discordapp.com/attachments/507950082285502465/807365433388433408/unknown.png)
 
 Benchmarks ran on an R9 3900X with 32GB of DDR4-3600 RAM.
+
+## Janitor API
+
+<details>
+<summary><code>function Janitor.new()</code></summary>
+
+Instantiates a new Janitor object.
+
+**Returns:**  
+`[Janitor]`
+
+</details>
+
+<details>
+<summary><code>function Janitor.Is(Object)</code></summary>
+
+Determines if the passed object is a Janitor.
+
+**Parameters:**
+- `[any] Object`  
+The object you are checking.
+
+**Returns:**  
+`[boolean]` Whether or not the object is a Janitor.
+
+</details>
+
+<details>
+<summary><code>function Janitor:Add(Object, MethodName, Index)</code></summary>
+
+Adds an `Object` to Janitor for later cleanup, where `MethodName` is the key of the method within `Object` which should be called at cleanup time. If the `MethodName` is `true` the `Object` itself will be called instead. If passed an index it will occupy a namespace which can be `Remove()`d or overwritten. Returns the `Object`.
+
+**Parameters:**
+- `[any] Object`  
+The object you want to clean up.
+- `[string | true?] MethodName`
+The name of the method that will be used to clean up. If not passed, it will first check if the object's type exists in TypeDefaults, and if that doesn't exist, it assumes `Destroy`.
+- `[any?] Index`  
+The index that can be used to clean up the object manually.
+
+**Returns:**  
+`[any]` The object that was passed.
+
+</details>
+
+<details>
+<summary><code>function Janitor:AddPromise(PromiseObject)</code></summary>
+
+Adds a promise to the janitor. If the janitor is cleaned up and the promise is not completed, the promise will be cancelled.
+
+**Parameters:**
+- `[Promise] PromiseObject`  
+The promise you want to add to the janitor.
+
+**Returns:**  
+`[Promise]`
+
+</details>
+
+<details>
+<summary><code>function Janitor:Remove(Index)</code></summary>
+
+Cleans up whatever `Object` was set to this namespace by the 3rd parameter of `:Add()`.
+
+**Parameters:**
+- `[any] Index`  
+The index you want to remove.
+
+**Returns:**  
+`[Janitor]` The same janitor, for chaining reasons.
+
+</details>
+
+<details>
+<summary><code>function Janitor:Get(Index)</code></summary>
+
+Gets whatever object is stored with the given index, if it exists. This was added since Maid allows getting the task using `__index`.
+
+**Parameters:**
+- `[any] Index`  
+The index that the object is stored under.
+
+**Returns:**  
+`[any?]` This will return the object if it is found, but it won't return anything if it doesn't exist.
+
+</details>
+
+<details>
+<summary><code>function Janitor:Cleanup()</code></summary>
+
+Calls each Object's `MethodName` (or calls the Object if `MethodName == true`) and removes them from the Janitor. Also clears the namespace. This function is also called when you call a Janitor Object (so it can be used as a destructor callback).
+
+**Returns:**  
+`[void]`
+
+</details>
+
+<details>
+<summary><code>function Janitor:Destroy()</code></summary>
+
+Calls `:Cleanup()` and renders the Janitor unusable.
+
+**Returns:**  
+`[void]`
+
+</details>
+
+<details>
+<summary><code>function Janitor:LinkToInstance(Object, AllowMultiple)</code></summary>
+
+"Links" this Janitor to an Instance, such that the Janitor will `Cleanup` when the Instance is `Destroyed()` and garbage collected. A Janitor may only be linked to one instance at a time, unless `AllowMultiple` is true. When called with a truthy `AllowMultiple` parameter, the Janitor will "link" the Instance without overwriting any previous links, and will also not be overwritable. When called with a falsy `AllowMultiple` parameter, the Janitor will overwrite the previous link which was also called with a falsy `AllowMultiple` parameter, if applicable.
+
+**Parameters:**
+- `[Instance] Object`  
+The instance you want to link the Janitor to.
+- `[boolean?] AllowMultiple`  
+Whether or not to allow multiple links on the same Janitor.
+
+**Returns:**  
+`[RbxScriptConnection]` A pseudo RBXScriptConnection that can be disconnected.
+
+</details>
+
+<details>
+<summary><code>function Janitor:LinkToInstances(...)</code></summary>
+
+Links several instances to a janitor, which is then returned.
+
+**Parameters:**
+- `[...Instance] ...`  
+All the instances you want linked.
+
+**Returns:**  
+`[Janitor]` A janitor that can be used to manually disconnect all LinkToInstances.
+
+</details>
