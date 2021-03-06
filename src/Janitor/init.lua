@@ -220,8 +220,8 @@ end
 **--]]
 function Janitor.__index:LinkToInstances(...)
 	local ManualCleanup = Janitor.new()
-	for Index = 1, select("#", ...) do
-		ManualCleanup:Add(self:LinkToInstance(select(Index, ...), true), "Disconnect")
+	for _, Object in ipairs({...}) do
+		ManualCleanup:Add(self:LinkToInstance(Object, true), "Disconnect")
 	end
 
 	return ManualCleanup

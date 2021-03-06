@@ -8,7 +8,9 @@ local RunService = game:GetService("RunService")
 local Heartbeat = RunService.Heartbeat
 local TimeFunction = RunService:IsRunning() and time or os.clock
 
-local Scheduler = {}
+local Scheduler = {
+	TimeFunction = TimeFunction;
+}
 
 local Queue = {}
 local CurrentLength = 0
