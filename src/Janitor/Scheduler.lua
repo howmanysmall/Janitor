@@ -113,10 +113,10 @@ function Scheduler.Delay(Seconds, Function, ...)
 	end
 
 	local Node = {
+		Arguments = Length > 0 and {Length + 1, ...};
+		EndTime = EndTime;
 		Function = Function;
 		StartTime = StartTime;
-		EndTime = EndTime;
-		Arguments = Length > 0 and {Length + 1, ...};
 	}
 
 	local TargetIndex = CurrentLength + 1
@@ -247,10 +247,10 @@ function Scheduler.NewSpawn(Function, ...)
 	end
 
 	local Node = {
+		Arguments = Length > 0 and {Length + 1, ...};
+		EndTime = EndTime;
 		Function = Function;
 		StartTime = StartTime;
-		EndTime = EndTime;
-		Arguments = Length > 0 and {Length + 1, ...};
 	}
 
 	local TargetIndex = CurrentLength + 1
