@@ -3,7 +3,7 @@
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
 
-local Promise = require("Promise")
+local Promise = require(script.Parent.Promise)
 local Scheduler = require(script.Scheduler)
 
 local Janitors = setmetatable({}, {__mode = "k"})
@@ -13,6 +13,8 @@ local LinkToInstanceIndex = newproxy(true)
 getmetatable(LinkToInstanceIndex).__tostring = function()
 	return "LinkToInstanceIndex"
 end
+
+local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
 
 local FastSpawn = Scheduler.FastSpawn
 local Wait = Scheduler.Wait
@@ -72,6 +74,10 @@ end
 	@returns [Promise]
 **--]]
 function Janitor.__index:AddPromise(PromiseObject)
+	if not Promise.is(PromiseObject) then
+		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
+	end
+
 	if PromiseObject:getStatus() == Promise.Status.Started then
 		local Id = newproxy(false)
 		local NewPromise = self:Add(Promise.resolve(PromiseObject), "cancel", Id)
