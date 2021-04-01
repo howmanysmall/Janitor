@@ -1,5 +1,5 @@
 # Janitor
-Janitor library.
+Janitor library. This branch is for the thread safe version of Janitor that does not use a global state.
 
 [Original](https://github.com/RoStrap/Events/blob/master/Janitor.lua) was made by [Validark](https://github.com/Validark), however he doesn't really maintain that version anymore. It does have all the [original documentation](https://rostrap.github.io/Libraries/Events/Janitor/) for it though.
 
