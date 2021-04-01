@@ -1,6 +1,6 @@
 [package]
 name = "howmanysmall/Janitor"
-version = "1.0.0"
+version = "1.1.1"
 author = "howmanysmall"
 dependencies_root="./src/Standard/Janitor/"
 content_root = "./src/Standard/Janitor"
