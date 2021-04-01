@@ -1,7 +1,7 @@
 {
 	"name": "Janitor",
 	"tree": {
-		"$path": "src/Janitor",
+		"$path": "src/Standard/Janitor",
 		"$ignoreUnknownInstances": true
 	}
 }
