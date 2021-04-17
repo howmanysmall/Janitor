@@ -278,6 +278,25 @@ return function()
 			expect(WasRemoved).to.equal(true)
 			NewJanitor:Destroy()
 		end)
+
+		it("should properly remove values that are already destroyed", function()
+			-- credit to OverHash for pointing out this breaking.
+			local NewJanitor = Janitor.new()
+			local X = 0
+
+			local SubJanitor = Janitor.new()
+			SubJanitor:Add(function()
+				X += 1
+			end, true)
+
+			NewJanitor:Add(SubJanitor, "Destroy")
+			SubJanitor:Destroy()
+			expect(function()
+				NewJanitor:Destroy()
+			end).never.to.throw()
+
+			expect(X).to.equal(1)
+		end)
 	end)
 
 	describe("Get", function()

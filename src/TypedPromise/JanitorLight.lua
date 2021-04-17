@@ -3,6 +3,8 @@
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
 
+-- This should be thread safe. I think it also won't break.
+
 local RunService = game:GetService("RunService")
 local Promise = require(script.Parent.Promise)
 local Heartbeat = RunService.Heartbeat
@@ -18,6 +20,7 @@ getmetatable(LinkToInstanceIndex).__tostring = function()
 end
 
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
+type Promise = typeof(Promise.resolve())
 
 local Janitor = {
 	ClassName = "Janitor";
@@ -67,9 +70,11 @@ end
 	@param [any] Object The object you are checking.
 	@returns [boolean] Whether or not the object is a Janitor.
 **--]]
-function Janitor.Is(Object)
+function Janitor.Is(Object: any): boolean
 	return type(Object) == "table" and getmetatable(Object) == Janitor
 end
+
+type MethodName = string | boolean
 
 --[[**
 	Adds an `Object` to Janitor for later cleanup, where `MethodName` is the key of the method within `Object` which should be called at cleanup time. If the `MethodName` is `true` the `Object` itself will be called instead. If passed an index it will occupy a namespace which can be `Remove()`d or overwritten. Returns the `Object`.
@@ -78,7 +83,7 @@ end
 	@param [any?] Index The index that can be used to clean up the object manually.
 	@returns [any] The object that was passed.
 **--]]
-function Janitor.__index:Add(Object, MethodName, Index)
+function Janitor.__index:Add(Object: any, MethodName: MethodName?, Index: any?): any
 	if Index then
 		self:Remove(Index)
 
@@ -102,7 +107,7 @@ end
 	@param [Promise] PromiseObject The promise you want to add to the janitor.
 	@returns [Promise]
 **--]]
-function Janitor.__index:AddPromise(PromiseObject)
+function Janitor.__index:AddPromise(PromiseObject: Promise): Promise
 	if not Promise.is(PromiseObject) then
 		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
 	end
@@ -122,7 +127,7 @@ end
 	@param [any] Index The index you want to remove.
 	@returns [Janitor] The same janitor, for chaining reasons.
 **--]]
-function Janitor.__index:Remove(Index)
+function Janitor.__index:Remove(Index: any)
 	local This = self[IndicesReference]
 
 	if This then
@@ -156,11 +161,9 @@ end
 	@param [any] Index The index that the object is stored under.
 	@returns [any?] This will return the object if it is found, but it won't return anything if it doesn't exist.
 **--]]
-function Janitor.__index:Get(Index)
+function Janitor.__index:Get(Index: any): any?
 	local This = self[IndicesReference]
-	if This then
-		return This[Index]
-	end
+	return This and This[Index] or nil
 end
 
 --[[**
@@ -229,7 +232,7 @@ end
 	@param [boolean?] AllowMultiple Whether or not to allow multiple links on the same Janitor.
 	@returns [RbxScriptConnection] A pseudo RBXScriptConnection that can be disconnected.
 **--]]
-function Janitor.__index:LinkToInstance(Object, AllowMultiple)
+function Janitor.__index:LinkToInstance(Object: Instance, AllowMultiple: boolean?)
 	local Reference = Instance.new("ObjectValue")
 	Reference.Value = Object
 
@@ -283,7 +286,7 @@ end
 	@param [...Instance] ... All the instances you want linked.
 	@returns [Janitor] A janitor that can be used to manually disconnect all LinkToInstances.
 **--]]
-function Janitor.__index:LinkToInstances(...)
+function Janitor.__index:LinkToInstances(...) -- : Instance
 	local ManualCleanup = Janitor.new()
 	for _, Object in ipairs({...}) do
 		ManualCleanup:Add(self:LinkToInstance(Object, true), "Disconnect")
