@@ -237,9 +237,11 @@ return function()
 
 		it("should not remove any values from the return", function()
 			local NewJanitor = Janitor.new()
-			local _, Value = NewJanitor:AddPromise(Promise.new(function(Resolve)
-				Resolve(true)
-			end)):await()
+			local _, Value = NewJanitor
+				:AddPromise(Promise.new(function(Resolve)
+					Resolve(true)
+				end))
+				:await()
 
 			expect(Value).to.equal(true)
 			NewJanitor:Destroy()
@@ -277,6 +279,25 @@ return function()
 
 			expect(WasRemoved).to.equal(true)
 			NewJanitor:Destroy()
+		end)
+
+		it("should properly remove values that are already destroyed", function()
+			-- credit to OverHash for pointing out this breaking.
+			local NewJanitor = Janitor.new()
+			local X = 0
+
+			local SubJanitor = Janitor.new()
+			SubJanitor:Add(function()
+				X += 1
+			end, true)
+
+			NewJanitor:Add(SubJanitor, "Destroy")
+			SubJanitor:Destroy()
+			expect(function()
+				NewJanitor:Destroy()
+			end).never.to.throw()
+
+			expect(X).to.equal(1)
 		end)
 	end)
 

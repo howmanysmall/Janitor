@@ -7,10 +7,13 @@
 
 local RunService = game:GetService("RunService")
 local Promise = require(script.Parent.Promise)
-
 local Heartbeat = RunService.Heartbeat
 
-local IndicesReference = newproxy(false)
+local IndicesReference = newproxy(true)
+getmetatable(IndicesReference).__tostring = function()
+	return "IndicesReference"
+end
+
 local LinkToInstanceIndex = newproxy(true)
 getmetatable(LinkToInstanceIndex).__tostring = function()
 	return "LinkToInstanceIndex"
@@ -19,6 +22,7 @@ end
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
 
 local Janitor = {
+	ClassName = "Janitor";
 	__index = {
 		CurrentlyCleaning = true;
 		[IndicesReference] = nil;
@@ -133,7 +137,10 @@ function Janitor.__index:Remove(Index)
 				if MethodName == true then
 					Object()
 				else
-					Object[MethodName](Object)
+					local ObjectMethod = Object[MethodName]
+					if ObjectMethod then
+						ObjectMethod(Object)
+					end
 				end
 
 				self[Object] = nil
@@ -173,7 +180,10 @@ function Janitor.__index:Cleanup()
 			if MethodName == true then
 				Object()
 			else
-				Object[MethodName](Object)
+				local ObjectMethod = Object[MethodName]
+				if ObjectMethod then
+					ObjectMethod(Object)
+				end
 			end
 
 			self[Object] = nil
