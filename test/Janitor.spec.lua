@@ -237,11 +237,9 @@ return function()
 
 		it("should not remove any values from the return", function()
 			local NewJanitor = Janitor.new()
-			local _, Value = NewJanitor
-				:AddPromise(Promise.new(function(Resolve)
-					Resolve(true)
-				end))
-				:await()
+			local _, Value = NewJanitor:AddPromise(Promise.new(function(Resolve)
+				Resolve(true)
+			end)):await()
 
 			expect(Value).to.equal(true)
 			NewJanitor:Destroy()
