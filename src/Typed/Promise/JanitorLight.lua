@@ -3,15 +3,14 @@
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
 
+-- This should be thread safe. I think it also won't break.
+
 local RunService = game:GetService("RunService")
 local Promise = require(script.Parent.Promise)
+
 local Heartbeat = RunService.Heartbeat
 
-local IndicesReference = newproxy(true)
-getmetatable(IndicesReference).__tostring = function()
-	return "IndicesReference"
-end
-
+local IndicesReference = newproxy(false)
 local LinkToInstanceIndex = newproxy(true)
 getmetatable(LinkToInstanceIndex).__tostring = function()
 	return "LinkToInstanceIndex"
@@ -20,7 +19,6 @@ end
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
 
 local Janitor = {
-	ClassName = "Janitor";
 	__index = {
 		CurrentlyCleaning = true;
 		[IndicesReference] = nil;
@@ -135,10 +133,7 @@ function Janitor.__index:Remove(Index)
 				if MethodName == true then
 					Object()
 				else
-					local ObjectMethod = Object[MethodName]
-					if ObjectMethod then
-						ObjectMethod(Object)
-					end
+					Object[MethodName](Object)
 				end
 
 				self[Object] = nil
@@ -178,10 +173,7 @@ function Janitor.__index:Cleanup()
 			if MethodName == true then
 				Object()
 			else
-				local ObjectMethod = Object[MethodName]
-				if ObjectMethod then
-					ObjectMethod(Object)
-				end
+				Object[MethodName](Object)
 			end
 
 			self[Object] = nil

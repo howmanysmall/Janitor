@@ -3,24 +3,18 @@
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
 
+-- This should be thread safe. I think it also won't break.
+
 local RunService = game:GetService("RunService")
-local Promise = require(script.Parent.Promise)
 local Heartbeat = RunService.Heartbeat
 
-local IndicesReference = newproxy(true)
-getmetatable(IndicesReference).__tostring = function()
-	return "IndicesReference"
-end
-
+local IndicesReference = newproxy(false)
 local LinkToInstanceIndex = newproxy(true)
 getmetatable(LinkToInstanceIndex).__tostring = function()
 	return "LinkToInstanceIndex"
 end
 
-local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
-
 local Janitor = {
-	ClassName = "Janitor";
 	__index = {
 		CurrentlyCleaning = true;
 		[IndicesReference] = nil;
@@ -95,28 +89,6 @@ function Janitor.__index:Add(Object, MethodName, Index)
 	return Object
 end
 
--- My version of Promise has PascalCase, but I converted it to use lowerCamelCase for this release since obviously that's important to do.
-
---[[**
-	Adds a promise to the janitor. If the janitor is cleaned up and the promise is not completed, the promise will be cancelled.
-	@param [Promise] PromiseObject The promise you want to add to the janitor.
-	@returns [Promise]
-**--]]
-function Janitor.__index:AddPromise(PromiseObject)
-	if not Promise.is(PromiseObject) then
-		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
-	end
-
-	if PromiseObject:getStatus() == Promise.Status.Started then
-		local Id = newproxy(false)
-		local NewPromise = self:Add(Promise.resolve(PromiseObject), "cancel", Id)
-		NewPromise:finallyCall(self.Remove, self, Id)
-		return NewPromise
-	else
-		return PromiseObject
-	end
-end
-
 --[[**
 	Cleans up whatever `Object` was set to this namespace by the 3rd parameter of `:Add()`.
 	@param [any] Index The index you want to remove.
@@ -135,10 +107,7 @@ function Janitor.__index:Remove(Index)
 				if MethodName == true then
 					Object()
 				else
-					local ObjectMethod = Object[MethodName]
-					if ObjectMethod then
-						ObjectMethod(Object)
-					end
+					Object[MethodName](Object)
 				end
 
 				self[Object] = nil
@@ -178,10 +147,7 @@ function Janitor.__index:Cleanup()
 			if MethodName == true then
 				Object()
 			else
-				local ObjectMethod = Object[MethodName]
-				if ObjectMethod then
-					ObjectMethod(Object)
-				end
+				Object[MethodName](Object)
 			end
 
 			self[Object] = nil

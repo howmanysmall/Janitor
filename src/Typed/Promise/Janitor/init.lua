@@ -3,15 +3,12 @@
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
 
-local RunService = game:GetService("RunService")
+-- This should be thread safe. I think it also won't break.
+
 local Promise = require(script.Parent.Promise)
-local Heartbeat = RunService.Heartbeat
+local Scheduler = require(script.Scheduler)
 
-local IndicesReference = newproxy(true)
-getmetatable(IndicesReference).__tostring = function()
-	return "IndicesReference"
-end
-
+local IndicesReference = newproxy(false)
 local LinkToInstanceIndex = newproxy(true)
 getmetatable(LinkToInstanceIndex).__tostring = function()
 	return "LinkToInstanceIndex"
@@ -20,31 +17,14 @@ end
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
 
 local Janitor = {
-	ClassName = "Janitor";
 	__index = {
 		CurrentlyCleaning = true;
 		[IndicesReference] = nil;
 	};
 }
 
-local function Wait(Seconds)
-	local TimeRemaining = Seconds
-	while TimeRemaining > 0 do
-		TimeRemaining -= Heartbeat:Wait()
-	end
-end
-
-local function FastSpawn(Function, ...)
-	local Arguments = table.pack(...)
-	local BindableEvent = Instance.new("BindableEvent")
-
-	BindableEvent.Event:Connect(function()
-		Function(table.unpack(Arguments, 1, Arguments.n))
-	end)
-
-	BindableEvent:Fire()
-	BindableEvent:Destroy()
-end
+local FastSpawn = Scheduler.FastSpawn
+local Wait = Scheduler.Wait
 
 local TypeDefaults = {
 	["function"] = true;
@@ -135,10 +115,7 @@ function Janitor.__index:Remove(Index)
 				if MethodName == true then
 					Object()
 				else
-					local ObjectMethod = Object[MethodName]
-					if ObjectMethod then
-						ObjectMethod(Object)
-					end
+					Object[MethodName](Object)
 				end
 
 				self[Object] = nil
@@ -178,10 +155,7 @@ function Janitor.__index:Cleanup()
 			if MethodName == true then
 				Object()
 			else
-				local ObjectMethod = Object[MethodName]
-				if ObjectMethod then
-					ObjectMethod(Object)
-				end
+				Object[MethodName](Object)
 			end
 
 			self[Object] = nil
