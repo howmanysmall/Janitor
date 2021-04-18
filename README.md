@@ -31,8 +31,8 @@ If your project uses Janitor, leave a PR on the readme!
 
 ## Which version should you use?
 
-- If you use [Promise](https://github.com/evaera/roblox-lua-promise), you should take a look at either [JanitorPromise](https://github.com/howmanysmall/Janitor/tree/main/src/JanitorPromise) or [JanitorPromiseLight](https://github.com/howmanysmall/Janitor/blob/main/src/JanitorPromiseLight.lua).
-- If you don't use Promise, you should look at either [Janitor](https://github.com/howmanysmall/Janitor/tree/main/src/Janitor) or [JanitorLight](https://github.com/howmanysmall/Janitor/blob/main/src/JanitorLight.lua).
+- If you use [Promise](https://github.com/evaera/roblox-lua-promise), you should take a look at either [JanitorPromise](https://github.com/howmanysmall/Janitor/tree/main/src/Promise/Janitor) or [JanitorPromiseLight](https://github.com/howmanysmall/Janitor/blob/main/src/Promise/JanitorLight.lua).
+- If you don't use Promise, you should look at either [Janitor](https://github.com/howmanysmall/Janitor/tree/main/src/Standard/Janitor) or [JanitorLight](https://github.com/howmanysmall/Janitor/blob/main/src/Standard/JanitorLight.lua).
 - If you don't want extra dependencies, use one of the Light libraries.
 
 ## Performance
