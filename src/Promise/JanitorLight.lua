@@ -18,6 +18,7 @@ getmetatable(LinkToInstanceIndex).__tostring = function()
 end
 
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
+local METHOD_NOT_FOUND_ERROR = "Object %s doesn't have method %s, are you sure you want to add it? Traceback: %s"
 
 local Janitor = {
 	ClassName = "Janitor";
@@ -91,7 +92,12 @@ function Janitor.__index:Add(Object, MethodName, Index)
 		This[Index] = Object
 	end
 
-	self[Object] = MethodName or TypeDefaults[typeof(Object)] or "Destroy"
+	MethodName = MethodName or TypeDefaults[typeof(Object)] or "Destroy"
+	if type(Object) ~= "function" and not Object[MethodName] then
+		warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(Object), MethodName, debug.traceback(nil, 2)))
+	end
+
+	self[Object] = MethodName
 	return Object
 end
 
