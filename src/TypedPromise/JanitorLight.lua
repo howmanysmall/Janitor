@@ -58,7 +58,7 @@ local TypeDefaults = {
 
 --[[**
 	Instantiates a new Janitor object.
-	@returns [Janitor]
+	@returns [t:Janitor]
 **--]]
 function Janitor.new()
 	return setmetatable({
@@ -69,8 +69,8 @@ end
 
 --[[**
 	Determines if the passed object is a Janitor.
-	@param [any] Object The object you are checking.
-	@returns [boolean] Whether or not the object is a Janitor.
+	@param [t:any] Object The object you are checking.
+	@returns [t:boolean] Whether or not the object is a Janitor.
 **--]]
 function Janitor.Is(Object: any): boolean
 	return type(Object) == "table" and getmetatable(Object) == Janitor
@@ -80,10 +80,10 @@ type MethodName = string | boolean
 
 --[[**
 	Adds an `Object` to Janitor for later cleanup, where `MethodName` is the key of the method within `Object` which should be called at cleanup time. If the `MethodName` is `true` the `Object` itself will be called instead. If passed an index it will occupy a namespace which can be `Remove()`d or overwritten. Returns the `Object`.
-	@param [any] Object The object you want to clean up.
-	@param [string | true?] MethodName The name of the method that will be used to clean up. If not passed, it will first check if the object's type exists in TypeDefaults, and if that doesn't exist, it assumes `Destroy`.
-	@param [any?] Index The index that can be used to clean up the object manually.
-	@returns [any] The object that was passed.
+	@param [t:any] Object The object you want to clean up.
+	@param [t:string|true?] MethodName The name of the method that will be used to clean up. If not passed, it will first check if the object's type exists in TypeDefaults, and if that doesn't exist, it assumes `Destroy`.
+	@param [t:any?] Index The index that can be used to clean up the object manually.
+	@returns [t:any] The object that was passed.
 **--]]
 function Janitor.__index:Add(Object: any, MethodName: MethodName?, Index: any?): any
 	if Index then
@@ -111,8 +111,8 @@ end
 
 --[[**
 	Adds a promise to the janitor. If the janitor is cleaned up and the promise is not completed, the promise will be cancelled.
-	@param [Promise] PromiseObject The promise you want to add to the janitor.
-	@returns [Promise]
+	@param [t:Promise] PromiseObject The promise you want to add to the janitor.
+	@returns [t:Promise]
 **--]]
 function Janitor.__index:AddPromise(PromiseObject: Promise): Promise
 	if not Promise.is(PromiseObject) then
@@ -131,8 +131,8 @@ end
 
 --[[**
 	Cleans up whatever `Object` was set to this namespace by the 3rd parameter of `:Add()`.
-	@param [any] Index The index you want to remove.
-	@returns [Janitor] The same janitor, for chaining reasons.
+	@param [t:any] Index The index you want to remove.
+	@returns [t:Janitor] The same janitor, for chaining reasons.
 **--]]
 function Janitor.__index:Remove(Index: any)
 	local This = self[IndicesReference]
@@ -165,8 +165,8 @@ end
 
 --[[**
 	Gets whatever object is stored with the given index, if it exists. This was added since Maid allows getting the task using `__index`.
-	@param [any] Index The index that the object is stored under.
-	@returns [any?] This will return the object if it is found, but it won't return anything if it doesn't exist.
+	@param [t:any] Index The index that the object is stored under.
+	@returns [t:any?] This will return the object if it is found, but it won't return anything if it doesn't exist.
 **--]]
 function Janitor.__index:Get(Index: any): any?
 	local This = self[IndicesReference]
@@ -175,7 +175,7 @@ end
 
 --[[**
 	Calls each Object's `MethodName` (or calls the Object if `MethodName == true`) and removes them from the Janitor. Also clears the namespace. This function is also called when you call a Janitor Object (so it can be used as a destructor callback).
-	@returns [void]
+	@returns [t:void]
 **--]]
 function Janitor.__index:Cleanup()
 	if not self.CurrentlyCleaning then
@@ -212,7 +212,7 @@ end
 
 --[[**
 	Calls `:Cleanup()` and renders the Janitor unusable.
-	@returns [void]
+	@returns [t:void]
 **--]]
 function Janitor.__index:Destroy()
 	self:Cleanup()
@@ -235,9 +235,9 @@ end
 
 --[[**
 	"Links" this Janitor to an Instance, such that the Janitor will `Cleanup` when the Instance is `Destroyed()` and garbage collected. A Janitor may only be linked to one instance at a time, unless `AllowMultiple` is true. When called with a truthy `AllowMultiple` parameter, the Janitor will "link" the Instance without overwriting any previous links, and will also not be overwritable. When called with a falsy `AllowMultiple` parameter, the Janitor will overwrite the previous link which was also called with a falsy `AllowMultiple` parameter, if applicable.
-	@param [Instance] Object The instance you want to link the Janitor to.
-	@param [boolean?] AllowMultiple Whether or not to allow multiple links on the same Janitor.
-	@returns [RbxScriptConnection] A pseudo RBXScriptConnection that can be disconnected.
+	@param [t:Instance] Object The instance you want to link the Janitor to.
+	@param [t:boolean?] AllowMultiple Whether or not to allow multiple links on the same Janitor.
+	@returns [t:RbxScriptConnection] A pseudo RBXScriptConnection that can be disconnected.
 **--]]
 function Janitor.__index:LinkToInstance(Object: Instance, AllowMultiple: boolean?)
 	local Reference = Instance.new("ObjectValue")
@@ -290,8 +290,8 @@ end
 
 --[[**
 	Links several instances to a janitor, which is then returned.
-	@param [...Instance] ... All the instances you want linked.
-	@returns [Janitor] A janitor that can be used to manually disconnect all LinkToInstances.
+	@param [t:...Instance] ... All the instances you want linked.
+	@returns [t:Janitor] A janitor that can be used to manually disconnect all LinkToInstances.
 **--]]
 function Janitor.__index:LinkToInstances(...) -- : Instance
 	local ManualCleanup = Janitor.new()
