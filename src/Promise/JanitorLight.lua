@@ -35,16 +35,17 @@ local function Wait(Seconds)
 	end
 end
 
-local function FastSpawn(Function, ...)
-	local Arguments = table.pack(...)
-	local BindableEvent = Instance.new("BindableEvent")
+local function ResumeThreadWithTraceback(Thread, Success, ...)
+	if not Success then
+		warn(debug.traceback(Thread, tostring(...)))
+	end
 
-	BindableEvent.Event:Connect(function()
-		Function(table.unpack(Arguments, 1, Arguments.n))
-	end)
+	return Success, ...
+end
 
-	BindableEvent:Fire()
-	BindableEvent:Destroy()
+local function ThreadSpawn(Function, ...)
+	local Thread = coroutine.create(Function)
+	return ResumeThreadWithTraceback(Thread, coroutine.resume(Thread, ...))
 end
 
 local TypeDefaults = {
@@ -273,7 +274,7 @@ function Janitor.__index:LinkToInstance(Object, AllowMultiple)
 	Connection = Object.AncestryChanged:Connect(ChangedFunction)
 	ManualDisconnect.Connection = Connection
 	Object = nil
-	FastSpawn(ChangedFunction, Reference.Value, Reference.Value.Parent)
+	ThreadSpawn(ChangedFunction, Reference.Value, Reference.Value.Parent)
 
 	if AllowMultiple then
 		self:Add(ManualDisconnect, "Disconnect")

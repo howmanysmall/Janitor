@@ -27,7 +27,7 @@ local Janitor = {
 	};
 }
 
-local FastSpawn = Scheduler.FastSpawn
+local FastSpawn = Scheduler.ThreadSpawn
 local Wait = Scheduler.Wait
 
 local TypeDefaults = {

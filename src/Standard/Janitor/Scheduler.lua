@@ -8,9 +8,8 @@ local RunService = game:GetService("RunService")
 local Heartbeat = RunService.Heartbeat
 local TimeFunction = RunService:IsRunning() and time or os.clock
 
-local Scheduler = {
-	TimeFunction = TimeFunction;
-}
+local Scheduler = {}
+Scheduler.TimeFunction = TimeFunction
 
 local Queue = {}
 local CurrentLength = 0
@@ -168,6 +167,25 @@ function Scheduler.FastSpawn(Function, ...)
 
 	BindableEvent:Fire()
 	BindableEvent:Destroy()
+end
+
+local function ResumeThreadWithTraceback(Thread, Success, ...)
+	if not Success then
+		warn(debug.traceback(Thread, tostring(...)))
+	end
+
+	return Success, ...
+end
+
+--[[**
+	Spawns the passed function immediately using coroutines. This keeps the traceback as well, and warns if the function errors.
+	@param [t:function] Function The function you are calling.
+	@param [t:...any?] ... The optional arguments to call the function with.
+	@returns [t:boolean,...any?] Whether or not the call was successful and the returned values.
+**--]]
+function Scheduler.ThreadSpawn(Function, ...)
+	local Thread = coroutine.create(Function)
+	return ResumeThreadWithTraceback(Thread, coroutine.resume(Thread, ...))
 end
 
 return Scheduler
