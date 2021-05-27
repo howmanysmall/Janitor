@@ -377,7 +377,7 @@ return function()
 			NewJanitor:Destroy()
 		end)
 
-		LinkToInstanceFunction("should cleanup once the Instance is destroyed", function()
+		it("should cleanup once the Instance is destroyed", function()
 			local NewJanitor = Janitor.new()
 			local WasCleaned = false
 
@@ -390,7 +390,6 @@ return function()
 
 			NewJanitor:LinkToInstance(Part)
 
-			--Scheduler.Wait(0.1)
 			Part:Destroy()
 			wait(0.1)
 
@@ -401,13 +400,12 @@ return function()
 			--end).never.to.throw()
 		end)
 
-		LinkToInstanceFunction("shouldn't run if the Instance is removed or parented to nil", function()
+		it("shouldn't run if the Instance is removed or parented to nil", function()
 			local NewJanitor = Janitor.new()
 			local Part = Instance.new("Part")
 			Part.Parent = ReplicatedStorage
 
 			NewJanitor:Add(Noop, true, "Function")
-
 			NewJanitor:LinkToInstance(Part)
 
 			Part.Parent = nil
@@ -416,6 +414,7 @@ return function()
 			expect(NewJanitor:Get("Function")).to.equal(Noop)
 
 			Part:Destroy()
+			wait(0.1)
 			expect(function()
 				NewJanitor:Destroy()
 			end).never.to.throw()

@@ -2,6 +2,7 @@
 -- Original by Validark
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
+-- LinkToInstance fixed by Elttob.
 
 -- This should be thread safe. I think it also won't break.
 
@@ -27,19 +28,6 @@ local Janitor = {
 		[IndicesReference] = nil;
 	};
 }
-
-local function ResumeThreadWithTraceback(Thread, Success, ...)
-	if not Success then
-		warn(debug.traceback(Thread, tostring(...)))
-	end
-
-	return Success, ...
-end
-
-local function ThreadSpawn(Function, ...)
-	local Thread = coroutine.create(Function)
-	return ResumeThreadWithTraceback(Thread, coroutine.resume(Thread, ...))
-end
 
 local TypeDefaults = {
 	["function"] = true;
@@ -197,8 +185,14 @@ Janitor.__call = Janitor.__index.Cleanup
 local Disconnect = {Connected = true}
 Disconnect.__index = Disconnect
 function Disconnect:Disconnect()
-	self.Connected = false
-	self.Connection:Disconnect()
+	if self.Connected then
+		self.Connected = false
+		self.Connection:Disconnect()
+	end
+end
+
+function Disconnect:__tostring()
+	return "Disconnect<" .. tostring(self.Connected) .. ">"
 end
 
 --[[**
@@ -209,34 +203,32 @@ end
 **--]]
 function Janitor.__index:LinkToInstance(Object, AllowMultiple)
 	local Connection
-	local IsDisconnected = false
-	local ManualDisconnect = setmetatable({}, Disconnect)
+	local IndexToUse = AllowMultiple and newproxy(false) or LinkToInstanceIndex
 	local IsNilParented = Object.Parent == nil
+	local ManualDisconnect = setmetatable({}, Disconnect)
 
-	local function ChangedFunction(DoNotUse, NewParent)
-		if not IsDisconnected then
-			DoNotUse = nil
+	local function ChangedFunction(_DoNotUse, NewParent)
+		if ManualDisconnect.Connected then
+			_DoNotUse = nil
 			IsNilParented = NewParent == nil
 
 			if IsNilParented then
-				ThreadSpawn(function()
+				coroutine.wrap(function()
 					Heartbeat:Wait()
-					if IsDisconnected then
+					if not ManualDisconnect.Connected then
 						return
 					elseif not Connection.Connected then
-						IsDisconnected = true
 						self:Cleanup()
 					else
-						while IsNilParented and Connection.Connected and not IsDisconnected do
+						while IsNilParented and Connection.Connected and ManualDisconnect.Connected do
 							Heartbeat:Wait()
 						end
 
-						if not IsDisconnected and IsNilParented then
-							IsDisconnected = true
+						if ManualDisconnect.Connected and IsNilParented then
 							self:Cleanup()
 						end
 					end
-				end)
+				end)()
 			end
 		end
 	end
@@ -249,12 +241,7 @@ function Janitor.__index:LinkToInstance(Object, AllowMultiple)
 	end
 
 	Object = nil
-
-	if AllowMultiple then
-		return self:Add(ManualDisconnect, "Disconnect")
-	else
-		return self:Add(ManualDisconnect, "Disconnect", LinkToInstanceIndex)
-	end
+	return self:Add(ManualDisconnect, "Disconnect", IndexToUse)
 end
 
 --[[**
