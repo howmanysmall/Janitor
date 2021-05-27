@@ -40,7 +40,6 @@ return function()
 
 	local Janitor = require(script.Parent)
 	local Promise = script.Parent.Parent:FindFirstChild("Promise") and require(script.Parent.Parent.Promise)
-	local Scheduler = require(script.Parent.Scheduler)
 
 	local BasicClass = {}
 	BasicClass.__index = BasicClass
@@ -393,7 +392,7 @@ return function()
 
 			--Scheduler.Wait(0.1)
 			Part:Destroy()
-			Scheduler.Wait(0.1)
+			wait(0.1)
 
 			expect(WasCleaned).to.equal(true)
 			NewJanitor:Destroy()

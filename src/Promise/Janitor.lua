@@ -3,6 +3,8 @@
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
 
+-- This should be thread safe. I think it also won't break.
+
 local RunService = game:GetService("RunService")
 local Promise = require(script.Parent.Promise)
 local Heartbeat = RunService.Heartbeat
@@ -27,13 +29,6 @@ local Janitor = {
 		[IndicesReference] = nil;
 	};
 }
-
-local function Wait(Seconds)
-	local TimeRemaining = Seconds
-	while TimeRemaining > 0 do
-		TimeRemaining -= Heartbeat:Wait()
-	end
-end
 
 local function ResumeThreadWithTraceback(Thread, Success, ...)
 	if not Success then
@@ -237,52 +232,53 @@ end
 	@returns [t:RbxScriptConnection] A pseudo RBXScriptConnection that can be disconnected.
 **--]]
 function Janitor.__index:LinkToInstance(Object, AllowMultiple)
-	local Reference = Instance.new("ObjectValue")
-	Reference.Value = Object
-
-	local ManualDisconnect = setmetatable({}, Disconnect)
 	local Connection
-	local function ChangedFunction(Obj, Par)
-		if not Reference.Value then
-			ManualDisconnect.Connected = false
-			return self:Cleanup()
-		elseif Obj == Reference.Value and not Par then
-			Obj = nil
-			Wait(0.03)
+	local IsDisconnected = false
+	local ManualDisconnect = setmetatable({}, Disconnect)
+	local IsNilParented = Object.Parent == nil
 
-			if (not Reference.Value or not Reference.Value.Parent) and ManualDisconnect.Connected then
-				if not Connection.Connected then
-					ManualDisconnect.Connected = false
-					return self:Cleanup()
-				else
-					while true do
-						Wait(0.2)
-						if not ManualDisconnect.Connected then
-							return
-						elseif not Connection.Connected then
-							ManualDisconnect.Connected = false
-							return self:Cleanup()
-						elseif Reference.Value.Parent then
-							return
+	local function ChangedFunction(_DoNotUse, NewParent)
+		if not IsDisconnected then
+			_DoNotUse = nil
+			IsNilParented = NewParent == nil
+
+			if IsNilParented then
+				ThreadSpawn(function()
+					Heartbeat:Wait()
+					if IsDisconnected then
+						return
+					elseif not Connection.Connected then
+						IsDisconnected = true
+						self:Cleanup()
+					else
+						while IsNilParented and Connection.Connected and not IsDisconnected do
+							Heartbeat:Wait()
+						end
+
+						if not IsDisconnected and IsNilParented then
+							IsDisconnected = true
+							self:Cleanup()
 						end
 					end
-				end
+				end)
 			end
 		end
 	end
 
 	Connection = Object.AncestryChanged:Connect(ChangedFunction)
 	ManualDisconnect.Connection = Connection
-	Object = nil
-	ThreadSpawn(ChangedFunction, Reference.Value, Reference.Value.Parent)
 
-	if AllowMultiple then
-		self:Add(ManualDisconnect, "Disconnect")
-	else
-		self:Add(ManualDisconnect, "Disconnect", LinkToInstanceIndex)
+	if IsNilParented then
+		ChangedFunction(nil, Object.Parent)
 	end
 
-	return ManualDisconnect
+	Object = nil
+
+	if AllowMultiple then
+		return self:Add(ManualDisconnect, "Disconnect")
+	else
+		return self:Add(ManualDisconnect, "Disconnect", LinkToInstanceIndex)
+	end
 end
 
 --[[**

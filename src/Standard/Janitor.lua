@@ -5,8 +5,8 @@
 
 -- This should be thread safe. I think it also won't break.
 
-local Promise = require(script.Parent.Promise)
-local Scheduler = require(script.Scheduler)
+local RunService = game:GetService("RunService")
+local Heartbeat = RunService.Heartbeat
 
 local IndicesReference = newproxy(true)
 getmetatable(IndicesReference).__tostring = function()
@@ -18,7 +18,6 @@ getmetatable(LinkToInstanceIndex).__tostring = function()
 	return "LinkToInstanceIndex"
 end
 
-local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
 local METHOD_NOT_FOUND_ERROR = "Object %s doesn't have method %s, are you sure you want to add it? Traceback: %s"
 
 local Janitor = {
@@ -29,8 +28,18 @@ local Janitor = {
 	};
 }
 
-local FastSpawn = Scheduler.ThreadSpawn
-local Wait = Scheduler.Wait
+local function ResumeThreadWithTraceback(Thread, Success, ...)
+	if not Success then
+		warn(debug.traceback(Thread, tostring(...)))
+	end
+
+	return Success, ...
+end
+
+local function ThreadSpawn(Function, ...)
+	local Thread = coroutine.create(Function)
+	return ResumeThreadWithTraceback(Thread, coroutine.resume(Thread, ...))
+end
 
 local TypeDefaults = {
 	["function"] = true;
@@ -84,28 +93,6 @@ function Janitor.__index:Add(Object, MethodName, Index)
 
 	self[Object] = MethodName
 	return Object
-end
-
--- My version of Promise has PascalCase, but I converted it to use lowerCamelCase for this release since obviously that's important to do.
-
---[[**
-	Adds a promise to the janitor. If the janitor is cleaned up and the promise is not completed, the promise will be cancelled.
-	@param [t:Promise] PromiseObject The promise you want to add to the janitor.
-	@returns [t:Promise]
-**--]]
-function Janitor.__index:AddPromise(PromiseObject)
-	if not Promise.is(PromiseObject) then
-		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
-	end
-
-	if PromiseObject:getStatus() == Promise.Status.Started then
-		local Id = newproxy(false)
-		local NewPromise = self:Add(Promise.resolve(PromiseObject), "cancel", Id)
-		NewPromise:finallyCall(self.Remove, self, Id)
-		return NewPromise
-	else
-		return PromiseObject
-	end
 end
 
 --[[**
@@ -221,52 +208,53 @@ end
 	@returns [t:RbxScriptConnection] A pseudo RBXScriptConnection that can be disconnected.
 **--]]
 function Janitor.__index:LinkToInstance(Object, AllowMultiple)
-	local Reference = Instance.new("ObjectValue")
-	Reference.Value = Object
-
-	local ManualDisconnect = setmetatable({}, Disconnect)
 	local Connection
-	local function ChangedFunction(Obj, Par)
-		if not Reference.Value then
-			ManualDisconnect.Connected = false
-			return self:Cleanup()
-		elseif Obj == Reference.Value and not Par then
-			Obj = nil
-			Wait(0.03)
+	local IsDisconnected = false
+	local ManualDisconnect = setmetatable({}, Disconnect)
+	local IsNilParented = Object.Parent == nil
 
-			if (not Reference.Value or not Reference.Value.Parent) and ManualDisconnect.Connected then
-				if not Connection.Connected then
-					ManualDisconnect.Connected = false
-					return self:Cleanup()
-				else
-					while true do
-						Wait(0.2)
-						if not ManualDisconnect.Connected then
-							return
-						elseif not Connection.Connected then
-							ManualDisconnect.Connected = false
-							return self:Cleanup()
-						elseif Reference.Value.Parent then
-							return
+	local function ChangedFunction(DoNotUse, NewParent)
+		if not IsDisconnected then
+			DoNotUse = nil
+			IsNilParented = NewParent == nil
+
+			if IsNilParented then
+				ThreadSpawn(function()
+					Heartbeat:Wait()
+					if IsDisconnected then
+						return
+					elseif not Connection.Connected then
+						IsDisconnected = true
+						self:Cleanup()
+					else
+						while IsNilParented and Connection.Connected and not IsDisconnected do
+							Heartbeat:Wait()
+						end
+
+						if not IsDisconnected and IsNilParented then
+							IsDisconnected = true
+							self:Cleanup()
 						end
 					end
-				end
+				end)
 			end
 		end
 	end
 
 	Connection = Object.AncestryChanged:Connect(ChangedFunction)
 	ManualDisconnect.Connection = Connection
-	Object = nil
-	FastSpawn(ChangedFunction, Reference.Value, Reference.Value.Parent)
 
-	if AllowMultiple then
-		self:Add(ManualDisconnect, "Disconnect")
-	else
-		self:Add(ManualDisconnect, "Disconnect", LinkToInstanceIndex)
+	if IsNilParented then
+		ChangedFunction(nil, Object.Parent)
 	end
 
-	return ManualDisconnect
+	Object = nil
+
+	if AllowMultiple then
+		return self:Add(ManualDisconnect, "Disconnect")
+	else
+		return self:Add(ManualDisconnect, "Disconnect", LinkToInstanceIndex)
+	end
 end
 
 --[[**
