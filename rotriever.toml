@@ -2,6 +2,6 @@
 name = "howmanysmall/Janitor"
 version = "1.13.4"
 author = "howmanysmall"
-dependencies_root = "./src/Standard/"
-content_root = "./src/Standard"
+dependencies_root = "./src/Standard/Janitor.lua"
+content_root = "./src/Standard/Janitor.lua"
 license = "MIT"
