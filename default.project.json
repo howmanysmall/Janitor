@@ -1,7 +1,7 @@
 {
 	"name": "Janitor",
 	"tree": {
-		"$path": "src/Standard/Janitor.lua",
+		"$path": "src/Standard",
 		"$ignoreUnknownInstances": true
 	}
 }
