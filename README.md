@@ -21,7 +21,7 @@ If your project uses Janitor, leave a PR on the readme!
 
 - Janitor makes dealing with garbage collection much less annoying and stressful because it manages them all in a nice interface.
 - `Janitor:Add` returns whatever was added, which Maid doesn't.
-- `Janitor:Add` also accepts a custom method, if you want to call `:Stop` on a `Tween`. You can see this being used in the [JanitorPromise](https://github.com/howmanysmall/Janitor/blob/main/src/JanitorPromise/init.lua#L77) library.
+- `Janitor:Add` also accepts a custom method, if you want to call `:Stop` on a `Tween`. You can see this being used in the [JanitorPromise](https://github.com/howmanysmall/Janitor/blob/main/src/Promise/init.lua#L100) library.
 - `Janitor:Add` also accepts a custom reference to store under, which keeps the api more consistent. (`Maid.A = X` and `Maid:GiveTask(Y)` vs `Janitor:Add(X, nil, "A")` and `Janitor:Add(Y)`)
 - Janitor also allows linking to an Instance, so when the Instance is destroyed, the Janitor cleans up everything along with it.
 
@@ -31,8 +31,8 @@ If your project uses Janitor, leave a PR on the readme!
 
 ## Which version should you use?
 
-- If you use [Promise](https://github.com/evaera/roblox-lua-promise), you should take a look at either [JanitorPromise](https://github.com/howmanysmall/Janitor/tree/main/src/Promise/Janitor) or [JanitorPromiseLight](https://github.com/howmanysmall/Janitor/blob/main/src/Promise/JanitorLight.lua).
-- If you don't use Promise, you should look at either [Janitor](https://github.com/howmanysmall/Janitor/tree/main/src/Standard/Janitor) or [JanitorLight](https://github.com/howmanysmall/Janitor/blob/main/src/Standard/JanitorLight.lua).
+- If you use [Promise](https://github.com/evaera/roblox-lua-promise), you should take a look at [JanitorPromise](https://github.com/howmanysmall/Janitor/blob/main/src/Promise/init.lua).
+- If you don't use Promise, you should look at [Janitor](https://github.com/howmanysmall/Janitor/blob/main/src/Standard/init.lua).
 - If you don't want extra dependencies, use one of the Light libraries.
 
 ## Performance
