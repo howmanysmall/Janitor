@@ -78,7 +78,7 @@ return function()
 		local NewJanitor = Janitor.new()
 		local AddPromise = type(NewJanitor.AddPromise)
 		NewJanitor:Destroy()
-		return AddPromise == "function" and type(Promise) == "table"
+		return AddPromise == "function" and script.Parent.Parent:FindFirstChild("Promise") ~= nil and type(Promise) == "table"
 	end)
 
 	local IsPromiseSupported = Success and CheckValue
@@ -391,13 +391,50 @@ return function()
 			NewJanitor:LinkToInstance(Part)
 
 			Part:Destroy()
-			wait(0.1)
+			task.wait(0.1)
 
 			expect(WasCleaned).to.equal(true)
 			NewJanitor:Destroy()
 			--expect(function()
 			--	NewJanitor:Destroy()
 			--end).never.to.throw()
+		end)
+
+		it("should work if the Instance is parented to nil when started", function()
+			local NewJanitor = Janitor.new()
+			local WasCleaned = false
+
+			local Part = Instance.new("Part")
+			NewJanitor:Add(function()
+				WasCleaned = true
+			end, true)
+
+			NewJanitor:LinkToInstance(Part)
+			Part.Parent = workspace
+
+			Part:Destroy()
+			task.wait(0.1)
+
+			expect(WasCleaned).to.equal(true)
+			NewJanitor:Destroy()
+		end)
+
+		it("should work if the Instance is parented to nil", function()
+			local NewJanitor = Janitor.new()
+			local WasCleaned = false
+
+			local Part = Instance.new("Part")
+			NewJanitor:Add(function()
+				WasCleaned = true
+			end, true)
+
+			NewJanitor:LinkToInstance(Part)
+
+			Part:Destroy()
+			task.wait(0.1)
+
+			expect(WasCleaned).to.equal(true)
+			NewJanitor:Destroy()
 		end)
 
 		it("shouldn't run if the Instance is removed or parented to nil", function()
@@ -414,7 +451,7 @@ return function()
 			expect(NewJanitor:Get("Function")).to.equal(Noop)
 
 			Part:Destroy()
-			wait(0.1)
+			task.wait(0.1)
 			expect(function()
 				NewJanitor:Destroy()
 			end).never.to.throw()
