@@ -36,7 +36,6 @@ type describeSKIP = (string) -> nil
 
 return function()
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
-	local RunService = game:GetService("RunService")
 
 	local Janitor = require(script.Parent)
 	local Promise = script.Parent.Parent:FindFirstChild("Promise") and require(script.Parent.Parent.Promise)
@@ -83,7 +82,6 @@ return function()
 
 	local IsPromiseSupported = Success and CheckValue
 	local PromiseFunction = IsPromiseSupported and Noop or describeSKIP
-	local LinkToInstanceFunction = RunService:IsRunning() and it or itSKIP
 
 	describe("Is", function()
 		it("should return true iff the passed value is a Janitor", function()

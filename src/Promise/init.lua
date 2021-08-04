@@ -4,9 +4,7 @@
 -- roblox-ts support by OverHash and Validark
 -- LinkToInstance fixed by Elttob.
 
-local RunService = game:GetService("RunService")
 local Promise = require(script.Parent.Promise)
-local Heartbeat = RunService.Heartbeat
 
 local IndicesReference = newproxy(true)
 getmetatable(IndicesReference).__tostring = function()
@@ -76,7 +74,7 @@ function Janitor.__index:Add(Object, MethodName, Index)
 
 	MethodName = MethodName or TypeDefaults[typeof(Object)] or "Destroy"
 	if type(Object) ~= "function" and not Object[MethodName] then
-		warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(Object), tostring(MethodName), debug.traceback(nil, 2)))
+		warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(Object), tostring(MethodName), debug.traceback(nil :: any, 2)))
 	end
 
 	self[Object] = MethodName
@@ -235,22 +233,21 @@ function Janitor.__index:LinkToInstance(Object, AllowMultiple)
 			IsNilParented = NewParent == nil
 
 			if IsNilParented then
-				coroutine.wrap(function()
-					Heartbeat:Wait()
+				task.defer(function()
 					if not ManualDisconnect.Connected then
 						return
 					elseif not Connection.Connected then
 						self:Cleanup()
 					else
 						while IsNilParented and Connection.Connected and ManualDisconnect.Connected do
-							Heartbeat:Wait()
+							task.wait()
 						end
 
 						if ManualDisconnect.Connected and IsNilParented then
 							self:Cleanup()
 						end
 					end
-				end)()
+				end)
 			end
 		end
 	end
