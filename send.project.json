@@ -6,8 +6,12 @@
 			"$className": "ReplicatedStorage",
 			"$ignoreUnknownInstances": true,
 			"Janitor": {
-				"$path": "src/Promise/Janitor",
-				"$ignoreUnknownInstances": true
+				"$path": "src/Promise",
+				"$ignoreUnknownInstances": true,
+				"Janitor.spec": {
+					"$path": "test/Janitor.spec.lua",
+					"$ignoreUnknownInstances": true
+				}
 			}
 		}
 	}

@@ -36,10 +36,11 @@ type describeSKIP = (string) -> nil
 
 return function()
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
-	local RunService = game:GetService("RunService")
 
 	local Janitor = require(script.Parent)
-	local Promise = script.Parent.Parent:FindFirstChild("Promise") and require(script.Parent.Parent.Promise)
+	local PromiseModule = ReplicatedStorage:FindFirstChild("Promise", true)
+	local PromiseExists = PromiseModule ~= nil and PromiseModule:IsA("ModuleScript")
+	local Promise = PromiseExists and require(script.Parent.Parent.Promise)
 
 	local BasicClass = {}
 	BasicClass.__index = BasicClass
@@ -78,12 +79,11 @@ return function()
 		local NewJanitor = Janitor.new()
 		local AddPromise = type(NewJanitor.AddPromise)
 		NewJanitor:Destroy()
-		return AddPromise == "function" and script.Parent.Parent:FindFirstChild("Promise") ~= nil and type(Promise) == "table"
+		return AddPromise == "function"
 	end)
 
-	local IsPromiseSupported = Success and CheckValue
+	local IsPromiseSupported = Success and CheckValue and PromiseExists
 	local PromiseFunction = IsPromiseSupported and Noop or describeSKIP
-	local LinkToInstanceFunction = RunService:IsRunning() and it or itSKIP
 
 	describe("Is", function()
 		it("should return true iff the passed value is a Janitor", function()
