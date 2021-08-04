@@ -123,6 +123,8 @@ function Janitor.__index:Get(Index)
 	local This = self[IndicesReference]
 	if This then
 		return This[Index]
+	else
+		return nil
 	end
 end
 
@@ -196,7 +198,7 @@ end
 	"Links" this Janitor to an Instance, such that the Janitor will `Cleanup` when the Instance is `Destroyed()` and garbage collected. A Janitor may only be linked to one instance at a time, unless `AllowMultiple` is true. When called with a truthy `AllowMultiple` parameter, the Janitor will "link" the Instance without overwriting any previous links, and will also not be overwritable. When called with a falsy `AllowMultiple` parameter, the Janitor will overwrite the previous link which was also called with a falsy `AllowMultiple` parameter, if applicable.
 	@param [t:Instance] Object The instance you want to link the Janitor to.
 	@param [t:boolean?] AllowMultiple Whether or not to allow multiple links on the same Janitor.
-	@returns [t:RbxScriptConnection] A pseudo RBXScriptConnection that can be disconnected.
+	@returns [t:RbxScriptConnection] A pseudo RBXScriptConnection that can be disconnected to prevent the cleanup of LinkToInstance.
 **--]]
 function Janitor.__index:LinkToInstance(Object, AllowMultiple)
 	local Connection
@@ -243,7 +245,7 @@ end
 --[[**
 	Links several instances to a janitor, which is then returned.
 	@param [t:...Instance] ... All the instances you want linked.
-	@returns [t:Janitor] A janitor that can be used to manually disconnect all LinkToInstances.
+	@returns [t:Janitor] A new janitor that can be used to manually disconnect all LinkToInstances.
 **--]]
 function Janitor.__index:LinkToInstances(...)
 	local ManualCleanup = Janitor.new()
