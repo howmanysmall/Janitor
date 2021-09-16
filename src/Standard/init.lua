@@ -84,11 +84,11 @@ function Janitor.__index:Remove(Index: any): Janitor
 
 			if MethodName then
 				if MethodName == true then
-					task.spawn(Object)
+					Object()
 				else
 					local ObjectMethod = Object[MethodName]
 					if ObjectMethod then
-						task.spawn(ObjectMethod, Object)
+						ObjectMethod(Object)
 					end
 				end
 
@@ -123,17 +123,17 @@ end
 function Janitor.__index:Cleanup()
 	if not self.CurrentlyCleaning then
 		self.CurrentlyCleaning = nil
-		for Object, MethodName in next, self do
+		for Object, MethodName in pairs(self) do
 			if Object == IndicesReference then
 				continue
 			end
 
 			if MethodName == true then
-				task.spawn(Object)
+				Object()
 			else
 				local ObjectMethod = Object[MethodName]
 				if ObjectMethod then
-					task.spawn(ObjectMethod, Object)
+					ObjectMethod(Object)
 				end
 			end
 
@@ -142,10 +142,7 @@ function Janitor.__index:Cleanup()
 
 		local This = self[IndicesReference]
 		if This then
-			for Index in next, This do
-				This[Index] = nil
-			end
-
+			table.clear(This)
 			self[IndicesReference] = {}
 		end
 
@@ -217,7 +214,7 @@ function Janitor.__index:LinkToInstance(Object: Instance, AllowMultiple: boolean
 						self:Cleanup()
 					else
 						while IsNilParented and Connection.Connected and ManualDisconnect.Connected do
-							task.wait()
+							task.wait(0)
 						end
 
 						if ManualDisconnect.Connected and IsNilParented then
