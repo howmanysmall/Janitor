@@ -1,0 +1,34 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Setup foreman
+        uses: rojo-rbx/setup-foreman@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build asset
+        run: rojo build -o Janitor.rbxm default.project.json
+
+      - name: Git Release
+        uses: anton-yurchenko/git-release@v3.4.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRAFT_RELEASE: "false"
+          PRE_RELEASE: "false"
+          ALLOW_EMPTY_CHANGELOG: "true"
+          ALLOW_TAG_PREFIX: "true"
+        with:
+          args: |
+              ./Janitor.rbxm

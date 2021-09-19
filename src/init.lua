@@ -4,17 +4,12 @@
 -- roblox-ts support by OverHash and Validark
 -- LinkToInstance fixed by Elttob.
 
-local Promise = require(script.Parent.Promise)
+local GetPromiseLibrary = require(script.GetPromiseLibrary)
+local Symbol = require(script.Symbol)
+local FoundPromiseLibrary, Promise = GetPromiseLibrary()
 
-local IndicesReference = newproxy(true)
-getmetatable(IndicesReference).__tostring = function()
-	return "IndicesReference"
-end
-
-local LinkToInstanceIndex = newproxy(true)
-getmetatable(LinkToInstanceIndex).__tostring = function()
-	return "LinkToInstanceIndex"
-end
+local IndicesReference = Symbol("IndicesReference")
+local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
 
 local METHOD_NOT_FOUND_ERROR = "Object %s doesn't have method %s, are you sure you want to add it? Traceback: %s"
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
@@ -72,22 +67,25 @@ function Janitor.__index:Add(Object: any, MethodName: StringOrTrue?, Index: any?
 end
 
 -- My version of Promise has PascalCase, but I converted it to use lowerCamelCase for this release since obviously that's important to do.
-
 --[[**
 	Adds a promise to the janitor. If the janitor is cleaned up and the promise is not completed, the promise will be cancelled.
 	@param [t:Promise] PromiseObject The promise you want to add to the janitor.
 	@returns [t:Promise]
 **--]]
 function Janitor.__index:AddPromise(PromiseObject)
-	if not Promise.is(PromiseObject) then
-		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
-	end
+	if FoundPromiseLibrary then
+		if not Promise.is(PromiseObject) then
+			error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
+		end
 
-	if PromiseObject:getStatus() == Promise.Status.Started then
-		local Id = newproxy(false)
-		local NewPromise = self:Add(Promise.resolve(PromiseObject), "cancel", Id)
-		NewPromise:finallyCall(self.Remove, self, Id)
-		return NewPromise
+		if PromiseObject:getStatus() == Promise.Status.Started then
+			local Id = newproxy(false)
+			local NewPromise = self:Add(Promise.resolve(PromiseObject), "cancel", Id)
+			NewPromise:finallyCall(self.Remove, self, Id)
+			return NewPromise
+		else
+			return PromiseObject
+		end
 	else
 		return PromiseObject
 	end
