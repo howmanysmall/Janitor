@@ -1,3 +1,4 @@
+-- TestEZ types (for autocomplete)
 type Dictionary<Value> = {[string]: Value}
 type DescribeFunction = (Dictionary<any>?) -> nil
 
