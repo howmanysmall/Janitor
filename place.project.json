@@ -1,0 +1,14 @@
+{
+	"name": "Janitor",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"$ignoreUnknownInstances": true,
+			"Janitor": {
+				"$path": "src",
+				"$ignoreUnknownInstances": true
+			}
+		}
+	}
+}

@@ -35,12 +35,12 @@ type it = describe
 type describeSKIP = (string) -> nil
 
 return function()
+	local Workspace = game:GetService("Workspace")
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 	local Janitor = require(script.Parent)
-	local PromiseModule = ReplicatedStorage:FindFirstChild("Promise", true)
-	local PromiseExists = PromiseModule ~= nil and PromiseModule:IsA("ModuleScript")
-	local Promise = PromiseExists and require(script.Parent.Parent.Promise)
+	local GetPromiseLibrary = require(script.Parent.GetPromiseLibrary)
+	local FoundPromiseLibrary, Promise = GetPromiseLibrary()
 
 	local BasicClass = {}
 	BasicClass.__index = BasicClass
@@ -72,18 +72,8 @@ return function()
 	-- describeSKIP = describeSKIP :: describeSKIP
 	-- itSKIP = itSKIP :: it
 
-	local function Noop(_: any)
-	end
-
-	local Success, CheckValue = pcall(function()
-		local NewJanitor = Janitor.new()
-		local AddPromise = type(NewJanitor.AddPromise)
-		NewJanitor:Destroy()
-		return AddPromise == "function"
-	end)
-
-	local IsPromiseSupported = Success and CheckValue and PromiseExists
-	local PromiseFunction = IsPromiseSupported and Noop or describeSKIP
+	local function Noop() end
+	local PromiseFunction = FoundPromiseLibrary and describe or describeSKIP
 
 	describe("Is", function()
 		it("should return true iff the passed value is a Janitor", function()
@@ -207,12 +197,12 @@ return function()
 		end)
 	end)
 
-	describe("AddPromise", function()
-		PromiseFunction("AddPromise isn't supported.")
-
+	PromiseFunction("AddPromise", function()
 		it("should add a Promise", function()
 			local NewJanitor = Janitor.new()
-			expect(Promise.is(NewJanitor:AddPromise(Promise.delay(60)))).to.equal(true)
+			local AddedPromise = NewJanitor:AddPromise(Promise.delay(60))
+
+			expect(Promise.is(AddedPromise)).to.equal(true)
 			NewJanitor:Destroy()
 		end)
 
@@ -382,7 +372,7 @@ return function()
 			local WasCleaned = false
 
 			local Part = Instance.new("Part")
-			Part.Parent = workspace
+			Part.Parent = Workspace
 
 			NewJanitor:Add(function()
 				WasCleaned = true
@@ -410,7 +400,7 @@ return function()
 			end, true)
 
 			NewJanitor:LinkToInstance(Part)
-			Part.Parent = workspace
+			Part.Parent = Workspace
 
 			Part:Destroy()
 			task.wait(0.1)
