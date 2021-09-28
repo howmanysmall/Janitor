@@ -361,7 +361,6 @@ end
 
 --[=[
 	Instantiates a new Janitor object.
-
 	@return Janitor
 ]=]
 function Janitor.new()
@@ -371,5 +370,5 @@ function Janitor.new()
 	}, Janitor)
 end
 
-export type Janitor = typeof(Janitor.new())
+export type Janitor = typeof(Janitor.new(false))
 return Janitor
