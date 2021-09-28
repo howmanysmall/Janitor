@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
-local SERVICES_TO_SEARCH = {ReplicatedFirst, ReplicatedStorage, ServerScriptService, ServerStorage}
+local LOCATIONS_TO_SEARCH = {ReplicatedFirst, ReplicatedStorage, ServerScriptService, ServerStorage, script.Parent.Parent}
 
 local function FindFirstDescendantWithNameAndClassName(Parent: Instance, Name: string, ClassName: string)
 	for _, Descendant in ipairs(Parent:GetDescendants()) do
@@ -20,8 +20,8 @@ local function GetPromiseLibrary()
 	-- I'm not too keen on how this is done.
 	-- It's better than the multiple if statements (probably).
 	local Promise
-	for _, Service in ipairs(SERVICES_TO_SEARCH) do
-		Promise = FindFirstDescendantWithNameAndClassName(Service, "Promise", "ModuleScript")
+	for _, Location in ipairs(LOCATIONS_TO_SEARCH) do
+		Promise = FindFirstDescendantWithNameAndClassName(Location, "Promise", "ModuleScript")
 		if Promise then
 			break
 		end
