@@ -1,5 +1,10 @@
+-- TODO: When Promise is on Wally, remove this in favor of just `script.Parent:FindFirstChild("Promise")`.
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
+
+local LOCATIONS_TO_SEARCH = {ReplicatedFirst, ReplicatedStorage, ServerScriptService, ServerStorage, script.Parent.Parent}
 
 local function FindFirstDescendantWithNameAndClassName(Parent: Instance, Name: string, ClassName: string)
 	for _, Descendant in ipairs(Parent:GetDescendants()) do
@@ -12,9 +17,14 @@ local function FindFirstDescendantWithNameAndClassName(Parent: Instance, Name: s
 end
 
 local function GetPromiseLibrary()
-	local Promise = FindFirstDescendantWithNameAndClassName(ReplicatedFirst, "Promise", "ModuleScript")
-	if not Promise then
-		Promise = FindFirstDescendantWithNameAndClassName(ReplicatedStorage, "Promise", "ModuleScript")
+	-- I'm not too keen on how this is done.
+	-- It's better than the multiple if statements (probably).
+	local Promise
+	for _, Location in ipairs(LOCATIONS_TO_SEARCH) do
+		Promise = FindFirstDescendantWithNameAndClassName(Location, "Promise", "ModuleScript")
+		if Promise then
+			break
+		end
 	end
 
 	if Promise then
