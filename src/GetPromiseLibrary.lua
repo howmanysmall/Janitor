@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
-local LOCATIONS_TO_SEARCH = {ReplicatedFirst, ReplicatedStorage, ServerScriptService, ServerStorage, script.Parent.Parent}
+local LOCATIONS_TO_SEARCH = {script.Parent.Parent, ReplicatedStorage, ReplicatedFirst, ServerScriptService, ServerStorage}
 
 local function FindFirstDescendantWithNameAndClassName(Parent: Instance, Name: string, ClassName: string)
 	for _, Descendant in ipairs(Parent:GetDescendants()) do
