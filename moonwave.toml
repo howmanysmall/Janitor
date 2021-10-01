@@ -1,0 +1,26 @@
+classOrder = ["Janitor", "RbxScriptConnection"]
+
+[docusaurus]
+url = "https://howmanysmall.github.io"
+tagline = "Garbage collecting object implementation for Roblox"
+
+[[navbar.items]]
+href = "https://discord.gg/mhtGUS8"
+label = "Discord"
+position = "right"
+
+[home]
+enabled = true
+includeReadme = true
+
+[[home.features]]
+title = "Custom cleanup methods"
+description = "Other garbage collection implementations such as Maid don't give you a choice with how you clean up objects. You can either give a function, a connection, an Instance, or a table with a Destroy method. Janitor allows you to specify how you clean up objects, so you can cancel a Tween when the Janitor is cleaned up."
+
+[[home.features]]
+title = "Promise Support"
+description = "Janitor supports adding Promises to it natively, which will then cancel if the Janitor is cleaned up."
+
+[[home.features]]
+title = "Made with Luau in mind"
+description = "Janitor has been redesigned for the new Luau VM for maximum performance."

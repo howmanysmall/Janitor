@@ -20,14 +20,13 @@ local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expe
 	Instead, the developer may specify any behavior for any object.
 
 	@class Janitor
-	@__index {}
+	@__index Janitor
 ]=]
 local Janitor = {}
 Janitor.ClassName = "Janitor"
-Janitor.__index = {}
-
-Janitor.__index.CurrentlyCleaning = true
-Janitor.__index[IndicesReference] = nil
+Janitor.CurrentlyCleaning = true
+Janitor[IndicesReference] = nil
+Janitor.__index = Janitor
 
 local TypeDefaults = {
 	["function"] = true;
@@ -37,14 +36,12 @@ local TypeDefaults = {
 --[=[
 	Determines if the passed object is a Janitor. This checks the metatable directly.
 
-	@param Object any The object you are checking.
+	@param Object any -- The object you are checking.
 	@return boolean -- `true` iff `Object` is a Janitor.
 ]=]
-function Janitor.Is(Object: any): boolean
+function Janitor.Is(Object)
 	return type(Object) == "table" and getmetatable(Object) == Janitor
 end
-
-type StringOrTrue = string | boolean
 
 --[=[
 	Adds an `Object` to Janitor for later cleanup, where `MethodName` is the key of the method within `Object` which should be called at cleanup time.
@@ -52,10 +49,12 @@ type StringOrTrue = string | boolean
 	Returns the `Object`.
 
 	:::info
-	Objects not given an explicit `MethodName` will be passed into the `typeof` function for a very naive typecheck. RBXConnections will be assigned to "Disconnect", functions will be assigned to `true`, and everything else will default to "Destroy". Not recommended, but hey, you do you.
+	Objects not given an explicit `MethodName` will be passed into the `typeof` function for a very naive typecheck.
+	RBXConnections will be assigned to "Disconnect", functions will be assigned to `true`, and everything else will default to "Destroy".
+	Not recommended, but hey, you do you.
 	:::
 
-	```Lua
+	```lua
 	local Obliterator = Janitor.new()
 
 	-- Queue the Part to be Destroyed at Cleanup time
@@ -77,7 +76,7 @@ type StringOrTrue = string | boolean
 	@param Index? any -- The index that can be used to clean up the object manually.
 	@return T -- The object that was passed as the first argument.
 ]=]
-function Janitor.__index:Add(Object: any, MethodName: StringOrTrue?, Index: any?): any
+function Janitor:Add(Object, MethodName, Index)
 	if Index then
 		self:Remove(Index)
 
@@ -92,29 +91,27 @@ function Janitor.__index:Add(Object: any, MethodName: StringOrTrue?, Index: any?
 
 	MethodName = MethodName or TypeDefaults[typeof(Object)] or "Destroy"
 	if type(Object) ~= "function" and not Object[MethodName] then
-		warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(Object), tostring(MethodName), debug.traceback(nil :: any, 2)))
+		warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(Object), tostring(MethodName), debug.traceback(nil, 2)))
 	end
 
 	self[Object] = MethodName
 	return Object
 end
 
--- My version of Promise has PascalCase, but I converted it to use lowerCamelCase for this release since obviously that's important to do.
-
 --[=[
 	Adds a [Promise](https://github.com/evaera/roblox-lua-promise) to the Janitor. If the Janitor is cleaned up and the Promise is not completed, the Promise will be cancelled.
 
-	```Lua
+	```lua
 	local Obliterator = Janitor.new()
 	Obliterator:AddPromise(Promise.delay(3)):andThenCall(print, "Finished!"):catch(warn)
 	task.wait(1)
-	Obliterator:Cleanup() -- The above Promise should warn.
+	Obliterator:Cleanup()
 	```
 
 	@param PromiseObject Promise -- The promise you want to add to the Janitor.
 	@return Promise
 ]=]
-function Janitor.__index:AddPromise(PromiseObject)
+function Janitor:AddPromise(PromiseObject)
 	if FoundPromiseLibrary then
 		if not Promise.is(PromiseObject) then
 			error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
@@ -145,7 +142,7 @@ end
 	@param Index any -- The index you want to remove.
 	@return Janitor
 ]=]
-function Janitor.__index:Remove(Index: any): Janitor
+function Janitor:Remove(Index)
 	local This = self[IndicesReference]
 
 	if This then
@@ -186,7 +183,7 @@ end
 	@param Index any -- The index that the object is stored under.
 	@return any? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
 ]=]
-function Janitor.__index:Get(Index: any): any?
+function Janitor:Get(Index)
 	local This = self[IndicesReference]
 	if This then
 		return This[Index]
@@ -204,13 +201,13 @@ end
 	Obliterator()
 	```
 ]=]
-function Janitor.__index:Cleanup()
+function Janitor:Cleanup()
 	if not self.CurrentlyCleaning then
 		self.CurrentlyCleaning = nil
 		for Object, MethodName in pairs(self) do
-			if Object == IndicesReference then
-				continue
-			end
+			-- if Object == IndicesReference then
+			-- 	continue
+			-- end
 
 			if MethodName == true then
 				Object()
@@ -241,40 +238,43 @@ end
 	Running this will make any attempts to call a function of Janitor error.
 	:::
 ]=]
-function Janitor.__index:Destroy()
+function Janitor:Destroy()
 	self:Cleanup()
 	table.clear(self)
 	setmetatable(self, nil)
 end
 
-Janitor.__call = Janitor.__index.Cleanup
+Janitor.__call = Janitor.Cleanup
 
---- Makes the Janitor clean up when the instance is destroyed
--- @param Instance Instance The Instance the Janitor will wait for to be Destroyed
--- @returns Disconnectable table to stop Janitor from being cleaned up upon Instance Destroy (automatically cleaned up by Janitor, btw)
--- @author Corecii
-local Disconnect = {}
-Disconnect.Connected = true
-Disconnect.__index = Disconnect
+--[=[
+	A wrapper for an `RBXScriptConnection`. Makes the Janitor clean up when the instance is destroyed. This was created by Corecii.
 
-function Disconnect:Disconnect()
+	@class RbxScriptConnection
+	@__index RbxScriptConnection
+]=]
+local RbxScriptConnection = {}
+RbxScriptConnection.Connected = true
+RbxScriptConnection.__index = RbxScriptConnection
+
+--[=[
+	Disconnects the Signal.
+]=]
+function RbxScriptConnection:Disconnect()
 	if self.Connected then
 		self.Connected = false
 		self.Connection:Disconnect()
 	end
 end
 
-function Disconnect._new(RBXScriptConnection: RBXScriptConnection)
+function RbxScriptConnection._new(RBXScriptConnection)
 	return setmetatable({
 		Connection = RBXScriptConnection;
-	}, Disconnect)
+	}, RbxScriptConnection)
 end
 
-function Disconnect:__tostring()
-	return "Disconnect<" .. tostring(self.Connected) .. ">"
+function RbxScriptConnection:__tostring()
+	return "RbxScriptConnection<" .. tostring(self.Connected) .. ">"
 end
-
-type RbxScriptConnection = typeof(Disconnect._new(game:GetPropertyChangedSignal("ClassName"):Connect(function() end)))
 
 --[=[
 	"Links" this Janitor to an Instance, such that the Janitor will `Cleanup` when the Instance is `Destroyed()` and garbage collected.
@@ -294,19 +294,17 @@ type RbxScriptConnection = typeof(Disconnect._new(game:GetPropertyChangedSignal(
 		Obliterator:LinkToInstance(Folder)
 		Folder:Destroy()
 	end
-
-	-- Cleaning up!
 	```
 
 	@param Object Instance -- The instance you want to link the Janitor to.
-	@param AllowMultiple boolean? -- Whether or not to allow multiple links on the same Janitor.
+	@param AllowMultiple? boolean -- Whether or not to allow multiple links on the same Janitor.
 	@return RbxScriptConnection -- A pseudo RBXScriptConnection that can be disconnected to prevent the cleanup of LinkToInstance.
 ]=]
-function Janitor.__index:LinkToInstance(Object: Instance, AllowMultiple: boolean?): RbxScriptConnection
+function Janitor:LinkToInstance(Object, AllowMultiple)
 	local Connection
 	local IndexToUse = AllowMultiple and newproxy(false) or LinkToInstanceIndex
 	local IsNilParented = Object.Parent == nil
-	local ManualDisconnect = setmetatable({}, Disconnect)
+	local ManualDisconnect = setmetatable({}, RbxScriptConnection)
 
 	local function ChangedFunction(_DoNotUse, NewParent)
 		if ManualDisconnect.Connected then
@@ -340,17 +338,17 @@ function Janitor.__index:LinkToInstance(Object: Instance, AllowMultiple: boolean
 		ChangedFunction(nil, Object.Parent)
 	end
 
-	Object = nil :: any
+	Object = nil
 	return self:Add(ManualDisconnect, "Disconnect", IndexToUse)
 end
 
 --[=[
 	Links several instances to a new Janitor, which is then returned.
 
-	@param ...Instance -- All the Instances you want linked.
+	@param ... Instance -- All the Instances you want linked.
 	@return Janitor -- A new Janitor that can be used to manually disconnect all LinkToInstances.
 ]=]
-function Janitor.__index:LinkToInstances(...: Instance): Janitor
+function Janitor:LinkToInstances(...)
 	local ManualCleanup = Janitor.new()
 	for _, Object in ipairs({...}) do
 		ManualCleanup:Add(self:LinkToInstance(Object, true), "Disconnect")
@@ -370,5 +368,4 @@ function Janitor.new()
 	}, Janitor)
 end
 
-export type Janitor = typeof(Janitor.new(false))
 return Janitor
