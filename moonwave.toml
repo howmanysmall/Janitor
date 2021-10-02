@@ -23,7 +23,7 @@ description = "Janitor supports adding Promises to it natively, which will then 
 
 [[home.features]]
 title = "Instances linking"
-description = "Janitor's LinkToInstance method allows you to cleanup the Janitor when a linked Instance is destroyed. This allows you to execute behavior on destruction as well as bulk cleanup objects quickly."
+description = "Janitor's LinkToInstance method allows you to cleanup the Janitor when a linked Instance is destroyed. This allows you to execute behavior on destruction as well as cleanup objects quickly."
 
 # [[home.features]]
 # title = "Made with Luau in mind"
