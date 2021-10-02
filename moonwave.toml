@@ -1,8 +1,12 @@
 classOrder = ["Janitor", "RbxScriptConnection"]
+changelog = false
 
 [docusaurus]
-url = "https://howmanysmall.github.io"
+projectName = "projectName"
 tagline = "Garbage collector object implementation for Roblox"
+url = "https://howmanysmall.github.io"
+
+[navbar]
 
 [[navbar.items]]
 href = "https://discord.gg/mhtGUS8"
@@ -11,7 +15,7 @@ position = "right"
 
 [home]
 enabled = true
-includeReadme = true
+includeReadme = false
 
 [[home.features]]
 title = "Custom cleanup methods"
