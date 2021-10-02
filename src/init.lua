@@ -177,7 +177,7 @@ end
 	```lua
 	local Obliterator = Janitor.new()
 	Obliterator:Add(workspace.Baseplate, "Destroy", "Baseplate")
-	print(Obliterator:Get("Baseplate"))
+	print(Obliterator:Get("Baseplate")) -- Returns Baseplate.
 	```
 
 	@param Index any -- The index that the object is stored under.
