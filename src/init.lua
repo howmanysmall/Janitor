@@ -20,7 +20,6 @@ local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expe
 	Instead, the developer may specify any behavior for any object.
 
 	@class Janitor
-	@__index Janitor
 ]=]
 local Janitor = {}
 Janitor.ClassName = "Janitor"
@@ -57,20 +56,45 @@ type StringOrTrue = string | boolean
 	:::
 
 	```lua
+	local Workspace = game:GetService("Workspace")
+	local TweenService = game:GetService("TweenService")
+
 	local Obliterator = Janitor.new()
+	local Part = Workspace.Part
 
 	-- Queue the Part to be Destroyed at Cleanup time
-	Obliterator:Add(workspace.Part, "Destroy")
+	Obliterator:Add(Part, "Destroy")
 
 	-- Queue function to be called with `true` MethodName
 	Obliterator:Add(print, true)
 
 	-- This implementation allows you to specify behavior for any object
-	Obliterator:Add(Tween.new(0.5, 0, print), "Stop")
+	Obliterator:Add(TweenService:Create(Part, TweenInfo.new(1), {Size = Vector3.new(1, 1, 1)}), "Cancel")
 
 	-- By passing an Index, the Object will occupy a namespace
 	-- If "CurrentTween" already exists, it will call :Remove("CurrentTween") before writing
-	Obliterator:Add(Tween.new(0.5, 0, print), "Stop", "CurrentTween")
+	Obliterator:Add(TweenService:Create(Part, TweenInfo.new(1), {Size = Vector3.new(1, 1, 1)}), "Destroy", "CurrentTween")
+	```
+
+	```ts
+	import { Workspace, TweenService } from "@rbxts/services";
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor<{ CurrentTween: Tween }>();
+	const Part = Workspace.FindFirstChild("Part") as Part;
+
+	// Queue the Part to be Destroyed at Cleanup time
+	Obliterator.Add(Part, "Destroy");
+
+	// Queue function to be called with `true` MethodName
+	Obliterator.Add(print, true);
+
+	// This implementation allows you to specify behavior for any object
+	Obliterator.Add(TweenService.Create(Part, new TweenInfo(1), {Size: new Vector3(1, 1, 1)}), "Cancel");
+
+	// By passing an Index, the Object will occupy a namespace
+	// If "CurrentTween" already exists, it will call :Remove("CurrentTween") before writing
+	Obliterator.Add(TweenService.Create(Part, new TweenInfo(1), {Size: new Vector3(1, 1, 1)}), "Destroy", "CurrentTween");
 	```
 
 	@param Object T -- The object you want to clean up.
@@ -110,6 +134,15 @@ end
 	Obliterator:Cleanup()
 	```
 
+	```ts
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor();
+	Obliterator.AddPromise(Promise.delay(3)).andThenCall(print, "Finished!").catch(warn);
+	task.wait(1);
+	Obliterator.Cleanup();
+	```
+
 	@param PromiseObject Promise -- The promise you want to add to the Janitor.
 	@return Promise
 ]=]
@@ -133,12 +166,21 @@ function Janitor:AddPromise(PromiseObject)
 end
 
 --[=[
-	Cleans up whatever `Object` was set to this namespace by the 3rd parameter of [[Janitor.Add]].
+	Cleans up whatever `Object` was set to this namespace by the 3rd parameter of [Janitor.Add](#Add).
 
 	```lua
 	local Obliterator = Janitor.new()
 	Obliterator:Add(workspace.Baseplate, "Destroy", "Baseplate")
 	Obliterator:Remove("Baseplate")
+	```
+
+	```ts
+	import { Workspace } from "@rbxts/services";
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor<{ Baseplate: Part }>();
+	Obliterator.Add(Workspace.FindFirstChild("Baseplate") as Part, "Destroy", "Baseplate");
+	Obliterator.Remove("Baseplate");
 	```
 
 	@param Index any -- The index you want to remove.
@@ -182,6 +224,15 @@ end
 	print(Obliterator:Get("Baseplate")) -- Returns Baseplate.
 	```
 
+	```ts
+	import { Workspace } from "@rbxts/services";
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor<{ Baseplate: Part }>();
+	Obliterator.Add(Workspace.FindFirstChild("Baseplate") as Part, "Destroy", "Baseplate");
+	print(Obliterator.Get("Baseplate")); // Returns Baseplate.
+	```
+
 	@param Index any -- The index that the object is stored under.
 	@return any? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
 ]=]
@@ -202,14 +253,18 @@ end
 	Obliterator:Cleanup() -- Valid.
 	Obliterator() -- Also valid.
 	```
+
+	```ts
+	Obliterator.Cleanup()
+	```
 ]=]
 function Janitor:Cleanup()
 	if not self.CurrentlyCleaning then
 		self.CurrentlyCleaning = nil
 		for Object, MethodName in pairs(self) do
-			-- if Object == IndicesReference then
-			-- 	continue
-			-- end
+			if Object == IndicesReference then
+				continue
+			end
 
 			if MethodName == true then
 				Object()
@@ -234,7 +289,7 @@ function Janitor:Cleanup()
 end
 
 --[=[
-	Calls [[Janitor.Cleanup]] and renders the Janitor unusable.
+	Calls [Janitor.Cleanup](#Cleanup) and renders the Janitor unusable.
 
 	:::warning
 	Running this will make any attempts to call a function of Janitor error.
@@ -300,7 +355,20 @@ type RbxScriptConnection = typeof(RbxScriptConnection._new(game:GetPropertyChang
 	end
 	```
 
-	This returns a mock `RBXScriptConnection` (see: [[RbxScriptConnection]]).
+	```ts
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor();
+	Obliterator.Add(() => print("Cleaning up!"), true);
+
+	{
+		const Folder = new Instance("Folder");
+		Obliterator.LinkToInstance(Folder, false);
+		Folder.Destroy();
+	}
+	```
+
+	This returns a mock `RBXScriptConnection` (see: [RbxScriptConnection](#RbxScriptConnection)).
 
 	@param Object Instance -- The instance you want to link the Janitor to.
 	@param AllowMultiple? boolean -- Whether or not to allow multiple links on the same Janitor.
