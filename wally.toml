@@ -1,7 +1,0 @@
-[package]
-name = "howmanysmall/janitor"
-realm = "shared"
-registry = "https://github.com/UpliftGames/wally-index"
-version = "1.13.10"
-
-[dependencies]

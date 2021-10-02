@@ -1,4 +1,0 @@
-[tools]
-rojo = {source = "rojo-rbx/rojo", version = "6.2.0"}
-wally = {source = "UpliftGames/wally", version = "0.2.0"}
-# moonwave = {source = "UpliftGames/moonwave", version = "0.2.0"}
