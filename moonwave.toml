@@ -1,12 +1,9 @@
 classOrder = ["Janitor", "RbxScriptConnection"]
 changelog = false
+gitSourceBranch = "main"
 
 [docusaurus]
-projectName = "projectName"
 tagline = "Garbage collector object implementation for Roblox"
-url = "https://howmanysmall.github.io"
-
-[navbar]
 
 [[navbar.items]]
 href = "https://discord.gg/mhtGUS8"
