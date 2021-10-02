@@ -328,6 +328,40 @@ return function()
 			NewJanitor:Cleanup()
 			expect(TotalRemoved).to.equal(FunctionsToAdd * 2)
 		end)
+
+		it("should be unique", function()
+			local NewJanitor = Janitor.new()
+			local Janitor2 = Janitor.new()
+			local TotalRemoved = 0
+			local FunctionsToAdd = 500
+
+			expect(NewJanitor.CurrentlyCleaning).to.equal(false)
+			expect(Janitor2.CurrentlyCleaning).to.equal(false)
+
+			for Index = 1, FunctionsToAdd do
+				if Index == FunctionsToAdd then
+					NewJanitor:Add(function()
+						TotalRemoved += 1
+						task.wait(1)
+					end, true)
+				else
+					NewJanitor:Add(function()
+						TotalRemoved += 1
+					end, true)
+				end
+			end
+
+			task.spawn(function()
+				NewJanitor:Cleanup()
+			end)
+
+			task.wait()
+			expect(NewJanitor.CurrentlyCleaning).to.equal(true)
+			expect(Janitor2.CurrentlyCleaning).to.equal(false)
+
+			task.wait(1.3)
+			expect(TotalRemoved).to.equal(FunctionsToAdd)
+		end)
 	end)
 
 	describe("Destroy", function()
