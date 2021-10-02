@@ -37,7 +37,7 @@ local TypeDefaults = {
 	Determines if the passed object is a Janitor. This checks the metatable directly.
 
 	@param Object any -- The object you are checking.
-	@return boolean -- `true` iff `Object` is a Janitor.
+	@return boolean -- `true` if `Object` is a Janitor.
 ]=]
 function Janitor.Is(Object: any): boolean
 	return type(Object) == "table" and getmetatable(Object) == Janitor
