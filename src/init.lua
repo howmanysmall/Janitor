@@ -197,8 +197,8 @@ end
 	This function is also called when you call a Janitor Object (so it can be used as a destructor callback).
 
 	```lua
-	Obliterator:Cleanup()
-	Obliterator()
+	Obliterator:Cleanup() -- Valid.
+	Obliterator() -- Also valid.
 	```
 ]=]
 function Janitor:Cleanup()

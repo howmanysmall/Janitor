@@ -7,7 +7,7 @@
 
 ## Links
 
-- [roblox-ts](https://www.npmjs.com/package/@rbxts/janitor)
+- <h3>[roblox-ts](https://www.npmjs.com/package/@rbxts/janitor)</h3>
 - [Original](https://github.com/RoStrap/Events/blob/master/Janitor.lua)
 
 ## What is Janitor?
