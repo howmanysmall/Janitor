@@ -296,6 +296,8 @@ end
 	end
 	```
 
+	This returns a mock `RBXScriptConnection` (see: [[RbxScriptConnection]]).
+
 	@param Object Instance -- The instance you want to link the Janitor to.
 	@param AllowMultiple? boolean -- Whether or not to allow multiple links on the same Janitor.
 	@return RbxScriptConnection -- A pseudo RBXScriptConnection that can be disconnected to prevent the cleanup of LinkToInstance.
@@ -319,7 +321,7 @@ function Janitor:LinkToInstance(Object, AllowMultiple)
 						self:Cleanup()
 					else
 						while IsNilParented and Connection.Connected and ManualDisconnect.Connected do
-							task.wait(0)
+							task.wait()
 						end
 
 						if ManualDisconnect.Connected and IsNilParented then

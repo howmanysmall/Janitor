@@ -5,6 +5,11 @@
 </div>
 <!--moonwave-hide-before-this-line-->
 
+## Links
+
+- [roblox-ts](https://www.npmjs.com/package/@rbxts/janitor)
+- [Original](https://github.com/RoStrap/Events/blob/master/Janitor.lua)
+
 ## What is Janitor?
 
 Janitor is an object that manages your other objects. When you add something to a Janitor and destroy said Janitor, the object will be cleaned up alongside it. It's very similar to how [Maid](https://github.com/Quenty/NevermoreEngine/blob/version2/Modules/Shared/Events/Maid.lua) ([explanation](https://www.youtube.com/watch?v=MOjiKS6F59s)) works, with a few differences that make it more useful.
