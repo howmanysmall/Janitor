@@ -73,17 +73,18 @@ Janitor.Name = "Janitor"
 for _, FileData in ipairs(FilesList) do
 	local ModuleScript = Instance.new("ModuleScript")
 	ModuleScript.Name = tostring(string.match(FileData.name, "(%w+)%.lua"))
-	if not Succcess then
+	local Success, Source = GetAsync(FileData.download_url, {})
+	if not Success then
 		ModuleScript.Source = string.format("-- %s", tostring(Source))
 	else
-		ModuleScript.Source = tostring(Succcess)
+		ModuleScript.Source = tostring(Success)
 	end
 	ModuleScript.Parent = Janitor
 end
 Janitor.Parent = ReplicatedStorage
 Initify(Janitor)
 HttpService.HttpEnabled = HttpEnabled
-   `}
+`}
 </textarea>
 
 ### Method 3 - Manual
@@ -95,7 +96,13 @@ HttpService.HttpEnabled = HttpEnabled
 
 ### Method 4 - Wally
 
-1. TODO
+1. Setup [Wally](https://wally.run/) by using `wally init`.
+2. Add `howmanysmall/Janitor` as a dependency.
+
+```toml
+[dependencies]
+Janitor = "howmanysmall/janitor@^1.13.12"
+```
 
 ## Next
 
