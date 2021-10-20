@@ -1,5 +1,5 @@
 classOrder = ["Janitor", "RbxScriptConnection"]
-changelog = false
+changelog = true
 gitSourceBranch = "main"
 
 [docusaurus]
