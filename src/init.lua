@@ -186,7 +186,7 @@ end
 	@param Index any -- The index you want to remove.
 	@return Janitor
 ]=]
-function Janitor:Remove(Index: any): Janitor
+function Janitor:Remove(Index: any)
 	local This = self[IndicesReference]
 
 	if This then
@@ -422,7 +422,7 @@ end
 	@param ... Instance -- All the Instances you want linked.
 	@return Janitor -- A new Janitor that can be used to manually disconnect all LinkToInstances.
 ]=]
-function Janitor:LinkToInstances(...: Instance): Janitor
+function Janitor:LinkToInstances(...: Instance)
 	local ManualCleanup = Janitor.new()
 	for _, Object in ipairs({...}) do
 		ManualCleanup:Add(self:LinkToInstance(Object, true), "Disconnect")
