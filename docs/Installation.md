@@ -20,11 +20,10 @@ This method uses `HttpService` to install Janitor.
 1. In Roblox Studio, paste the following command into your command bar.
 2. Run the following command:
 
-<textarea readonly onClick={e => e.target.select()} style={{
+<textarea readonly rows="5" onClick={e => e.target.select()} style={{
    width: "100%"
 }}>
-   {`
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+   {`local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 local HttpEnabled = HttpService.HttpEnabled
 HttpService.HttpEnabled = true
@@ -83,8 +82,7 @@ for _, FileData in ipairs(FilesList) do
 end
 Janitor.Parent = ReplicatedStorage
 Initify(Janitor)
-HttpService.HttpEnabled = HttpEnabled
-`}
+HttpService.HttpEnabled = HttpEnabled`}
 </textarea>
 
 ### Method 3 - Manual
@@ -101,7 +99,7 @@ HttpService.HttpEnabled = HttpEnabled
 
 ```toml
 [dependencies]
-Janitor = "howmanysmall/janitor@^1.13.12"
+Janitor = "howmanysmall/janitor@^1.13.13"
 ```
 
 ## Next
