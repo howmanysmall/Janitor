@@ -154,7 +154,16 @@ function Janitor:AddPromise(PromiseObject)
 
 		if PromiseObject:getStatus() == Promise.Status.Started then
 			local Id = newproxy(false)
-			local NewPromise = self:Add(Promise.resolve(PromiseObject), "cancel", Id)
+			local NewPromise = self:Add(Promise.new(function(Resolve, _, OnCancel)
+				if OnCancel(function()
+					PromiseObject:cancel()
+				end) then
+					return
+				end
+
+				Resolve(PromiseObject)
+			end), "cancel", Id)
+
 			NewPromise:finallyCall(self.Remove, self, Id)
 			return NewPromise
 		else
