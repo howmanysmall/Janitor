@@ -270,7 +270,18 @@ end
 function Janitor:Cleanup()
 	if not self.CurrentlyCleaning then
 		self.CurrentlyCleaning = nil
-		for Object, MethodName in pairs(self) do
+	
+		local function get(): (any, StringOrTrue)
+			for Object, MethodName in pairs(self) do
+				if Object ~= IndicesReference then
+					return Object, MethodName
+				end
+			end
+		end
+
+		local Object, MethodName = get()
+
+		while Object and MethodName do -- changed to a while loop so that if you add to the janitor inside of a callback it doesn't get untracked (instead it will loop continuously which is a lot better than a hard to pindown edgecase)
 			if Object == IndicesReference then
 				continue
 			end
@@ -285,6 +296,7 @@ function Janitor:Cleanup()
 			end
 
 			self[Object] = nil
+			Object, MethodName = get()
 		end
 
 		local This = self[IndicesReference]
