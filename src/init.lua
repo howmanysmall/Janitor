@@ -282,10 +282,6 @@ function Janitor:Cleanup()
 		local Object, MethodName = get()
 
 		while Object and MethodName do -- changed to a while loop so that if you add to the janitor inside of a callback it doesn't get untracked (instead it will loop continuously which is a lot better than a hard to pindown edgecase)
-			if Object == IndicesReference then
-				continue
-			end
-
 			if MethodName == true then
 				Object()
 			else
