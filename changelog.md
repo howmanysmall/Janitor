@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.13.15 - 2021-11-24
+
+### Changed
+
+- `Janitor:Cleanup` now uses a while loop instead of a for loop when cleaning up. Fixed by @codesenseAye.
+
 ## 1.13.14 - 2021-11-05
 
 ### Fixed

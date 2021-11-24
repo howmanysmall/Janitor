@@ -254,6 +254,16 @@ function Janitor:Get(Index: any): any?
 	end
 end
 
+local function GetFenv(self)
+	return function()
+		for Object, MethodName in pairs(self) do
+			if Object ~= IndicesReference then
+				return Object, MethodName
+			end
+		end
+	end
+end
+
 --[=[
 	Calls each Object's `MethodName` (or calls the Object if `MethodName == true`) and removes them from the Janitor. Also clears the namespace.
 	This function is also called when you call a Janitor Object (so it can be used as a destructor callback).
@@ -270,16 +280,9 @@ end
 function Janitor:Cleanup()
 	if not self.CurrentlyCleaning then
 		self.CurrentlyCleaning = nil
-	
-		local function get(): (any, StringOrTrue)
-			for Object, MethodName in pairs(self) do
-				if Object ~= IndicesReference then
-					return Object, MethodName
-				end
-			end
-		end
 
-		local Object, MethodName = get()
+		local Get = GetFenv(self)
+		local Object, MethodName = Get()
 
 		while Object and MethodName do -- changed to a while loop so that if you add to the janitor inside of a callback it doesn't get untracked (instead it will loop continuously which is a lot better than a hard to pindown edgecase)
 			if MethodName == true then
@@ -292,7 +295,7 @@ function Janitor:Cleanup()
 			end
 
 			self[Object] = nil
-			Object, MethodName = get()
+			Object, MethodName = Get()
 		end
 
 		local This = self[IndicesReference]
