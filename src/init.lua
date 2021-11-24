@@ -3,6 +3,7 @@
 -- Modifications by pobammer
 -- roblox-ts support by OverHash and Validark
 -- LinkToInstance fixed by Elttob.
+-- Cleanup edge cases fixed by codesenseAye.
 
 local GetPromiseLibrary = require(script.GetPromiseLibrary)
 local Symbol = require(script.Symbol)
