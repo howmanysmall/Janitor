@@ -2,6 +2,6 @@
 name = "howmanysmall/janitor"
 realm = "shared"
 registry = "https://github.com/UpliftGames/wally-index"
-version = "1.13.14"
+version = "1.13.15"
 
 [dependencies]
