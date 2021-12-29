@@ -5,9 +5,8 @@
 -- LinkToInstance fixed by Elttob.
 -- Cleanup edge cases fixed by codesenseAye.
 
-local GetPromiseLibrary = require(script.GetPromiseLibrary)
+local Promise = require(script.Promise)
 local Symbol = require(script.Symbol)
-local FoundPromiseLibrary, Promise = GetPromiseLibrary()
 
 local IndicesReference = Symbol("IndicesReference")
 local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
@@ -148,31 +147,27 @@ end
 	@return Promise
 ]=]
 function Janitor:AddPromise(PromiseObject)
-	if FoundPromiseLibrary then
-		if not Promise.is(PromiseObject) then
-			error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
-		end
-
-		if PromiseObject:getStatus() == Promise.Status.Started then
-			local Id = newproxy(false)
-			local NewPromise = self:Add(Promise.new(function(Resolve, _, OnCancel)
-				if OnCancel(function()
-					PromiseObject:cancel()
-				end) then
-					return
-				end
-
-				Resolve(PromiseObject)
-			end), "cancel", Id)
-
-			NewPromise:finallyCall(self.Remove, self, Id)
-			return NewPromise
-		else
-			return PromiseObject
-		end
-	else
-		return PromiseObject
+	if not Promise.is(PromiseObject) then
+		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
 	end
+
+	if PromiseObject:getStatus() == Promise.Status.Started then
+		local Id = newproxy(false)
+		local NewPromise = self:Add(Promise.new(function(Resolve, _, OnCancel)
+			if OnCancel(function()
+				PromiseObject:cancel()
+			end) then
+				return
+			end
+
+			Resolve(PromiseObject)
+		end), "cancel", Id)
+
+		NewPromise:finallyCall(self.Remove, self, Id)
+		return NewPromise
+	end
+
+	return PromiseObject
 end
 
 --[=[

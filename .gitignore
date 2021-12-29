@@ -47,3 +47,7 @@ Janitor.rbxmx
 
 build
 Garbage
+
+Packages/
+
+wally.lock

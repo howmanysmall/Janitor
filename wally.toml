@@ -2,6 +2,7 @@
 name = "howmanysmall/janitor"
 realm = "shared"
 registry = "https://github.com/UpliftGames/wally-index"
-version = "1.13.15"
+version = "1.13.16"
 
 [dependencies]
+Promise = "evaera/promise@3.2.0"
