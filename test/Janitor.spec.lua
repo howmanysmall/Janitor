@@ -1,3 +1,5 @@
+local RunService = game:GetService("RunService")
+
 -- TestEZ types (for autocomplete)
 type Dictionary<Value> = {[string]: Value}
 type DescribeFunction = (Dictionary<any>?) -> nil
@@ -240,6 +242,90 @@ return function()
 			expect(function()
 				NewJanitor:AddPromise(BasicClass.new())
 			end).to.throw()
+
+			NewJanitor:Destroy()
+		end)
+	end)
+
+	describe("BindToRenderStep", function()
+		it("should return the name of the bind", function()
+			local BindName = "TestBind"
+			local NewJanitor = Janitor.new()
+			local ReturnedName = NewJanitor:BindToRenderStep(BindName, Enum.RenderPriority.Camera.Value, function(_dt) end)
+			print(ReturnedName)
+			expect(ReturnedName).to.equal(BindName)
+			NewJanitor:Destroy()
+		end)
+
+		it("should correctly bind a function to the render step", function()
+			local BindName = "TestBind"
+			local NewJanitor = Janitor.new()
+			local Number = 0
+			NewJanitor:BindToRenderStep(BindName, Enum.RenderPriority.Camera.Value, function(_dt)
+				Number += 1
+			end)
+			RunService.RenderStepped:Wait()
+			expect(Number).to.equal(1)
+			NewJanitor:Destroy()
+		end)
+
+		it("should be able to unbind the function from the render step", function()
+			local BindName = "TestBind"
+			local NewJanitor = Janitor.new()
+			local Number = 0
+			NewJanitor:BindToRenderStep(BindName, Enum.RenderPriority.Camera.Value, function(_dt)
+				Number += 1
+			end)
+			RunService.RenderStepped:Wait()
+			expect(Number).to.equal(1)
+			NewJanitor:Destroy()
+			RunService.RenderStepped:Wait()
+			expect(Number).to.equal(1)
+		end)
+
+		it("should be able to bind more than one function to the render step", function()
+			local BindName = "TestBind"
+			local AnotherBindName = "AnotherTestBind"
+			local NewJanitor = Janitor.new()
+			local Number = 0
+			local AnotherNumber = 0
+
+			NewJanitor:BindToRenderStep(BindName, Enum.RenderPriority.Camera.Value, function(_dt)
+				Number += 1
+			end, "Test")
+
+			NewJanitor:BindToRenderStep(AnotherBindName, Enum.RenderPriority.Camera.Value, function(_dt)
+				AnotherNumber += 10
+			end, "AnotherTest")
+
+			RunService.RenderStepped:Wait()
+
+			expect(Number).to.equal(1)
+			expect(AnotherNumber).to.equal(10)
+
+			NewJanitor:Destroy()
+		end)
+
+		it("should be able to unbind a specific function from the render step", function()
+			local BindName = "TestBind"
+			local AnotherBindName = "AnotherTestBind"
+			local NewJanitor = Janitor.new()
+			local Number = 0
+			local AnotherNumber = 0
+
+			NewJanitor:BindToRenderStep(BindName, Enum.RenderPriority.Camera.Value, function(_dt)
+				Number += 1
+			end, "Test")
+
+			NewJanitor:BindToRenderStep(AnotherBindName, Enum.RenderPriority.Camera.Value, function(_dt)
+				AnotherNumber += 1
+			end, "AnotherTest")
+
+			NewJanitor:Remove("Test")
+			RunService.RenderStepped:Wait()
+
+			expect(Number).to.equal(0)
+			expect(AnotherNumber).to.equal(1)
 
 			NewJanitor:Destroy()
 		end)

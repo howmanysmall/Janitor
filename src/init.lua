@@ -5,6 +5,8 @@
 -- LinkToInstance fixed by Elttob.
 -- Cleanup edge cases fixed by codesenseAye.
 
+local RunService = game:GetService("RunService")
+
 local GetPromiseLibrary = require(script.GetPromiseLibrary)
 local Symbol = require(script.Symbol)
 local FoundPromiseLibrary, Promise = GetPromiseLibrary()
@@ -173,6 +175,30 @@ function Janitor:AddPromise(PromiseObject)
 	else
 		return PromiseObject
 	end
+end
+
+--[=[
+	Registers a `RunService:BindToRenderStep` function to the Janitor. Will unbind the RenderStep on cleanup. Returns the binded name.
+	```lua
+	local Obliterator = Janitor.new()
+	Obliterator:BindToRenderStep("Example", Enum.RenderPriority.Camera.Value + 1, function(dt)
+		-- Do something during the render step
+	end)
+	```
+
+	@param BindName string -- The name of the RunService method to register.
+	@param Priority number -- Priority of the RunService binding.
+	@param Function (dt: number) -> nil -- Custom function being bound.
+	@return MethodName: string
+]=]
+function Janitor:BindToRenderStep(BindName: string, Priority: number, Function: (dt: number) -> nil, Index: any?): string
+	RunService:BindToRenderStep(BindName, Priority, Function)
+
+	self:Add(function()
+		RunService:UnbindFromRenderStep(BindName)
+	end, true, Index)
+
+	return BindName
 end
 
 --[=[
