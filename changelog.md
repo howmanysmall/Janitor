@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.13.16 - 2022-03-12
+
+### Added
+
+- You can now add a `thread` using `:Add`. This will cancel said thread when the Janitor is cleaned up.
+- Added `__tostring` to the Janitor class.
+- Added `:RemoveList` as an alternative to long `:Remove` chains.
+- Added the properties of `Janitor` and `RbxScriptConnection` to the documentation.
+
+### Changed
+
+- Recompiled with L+ C Edition.
+- Put `RbxScriptConnection` in a separate file.
+- Documentation now will split the code examples by language more obviously.
+
 ## 1.13.15 - 2021-11-24
 
 ### Changed

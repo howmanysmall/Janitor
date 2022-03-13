@@ -140,10 +140,11 @@ return function()
 			NewJanitor:Destroy()
 		end)
 
-		it("should clean up instances, objects, functions, and connections", function()
+		it("should clean up instances, objects, functions, connections, and threads", function()
 			local FunctionWasDestroyed = false
 			local JanitorWasDestroyed = false
 			local BasicClassWasDestroyed = false
+			local ThreadWasRan = false
 
 			local NewJanitor = Janitor.new()
 			local Part = NewJanitor:Add(Instance.new("Part"), "Destroy")
@@ -163,12 +164,17 @@ return function()
 				BasicClassWasDestroyed = true
 			end)
 
+			NewJanitor:Add(task.delay(1, function()
+				ThreadWasRan = true
+			end), true)
+
 			NewJanitor:Destroy()
 			expect(Part.Parent).to.equal(nil)
 			expect(Connection.Connected).to.equal(false)
 			expect(FunctionWasDestroyed).to.equal(true)
 			expect(JanitorWasDestroyed).to.equal(true)
 			expect(BasicClassWasDestroyed).to.equal(true)
+			expect(ThreadWasRan).to.equal(false)
 		end)
 
 		it("should clean up everything correctly", function()
@@ -286,6 +292,55 @@ return function()
 			end).never.to.throw()
 
 			expect(X).to.equal(1)
+		end)
+	end)
+
+	describe("RemoveList", function()
+		it("should always return the Janitor", function()
+			local NewJanitor = Janitor.new()
+			NewJanitor:Add(Noop, true, "Function")
+
+			expect(NewJanitor:RemoveList("Function")).to.equal(NewJanitor)
+			expect(NewJanitor:RemoveList("Function")).to.equal(NewJanitor)
+			NewJanitor:Destroy()
+		end)
+
+		it("should always remove the value", function()
+			local NewJanitor = Janitor.new()
+			local WasRemoved = false
+
+			NewJanitor:Add(function()
+				WasRemoved = true
+			end, true, "Function")
+
+			NewJanitor:RemoveList("Function")
+
+			expect(WasRemoved).to.equal(true)
+			NewJanitor:Destroy()
+		end)
+
+		it("should properly remove multiple values", function()
+			local NewJanitor = Janitor.new()
+			local OneRan = false
+			local TwoRan = false
+			local ThreeRan = false
+
+			NewJanitor:Add(function()
+				OneRan = true
+			end, true, 1)
+
+			NewJanitor:Add(function()
+				TwoRan = true
+			end, true, 2)
+
+			NewJanitor:Add(function()
+				ThreeRan = true
+			end, true, 3)
+
+			NewJanitor:RemoveList(1, 2, 3)
+			expect(OneRan).to.equal(true)
+			expect(TwoRan).to.equal(true)
+			expect(ThreeRan).to.equal(true)
 		end)
 	end)
 
