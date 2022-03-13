@@ -9,8 +9,8 @@ as it doesn&#x27;t force you to rely on naive typechecking to guess how an insta
 Instead, the developer may specify any behavior for any object."><meta data-react-helmet="true" property="og:description" content="Janitor is a light-weight, flexible object for cleaning up connections, instances, or anything. This implementation covers all use cases,
 as it doesn&#x27;t force you to rely on naive typechecking to guess how an instance should be cleaned up.
 Instead, the developer may specify any behavior for any object."><meta data-react-helmet="true" property="og:url" content="https://howmanysmall.github.io/Janitor/api/Janitor"><meta data-react-helmet="true" name="docusaurus_locale" content="en"><meta data-react-helmet="true" name="docusaurus_tag" content="default"><link data-react-helmet="true" rel="canonical" href="https://howmanysmall.github.io/Janitor/api/Janitor"><link data-react-helmet="true" rel="alternate" href="https://howmanysmall.github.io/Janitor/api/Janitor" hreflang="en"><link data-react-helmet="true" rel="alternate" href="https://howmanysmall.github.io/Janitor/api/Janitor" hreflang="x-default"><link rel="stylesheet" href="/Janitor/assets/css/styles.fb20d3d5.css">
-<link rel="preload" href="/Janitor/assets/js/runtime~main.0f290c16.js" as="script">
-<link rel="preload" href="/Janitor/assets/js/main.581c4363.js" as="script">
+<link rel="preload" href="/Janitor/assets/js/runtime~main.1416afb3.js" as="script">
+<link rel="preload" href="/Janitor/assets/js/main.a055f1f3.js" as="script">
 </head>
 <body>
 <script>!function(){function e(e){document.documentElement.setAttribute("data-theme",e)}var t=function(){var e=null;try{e=localStorage.getItem("theme")}catch(e){}return e}();null!==t?e(t):window.matchMedia("(prefers-color-scheme: dark)").matches?e("dark"):(window.matchMedia("(prefers-color-scheme: light)").matches,e("light"))}()</script><div id="__docusaurus">
@@ -149,7 +149,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
 <span class="token maybe-class-name">Obliterator</span><span class="token punctuation">.</span><span class="token method function property-access"><span class="token maybe-class-name">Add</span></span><span class="token punctuation">(</span><span class="token maybe-class-name">Workspace</span><span class="token punctuation">.</span><span class="token method function property-access"><span class="token maybe-class-name">FindFirstChild</span></span><span class="token punctuation">(</span><span class="token string">"Baseplate"</span><span class="token punctuation">)</span> <span class="token keyword module">as</span> <span class="token maybe-class-name">Part</span><span class="token punctuation">,</span> <span class="token string">"Destroy"</span><span class="token punctuation">,</span> <span class="token string">"Baseplate"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token maybe-class-name">Obliterator</span><span class="token punctuation">.</span><span class="token method function property-access"><span class="token maybe-class-name">Remove</span></span><span class="token punctuation">(</span><span class="token string">"Baseplate"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
-</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="RemoveList"><code style="text-decoration:none">RemoveList</code><a aria-hidden="true" class="hash-link" href="#RemoveList" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L324"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">RemoveList</code><code>(</code><div class="inset_2cJr"><div><code>...<!-- -->: </code><code class="blue_2Afy">any</code><span class="inlineDescription_17uy">-- <span>
+</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="RemoveList"><code style="text-decoration:none">RemoveList</code><a aria-hidden="true" class="hash-link" href="#RemoveList" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><span class="releaseVersion_3lep">since <!-- -->v1.14</span><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L325"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">RemoveList</code><code>(</code><div class="inset_2cJr"><div><code>...<!-- -->: </code><code class="blue_2Afy">any</code><span class="inlineDescription_17uy">-- <span>
 <p>The indices you want to remove.</p>
 </span></span></div></div><code>) → </code><code class="blue_2Afy"><a style="text-decoration:underline;color:inherit" href="/Janitor/api/Janitor">Janitor</a></code></div><div>
 <p>Cleans up multiple objects at once.</p>
@@ -181,7 +181,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
 
 <span class="token maybe-class-name">Obliterator</span><span class="token punctuation">.</span><span class="token method function property-access"><span class="token maybe-class-name">RemoveList</span></span><span class="token punctuation">(</span><span class="token string">"One"</span><span class="token punctuation">,</span> <span class="token string">"Two"</span><span class="token punctuation">,</span> <span class="token string">"Three"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Prints "Removed One", "Removed Two", and "Removed Three"</span>
 </code></pre>
-</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="Get"><code style="text-decoration:none">Get</code><a aria-hidden="true" class="hash-link" href="#Get" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L388"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">Get</code><code>(</code><div class="inset_2cJr"><div><code>Index<!-- -->: </code><code class="blue_2Afy">any</code><span class="inlineDescription_17uy">-- <span>
+</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="Get"><code style="text-decoration:none">Get</code><a aria-hidden="true" class="hash-link" href="#Get" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L389"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">Get</code><code>(</code><div class="inset_2cJr"><div><code>Index<!-- -->: </code><code class="blue_2Afy">any</code><span class="inlineDescription_17uy">-- <span>
 <p>The index that the object is stored under.</p>
 </span></span></div></div><code>) → </code><code class="blue_2Afy">any?</code><span class="inlineDescription_17uy">-- <span>
 <p>This will return the object if it is found, but it won't return anything if it doesn't exist.</p>
@@ -200,7 +200,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
 <span class="token maybe-class-name">Obliterator</span><span class="token punctuation">.</span><span class="token method function property-access"><span class="token maybe-class-name">Add</span></span><span class="token punctuation">(</span><span class="token maybe-class-name">Workspace</span><span class="token punctuation">.</span><span class="token method function property-access"><span class="token maybe-class-name">FindFirstChild</span></span><span class="token punctuation">(</span><span class="token string">"Baseplate"</span><span class="token punctuation">)</span> <span class="token keyword module">as</span> <span class="token maybe-class-name">Part</span><span class="token punctuation">,</span> <span class="token string">"Destroy"</span><span class="token punctuation">,</span> <span class="token string">"Baseplate"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token function">print</span><span class="token punctuation">(</span><span class="token maybe-class-name">Obliterator</span><span class="token punctuation">.</span><span class="token method function property-access"><span class="token maybe-class-name">Get</span></span><span class="token punctuation">(</span><span class="token string">"Baseplate"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// Returns Baseplate.</span>
 </code></pre>
-</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="Cleanup"><code style="text-decoration:none">Cleanup</code><a aria-hidden="true" class="hash-link" href="#Cleanup" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L420"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">Cleanup</code><code>(</code><code>) → </code><code>(</code><code>)</code></div><div>
+</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="Cleanup"><code style="text-decoration:none">Cleanup</code><a aria-hidden="true" class="hash-link" href="#Cleanup" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L421"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">Cleanup</code><code>(</code><code>) → </code><code>(</code><code>)</code></div><div>
 <p>
   Calls each Object's <code>MethodName</code> (or calls the Object if <code>MethodName == true</code>) and removes them from the Janitor. Also clears the namespace.
   This function is also called when you call a Janitor Object (so it can be used as a destructor callback).
@@ -212,7 +212,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
 <h3>TypeScript:</h3>
 <pre class="language-ts"><code class="language-ts"><span class="token maybe-class-name">Obliterator</span><span class="token punctuation">.</span><span class="token method function property-access"><span class="token maybe-class-name">Cleanup</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
-</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="Destroy"><code style="text-decoration:none">Destroy</code><a aria-hidden="true" class="hash-link" href="#Destroy" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L462"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">Destroy</code><code>(</code><code>) → </code><code>(</code><code>)</code></div><div>
+</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="Destroy"><code style="text-decoration:none">Destroy</code><a aria-hidden="true" class="hash-link" href="#Destroy" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L463"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">Destroy</code><code>(</code><code>) → </code><code>(</code><code>)</code></div><div>
 <p>Calls <a href="#Cleanup">Janitor.Cleanup</a> and renders the Janitor unusable.</p>
 <div class="admonition admonition-warning alert alert--danger">
   <div class="admonition-heading">
@@ -224,7 +224,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
     <p>Running this will make any further attempts to call a method of Janitor error.</p>
   </div>
 </div>
-</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="LinkToInstance"><code style="text-decoration:none">LinkToInstance</code><a aria-hidden="true" class="hash-link" href="#LinkToInstance" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L512"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">LinkToInstance</code><code>(</code><div class="inset_2cJr"><div><code>Object<!-- -->: </code><code class="blue_2Afy"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/datatype/Instance" target="_blank" rel="noopener noreferrer">Instance<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code>,</code><span class="inlineDescription_17uy">-- <span>
+</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="LinkToInstance"><code style="text-decoration:none">LinkToInstance</code><a aria-hidden="true" class="hash-link" href="#LinkToInstance" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L513"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">LinkToInstance</code><code>(</code><div class="inset_2cJr"><div><code>Object<!-- -->: </code><code class="blue_2Afy"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/datatype/Instance" target="_blank" rel="noopener noreferrer">Instance<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code>,</code><span class="inlineDescription_17uy">-- <span>
 <p>The instance you want to link the Janitor to.</p>
 </span></span></div><div><code>AllowMultiple?<!-- -->: </code><code class="blue_2Afy">boolean</code><span class="inlineDescription_17uy">-- <span>
 <p>Whether or not to allow multiple links on the same Janitor.</p>
@@ -263,7 +263,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
 	<span class="token maybe-class-name">Folder</span><span class="token punctuation">.</span><span class="token method function property-access"><span class="token maybe-class-name">Destroy</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="LinkToInstances"><code style="text-decoration:none">LinkToInstances</code><a aria-hidden="true" class="hash-link" href="#LinkToInstances" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L560"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">LinkToInstances</code><code>(</code><div class="inset_2cJr"><div><code>...<!-- -->: </code><code class="blue_2Afy"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/datatype/Instance" target="_blank" rel="noopener noreferrer">Instance<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><span class="inlineDescription_17uy">-- <span>
+</div><div class="divider_3z1R"></div><h3 class="anchor anchorWithStickyNavbar_31ik" id="LinkToInstances"><code style="text-decoration:none">LinkToInstances</code><a aria-hidden="true" class="hash-link" href="#LinkToInstances" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_1UH0"><a class="sourceButton_2aE5" href="https://github.com/howmanysmall/Janitor/blob/main/src/init.lua#L561"><div class="sourceButtonText_monK">&lt;/&gt;</div></a></div><div class="memberString_P8-X"><code>Janitor<!-- -->:</code><code class="green_3LnD">LinkToInstances</code><code>(</code><div class="inset_2cJr"><div><code>...<!-- -->: </code><code class="blue_2Afy"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/datatype/Instance" target="_blank" rel="noopener noreferrer">Instance<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><span class="inlineDescription_17uy">-- <span>
 <p>All the Instances you want linked.</p>
 </span></span></div></div><code>) → </code><code class="blue_2Afy"><a style="text-decoration:underline;color:inherit" href="/Janitor/api/Janitor">Janitor</a></code><span class="inlineDescription_17uy">-- <span>
 <p>A new Janitor that can be used to manually disconnect all LinkToInstances.</p>
@@ -402,8 +402,9 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
                 }
             ],
             &quot;function_type&quot;: &quot;method&quot;,
+            &quot;since&quot;: &quot;v1.14&quot;,
             &quot;source&quot;: {
-                &quot;line&quot;: 324,
+                &quot;line&quot;: 325,
                 &quot;path&quot;: &quot;src/init.lua&quot;
             }
         },
@@ -425,7 +426,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
             ],
             &quot;function_type&quot;: &quot;method&quot;,
             &quot;source&quot;: {
-                &quot;line&quot;: 388,
+                &quot;line&quot;: 389,
                 &quot;path&quot;: &quot;src/init.lua&quot;
             }
         },
@@ -436,7 +437,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
             &quot;returns&quot;: [],
             &quot;function_type&quot;: &quot;method&quot;,
             &quot;source&quot;: {
-                &quot;line&quot;: 420,
+                &quot;line&quot;: 421,
                 &quot;path&quot;: &quot;src/init.lua&quot;
             }
         },
@@ -447,7 +448,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
             &quot;returns&quot;: [],
             &quot;function_type&quot;: &quot;method&quot;,
             &quot;source&quot;: {
-                &quot;line&quot;: 462,
+                &quot;line&quot;: 463,
                 &quot;path&quot;: &quot;src/init.lua&quot;
             }
         },
@@ -474,7 +475,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
             ],
             &quot;function_type&quot;: &quot;method&quot;,
             &quot;source&quot;: {
-                &quot;line&quot;: 512,
+                &quot;line&quot;: 513,
                 &quot;path&quot;: &quot;src/init.lua&quot;
             }
         },
@@ -496,7 +497,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
             ],
             &quot;function_type&quot;: &quot;method&quot;,
             &quot;source&quot;: {
-                &quot;line&quot;: 560,
+                &quot;line&quot;: 561,
                 &quot;path&quot;: &quot;src/init.lua&quot;
             }
         }
@@ -520,7 +521,7 @@ Obliterator<span class="token punctuation">:</span><span class="token function">
         &quot;path&quot;: &quot;src/init.lua&quot;
     }
 }</pre></details></div><div class="col col--3"><div class="tableOfContents_35-E thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a></li><li><a href="#properties" class="table-of-contents__link toc-highlight">Properties</a><ul><li><a href="#CurrentlyCleaning" class="table-of-contents__link toc-highlight">CurrentlyCleaning</a></li></ul></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#Add" class="table-of-contents__link toc-highlight">:Add</a></li><li><a href="#AddPromise" class="table-of-contents__link toc-highlight">:AddPromise</a></li><li><a href="#Cleanup" class="table-of-contents__link toc-highlight">:Cleanup</a></li><li><a href="#Destroy" class="table-of-contents__link toc-highlight">:Destroy</a></li><li><a href="#Get" class="table-of-contents__link toc-highlight">:Get</a></li><li><a href="#LinkToInstance" class="table-of-contents__link toc-highlight">:LinkToInstance</a></li><li><a href="#LinkToInstances" class="table-of-contents__link toc-highlight">:LinkToInstances</a></li><li><a href="#Remove" class="table-of-contents__link toc-highlight">:Remove</a></li><li><a href="#RemoveList" class="table-of-contents__link toc-highlight">:RemoveList</a></li><li><a href="#Is" class="table-of-contents__link toc-highlight">.Is</a></li><li><a href="#new" class="table-of-contents__link toc-highlight">.new</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2022 howmanysmall. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
-<script src="/Janitor/assets/js/runtime~main.0f290c16.js"></script>
-<script src="/Janitor/assets/js/main.581c4363.js"></script>
+<script src="/Janitor/assets/js/runtime~main.1416afb3.js"></script>
+<script src="/Janitor/assets/js/main.a055f1f3.js"></script>
 </body>
 </html>
