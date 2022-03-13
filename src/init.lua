@@ -318,6 +318,7 @@ end
 	Obliterator.RemoveList("One", "Two", "Three"); // Prints "Removed One", "Removed Two", and "Removed Three"
 	```
 
+	@since v1.14
 	@param ... any -- The indices you want to remove.
 	@return Janitor
 ]=]
