@@ -6,8 +6,13 @@ gitSourceBranch = "main"
 tagline = "Garbage collector object implementation for Roblox"
 
 [[navbar.items]]
-href = "https://discord.gg/luau"
+href = "https://discord.gg/nhDpg96Srt"
 label = "Discord"
+position = "right"
+
+[[navbar.items]]
+href = "https://discord.gg/luau"
+label = "Luau Discord"
 position = "right"
 
 [home]

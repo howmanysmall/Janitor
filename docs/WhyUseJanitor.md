@@ -30,3 +30,7 @@ With Maid, you can't tell it to do anything other than `:Destroy()`, `:Disconnec
 ### LinkToInstance
 
 Janitor also allows linking to an Instance via the `Janitor:LinkToInstance()` method. This allows the Janitor to cleanup everything added to it when an Instance has its `Instance:Destroy()` method invoked.
+
+### Native support for Promises
+
+Janitor is the only library of its kind that supports cancelling Promises.

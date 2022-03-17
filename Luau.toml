@@ -9465,6 +9465,9 @@ type = "any"
 required = false
 type = "..."
 
+[[task.cancel.args]]
+type = {display = "coroutine"}
+
 [task.desynchronize]
 args = []
 

@@ -14,8 +14,9 @@ local FoundPromiseLibrary, Promise = GetPromiseLibrary()
 local IndicesReference = Symbol("IndicesReference")
 local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
 
+local INVALID_METHOD_NAME = "Object is a %s and as such expected `true?` for the method name and instead got %s. Traceback: %s"
 local METHOD_NOT_FOUND_ERROR = "Object %s doesn't have method %s, are you sure you want to add it? Traceback: %s"
-local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s))"
+local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s)) Traceback: %s"
 
 type RbxScriptConnection = RbxScriptConnection.RbxScriptConnection
 
@@ -36,7 +37,7 @@ Janitor.__index = Janitor
 	@prop CurrentlyCleaning boolean
 	@within Janitor
 
-	Whether or not the Janitor is currently cleaning up. Will be `nil` if it is.
+	Whether or not the Janitor is currently cleaning up.
 ]=]
 
 local TypeDefaults = {
@@ -161,8 +162,15 @@ function Janitor:Add<T>(Object: T, MethodName: StringOrTrue?, Index: any?): T
 
 	local TypeOf = typeof(Object)
 	local NewMethodName = MethodName or TypeDefaults[TypeOf] or "Destroy"
-	if TypeOf ~= "function" and TypeOf ~= "thread" and not (Object :: any)[NewMethodName] then
-		warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(Object), tostring(NewMethodName), debug.traceback(nil :: any, 2)))
+
+	if TypeOf == "function" or TypeOf == "thread" then
+		if NewMethodName ~= true then
+			warn(string.format(INVALID_METHOD_NAME, TypeOf, tostring(NewMethodName), debug.traceback(nil :: any, 2)))
+		end
+	else
+		if not (Object :: any)[NewMethodName] then
+			warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(Object), tostring(NewMethodName), debug.traceback(nil :: any, 2)))
+		end
 	end
 
 	self[Object] = NewMethodName
@@ -198,7 +206,7 @@ end
 function Janitor:AddPromise(PromiseObject)
 	if FoundPromiseLibrary then
 		if not Promise.is(PromiseObject) then
-			error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject)))
+			error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil :: any, 2)))
 		end
 
 		if PromiseObject:getStatus() == Promise.Status.Started then
@@ -473,7 +481,6 @@ Janitor.__call = Janitor.Cleanup
 	A Janitor may only be linked to one instance at a time, unless `AllowMultiple` is true. When called with a truthy `AllowMultiple` parameter,
 	the Janitor will "link" the Instance without overwriting any previous links, and will also not be overwritable.
 	When called with a falsy `AllowMultiple` parameter, the Janitor will overwrite the previous link which was also called with a falsy `AllowMultiple` parameter, if applicable.
-	This returns a mock `RBXScriptConnection` (see: [RbxScriptConnection](/api/RbxScriptConnection)).
 
 	### Luau:
 
@@ -508,9 +515,62 @@ Janitor.__call = Janitor.Cleanup
 
 	@param Object Instance -- The instance you want to link the Janitor to.
 	@param AllowMultiple? boolean -- Whether or not to allow multiple links on the same Janitor.
+	@return RBXScriptConnection -- A RBXScriptConnection that can be disconnected to prevent the cleanup of LinkToInstance.
+]=]
+function Janitor:LinkToInstance(Object: Instance, AllowMultiple: boolean?): RBXScriptConnection
+	local IndexToUse = AllowMultiple and newproxy(false) or LinkToInstanceIndex
+
+	return self:Add(Object.Destroying:Connect(function()
+		self:Cleanup()
+	end), "Disconnect", IndexToUse)
+end
+
+--[=[
+	This is the legacy LinkToInstance function. It is kept for backwards compatibility in case something is different with `Instance.Destroying`.
+
+	"Links" this Janitor to an Instance, such that the Janitor will `Cleanup` when the Instance is `Destroyed()` and garbage collected.
+	A Janitor may only be linked to one instance at a time, unless `AllowMultiple` is true. When called with a truthy `AllowMultiple` parameter,
+	the Janitor will "link" the Instance without overwriting any previous links, and will also not be overwritable.
+	When called with a falsy `AllowMultiple` parameter, the Janitor will overwrite the previous link which was also called with a falsy `AllowMultiple` parameter, if applicable.
+	This returns a mock `RBXScriptConnection` (see: [RbxScriptConnection](/api/RbxScriptConnection)).
+
+	### Luau:
+
+	```lua
+	local Obliterator = Janitor.new()
+
+	Obliterator:Add(function()
+		print("Cleaning up!")
+	end, true)
+
+	do
+		local Folder = Instance.new("Folder")
+		Obliterator:LinkToInstance(Folder)
+		Folder:Destroy()
+	end
+	```
+
+	### TypeScript:
+
+	```ts
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor();
+	Obliterator.Add(() => print("Cleaning up!"), true);
+
+	{
+		const Folder = new Instance("Folder");
+		Obliterator.LinkToInstance(Folder, false);
+		Folder.Destroy();
+	}
+	```
+
+	@deprecated v1.4.1 -- Use `Janitor:LinkToInstance` instead.
+	@param Object Instance -- The instance you want to link the Janitor to.
+	@param AllowMultiple? boolean -- Whether or not to allow multiple links on the same Janitor.
 	@return RbxScriptConnection -- A pseudo RBXScriptConnection that can be disconnected to prevent the cleanup of LinkToInstance.
 ]=]
-function Janitor:LinkToInstance(Object: Instance, AllowMultiple: boolean?): RbxScriptConnection
+function Janitor:LegacyLinkToInstance(Object: Instance, AllowMultiple: boolean?): RbxScriptConnection
 	local Connection
 	local IndexToUse = AllowMultiple and newproxy(false) or LinkToInstanceIndex
 	local IsNilParented = Object.Parent == nil

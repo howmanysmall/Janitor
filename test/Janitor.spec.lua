@@ -1,6 +1,6 @@
 -- TestEZ types (for autocomplete)
 type Dictionary<Value> = {[string]: Value}
-type DescribeFunction = (Dictionary<any>?) -> nil
+type DescribeFunction = (Dictionary<any>?) -> ()
 
 type Expectation = {
 	never: {
@@ -30,10 +30,10 @@ type Expectation = {
 	},
 }
 
-type describe = (string, DescribeFunction) -> nil
+type describe = (string, DescribeFunction) -> ()
 type expect = (any) -> Expectation
 type it = describe
-type describeSKIP = (string) -> nil
+type describeSKIP = (string) -> ()
 
 return function()
 	local Workspace = game:GetService("Workspace")
@@ -475,9 +475,6 @@ return function()
 
 			expect(WasCleaned).to.equal(true)
 			NewJanitor:Destroy()
-			--expect(function()
-			--	NewJanitor:Destroy()
-			--end).never.to.throw()
 		end)
 
 		it("should work if the Instance is parented to nil when started", function()
@@ -524,6 +521,97 @@ return function()
 
 			NewJanitor:Add(Noop, true, "Function")
 			NewJanitor:LinkToInstance(Part)
+
+			Part.Parent = nil
+			expect(NewJanitor:Get("Function")).to.equal(Noop)
+			Part.Parent = ReplicatedStorage
+			expect(NewJanitor:Get("Function")).to.equal(Noop)
+
+			Part:Destroy()
+			task.wait(0.1)
+			expect(function()
+				NewJanitor:Destroy()
+			end).never.to.throw()
+		end)
+	end)
+
+	describe("LegacyLinkToInstance", function()
+		it("should link to an Instance", function()
+			local NewJanitor = Janitor.new()
+			local Part = NewJanitor:Add(Instance.new("Part"), "Destroy")
+			Part.Parent = ReplicatedStorage
+
+			expect(function()
+				NewJanitor:LegacyLinkToInstance(Part)
+			end).never.to.throw()
+
+			NewJanitor:Destroy()
+		end)
+
+		it("should cleanup once the Instance is destroyed", function()
+			local NewJanitor = Janitor.new()
+			local WasCleaned = false
+
+			local Part = Instance.new("Part")
+			Part.Parent = Workspace
+
+			NewJanitor:Add(function()
+				WasCleaned = true
+			end, true)
+
+			NewJanitor:LegacyLinkToInstance(Part)
+
+			Part:Destroy()
+			task.wait(0.1)
+
+			expect(WasCleaned).to.equal(true)
+			NewJanitor:Destroy()
+		end)
+
+		it("should work if the Instance is parented to nil when started", function()
+			local NewJanitor = Janitor.new()
+			local WasCleaned = false
+
+			local Part = Instance.new("Part")
+			NewJanitor:Add(function()
+				WasCleaned = true
+			end, true)
+
+			NewJanitor:LegacyLinkToInstance(Part)
+			Part.Parent = Workspace
+
+			Part:Destroy()
+			task.wait(0.1)
+
+			expect(WasCleaned).to.equal(true)
+			NewJanitor:Destroy()
+		end)
+
+		it("should work if the Instance is parented to nil", function()
+			local NewJanitor = Janitor.new()
+			local WasCleaned = false
+
+			local Part = Instance.new("Part")
+			NewJanitor:Add(function()
+				WasCleaned = true
+			end, true)
+
+			NewJanitor:LegacyLinkToInstance(Part)
+
+			Part:Destroy()
+			task.wait(0.1)
+
+			expect(WasCleaned).to.equal(true)
+			NewJanitor:Destroy()
+		end)
+
+		it("shouldn't run if the Instance is removed or parented to nil", function()
+			local NewJanitor = Janitor.new()
+			local Part = Instance.new("Part")
+			Part.Parent = ReplicatedStorage
+
+			NewJanitor:Add(Noop, true, "Function")
+			NewJanitor:LegacyLinkToInstance(Part)
 
 			Part.Parent = nil
 			expect(NewJanitor:Get("Function")).to.equal(Noop)
