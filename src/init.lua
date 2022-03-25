@@ -443,7 +443,7 @@ function Janitor:Cleanup()
 			else
 				local ObjectMethod = Object[MethodName]
 				if ObjectMethod then
-					ObjectMethod(Object)
+					task.spawn(ObjectMethod, Object)
 				end
 			end
 
@@ -605,7 +605,7 @@ function Janitor:LegacyLinkToInstance(Object: Instance, AllowMultiple: boolean?)
 	ManualDisconnect.Connection = Connection
 
 	if IsNilParented then
-		ChangedFunction(nil, Object.Parent)
+		task.spawn(ChangedFunction, nil, Object.Parent)
 	end
 
 	Object = nil :: any
