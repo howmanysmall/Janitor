@@ -17,6 +17,7 @@ If your project uses Janitor, leave a PR on the readme!
 - [Science Simulator](https://www.roblox.com/games/5414779423/5M-EVENT-Science-Simulator) by [Interbyte Studio](https://www.roblox.com/groups/5126818/Interbyte-Studio#!/about)
 - [Studio Tweaks](https://www.roblox.com/library/5601031949/Studio-Tweaks) by [PeZsmistic](https://www.roblox.com/users/121643/profile)
 - [Bloopville (NOT RELEASED)](https://www.roblox.com/games/1919575283/BloopVille0) by [BloopVille Team](https://www.bloopville.com/)
+- [Tropical Town Tycoon](https://www.roblox.com/games/8391439627/) by [Mightybull Games](https://www.roblox.com/groups/8573100/Mightybull-Games)
 
 ## Why use Janitor?
 
