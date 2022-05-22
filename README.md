@@ -31,12 +31,6 @@ If your project uses Janitor, leave a PR on the readme!
 
 - Runs a little better than Maid does.
 
-## Which version should you use?
-
-- If you use [Promise](https://github.com/evaera/roblox-lua-promise), you should take a look at [JanitorPromise](https://github.com/howmanysmall/Janitor/blob/main/src/Promise/init.lua).
-- If you don't use Promise, you should look at [Janitor](https://github.com/howmanysmall/Janitor/blob/main/src/Standard/init.lua).
-- If you don't want extra dependencies, use one of the Light libraries.
-
 ## Performance
 
 Janitor runs incredibly well. It is quite a bit faster than [Maid](https://github.com/Quenty/NevermoreEngine/blob/version2/Modules/Shared/Events/Maid.lua) and around as fast as [Dumpster](https://gist.github.com/Fraktality/f0ab4ad950698e9f08bb01bea486845e). You can run the benchmark for yourself using [boatbomber's benchmark plugin](https://devforum.roblox.com/t/benchmarker-plugin-compare-function-speeds-with-graphs-percentiles-and-more/829912) and the bench found [here](https://github.com/boatbomber/BenchmarkerLibrary).
