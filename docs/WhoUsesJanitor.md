@@ -16,4 +16,4 @@ Several games both big and small use Janitor as well as many plugins.
 - [Studio Tweaks](https://www.roblox.com/library/5601031949/Studio-Tweaks) by [PeZsmistic](https://www.roblox.com/users/121643/profile)
 - [Tropical Town Tycoon](https://www.roblox.com/games/8391439627/) by [Mightybull Games](https://www.roblox.com/groups/8573100/Mightybull-Games)
 
-If you want your project featured here, leave a pull request!
+If you want your project featured here, leave a pull request! Make sure to change this file as well.
