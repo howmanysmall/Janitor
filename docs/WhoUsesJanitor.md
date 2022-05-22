@@ -14,5 +14,6 @@ Several games both big and small use Janitor as well as many plugins.
 - [RepoToRoblox](https://www.roblox.com/library/6284281701/RepoToRoblox) by [boatbomber](https://www.roblox.com/users/33655127/profile)
 - [Science Simulator](https://www.roblox.com/games/5414779423/5M-EVENT-Science-Simulator) by [Interbyte Studio](https://www.roblox.com/groups/5126818/Interbyte-Studio#!/about)
 - [Studio Tweaks](https://www.roblox.com/library/5601031949/Studio-Tweaks) by [PeZsmistic](https://www.roblox.com/users/121643/profile)
+- [Tropical Town Tycoon](https://www.roblox.com/games/8391439627/) by [Mightybull Games](https://www.roblox.com/groups/8573100/Mightybull-Games)
 
 If you want your project featured here, leave a pull request!
