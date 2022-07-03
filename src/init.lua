@@ -7,18 +7,16 @@
 -- Cleanup edge cases fixed by codesenseAye.
 
 local GetPromiseLibrary = require(script.GetPromiseLibrary)
-local RbxScriptConnection = require(script.RbxScriptConnection)
 local Symbol = require(script.Symbol)
 local FoundPromiseLibrary, Promise = GetPromiseLibrary()
 
 local IndicesReference = Symbol("IndicesReference")
+local LengthReference = Symbol("LengthReference")
 local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
 
 local INVALID_METHOD_NAME = "Object is a %s and as such expected `true?` for the method name and instead got %s. Traceback: %s"
 local METHOD_NOT_FOUND_ERROR = "Object %s doesn't have method %s, are you sure you want to add it? Traceback: %s"
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s)) Traceback: %s"
-
-type RbxScriptConnection = RbxScriptConnection.RbxScriptConnection
 
 --[=[
 	Janitor is a light-weight, flexible object for cleaning up connections, instances, or anything. This implementation covers all use cases,
@@ -54,6 +52,7 @@ function Janitor.new()
 	return setmetatable({
 		CurrentlyCleaning = false;
 		[IndicesReference] = nil;
+		[LengthReference] = 0;
 	}, Janitor)
 end
 
@@ -68,6 +67,11 @@ function Janitor.Is(Object: any): boolean
 end
 
 type StringOrTrue = string | boolean
+type ObjectData = {number | StringOrTrue}
+-- type ObjectData = {
+-- 	[1]: number,
+-- 	[2]: StringOrTrue,
+-- }
 
 --[=[
 	Adds an `Object` to Janitor for later cleanup, where `MethodName` is the key of the method within `Object` which should be called at cleanup time.
@@ -173,7 +177,9 @@ function Janitor:Add<T>(Object: T, MethodName: StringOrTrue?, Index: any?): T
 		end
 	end
 
-	self[Object] = NewMethodName
+	local Length = (self[LengthReference] :: number) + 1
+	self[LengthReference] = Length
+	self[Object] = {Length, NewMethodName}
 	return Object
 end
 
@@ -263,23 +269,25 @@ function Janitor:Remove(Index: any)
 		local Object = This[Index]
 
 		if Object then
-			local MethodName = self[Object]
-
-			if MethodName then
-				if MethodName == true then
-					if type(Object) == "function" then
-						Object()
+			local ObjectData = self[Object] :: ObjectData?
+			if ObjectData then
+				local MethodName = ObjectData[2]
+				if MethodName then
+					if MethodName == true then
+						if type(Object) == "function" then
+							Object()
+						else
+							task.cancel(Object)
+						end
 					else
-						task.cancel(Object)
+						local ObjectMethod = Object[MethodName]
+						if ObjectMethod then
+							ObjectMethod(Object)
+						end
 					end
-				else
-					local ObjectMethod = Object[MethodName]
-					if ObjectMethod then
-						ObjectMethod(Object)
-					end
-				end
 
-				self[Object] = nil
+					self[Object] = nil
+				end
 			end
 
 			This[Index] = nil
@@ -338,26 +346,27 @@ function Janitor:RemoveList(...: any)
 			return self:Remove(...)
 		else
 			for Index = 1, Length do
-				-- MACRO
 				local Object = This[select(Index, ...)]
 				if Object then
-					local MethodName = self[Object]
-
-					if MethodName then
-						if MethodName == true then
-							if type(Object) == "function" then
-								Object()
+					local ObjectData = self[Object] :: ObjectData?
+					if ObjectData then
+						local MethodName = ObjectData[2]
+						if MethodName then
+							if MethodName == true then
+								if type(Object) == "function" then
+									Object()
+								else
+									task.cancel(Object)
+								end
 							else
-								task.cancel(Object)
+								local ObjectMethod = Object[MethodName]
+								if ObjectMethod then
+									ObjectMethod(Object)
+								end
 							end
-						else
-							local ObjectMethod = Object[MethodName]
-							if ObjectMethod then
-								ObjectMethod(Object)
-							end
-						end
 
-						self[Object] = nil
+							self[Object] = nil
+						end
 					end
 
 					This[Index] = nil
@@ -399,13 +408,42 @@ function Janitor:Get(Index: any): any?
 	return if This then This[Index] else nil
 end
 
+type OrderedData = {
+	Length: number,
+	Object: any,
+}
+
+local function SortOrder(A: OrderedData, B: OrderedData)
+	return A.Length < B.Length
+end
+
 local function GetFenv(self)
-	return function()
-		for Object, MethodName in next, self do
-			if Object ~= IndicesReference then
-				return Object, MethodName
-			end
+	local Order = {} :: {OrderedData}
+	local Length = 0
+
+	for Object, ObjectData in next, self do
+		if Object == IndicesReference or Object == LengthReference then
+			continue
 		end
+
+		Length += 1
+		Order[Length] = {
+			Length = ObjectData[1];
+			Object = Object;
+		}
+	end
+
+	table.sort(Order, SortOrder)
+	local Index = 0
+	return function() --: (any, ObjectData)
+		Index += 1
+		local OrderedData = Order[Index]
+		if not OrderedData then
+			return
+		end
+
+		local Object = OrderedData.Object
+		return Object, self[Object]
 	end
 end
 
@@ -431,9 +469,10 @@ function Janitor:Cleanup()
 		self.CurrentlyCleaning = nil
 
 		local Get = GetFenv(self)
-		local Object, MethodName = Get()
+		local Object, ObjectData = Get()
 
-		while Object and MethodName do -- changed to a while loop so that if you add to the janitor inside of a callback it doesn't get untracked (instead it will loop continuously which is a lot better than a hard to pindown edgecase)
+		while Object and ObjectData do -- changed to a while loop so that if you add to the janitor inside of a callback it doesn't get untracked (instead it will loop continuously which is a lot better than a hard to pindown edgecase)
+			local MethodName = ObjectData[2]
 			if MethodName == true then
 				if type(Object) == "function" then
 					Object()
@@ -448,7 +487,7 @@ function Janitor:Cleanup()
 			end
 
 			self[Object] = nil
-			Object, MethodName = Get()
+			Object, ObjectData = Get()
 		end
 
 		local This = self[IndicesReference]
@@ -523,93 +562,6 @@ function Janitor:LinkToInstance(Object: Instance, AllowMultiple: boolean?): RBXS
 	return self:Add(Object.Destroying:Connect(function()
 		self:Cleanup()
 	end), "Disconnect", IndexToUse)
-end
-
---[=[
-	This is the legacy LinkToInstance function. It is kept for backwards compatibility in case something is different with `Instance.Destroying`.
-
-	"Links" this Janitor to an Instance, such that the Janitor will `Cleanup` when the Instance is `Destroyed()` and garbage collected.
-	A Janitor may only be linked to one instance at a time, unless `AllowMultiple` is true. When called with a truthy `AllowMultiple` parameter,
-	the Janitor will "link" the Instance without overwriting any previous links, and will also not be overwritable.
-	When called with a falsy `AllowMultiple` parameter, the Janitor will overwrite the previous link which was also called with a falsy `AllowMultiple` parameter, if applicable.
-	This returns a mock `RBXScriptConnection` (see: [RbxScriptConnection](/api/RbxScriptConnection)).
-
-	### Luau:
-
-	```lua
-	local Obliterator = Janitor.new()
-
-	Obliterator:Add(function()
-		print("Cleaning up!")
-	end, true)
-
-	do
-		local Folder = Instance.new("Folder")
-		Obliterator:LinkToInstance(Folder)
-		Folder:Destroy()
-	end
-	```
-
-	### TypeScript:
-
-	```ts
-	import { Janitor } from "@rbxts/janitor";
-
-	const Obliterator = new Janitor();
-	Obliterator.Add(() => print("Cleaning up!"), true);
-
-	{
-		const Folder = new Instance("Folder");
-		Obliterator.LinkToInstance(Folder, false);
-		Folder.Destroy();
-	}
-	```
-
-	@deprecated v1.4.1 -- Use `Janitor:LinkToInstance` instead.
-	@param Object Instance -- The instance you want to link the Janitor to.
-	@param AllowMultiple? boolean -- Whether or not to allow multiple links on the same Janitor.
-	@return RbxScriptConnection -- A pseudo RBXScriptConnection that can be disconnected to prevent the cleanup of LinkToInstance.
-]=]
-function Janitor:LegacyLinkToInstance(Object: Instance, AllowMultiple: boolean?): RbxScriptConnection
-	local Connection
-	local IndexToUse = AllowMultiple and newproxy(false) or LinkToInstanceIndex
-	local IsNilParented = Object.Parent == nil
-	local ManualDisconnect = setmetatable({}, RbxScriptConnection)
-
-	local function ChangedFunction(_DoNotUse, NewParent)
-		if ManualDisconnect.Connected then
-			_DoNotUse = nil
-			IsNilParented = NewParent == nil
-
-			if IsNilParented then
-				task.defer(function()
-					if not ManualDisconnect.Connected then
-						return
-					elseif not Connection.Connected then
-						self:Cleanup()
-					else
-						while IsNilParented and Connection.Connected and ManualDisconnect.Connected do
-							task.wait()
-						end
-
-						if ManualDisconnect.Connected and IsNilParented then
-							self:Cleanup()
-						end
-					end
-				end)
-			end
-		end
-	end
-
-	Connection = Object.AncestryChanged:Connect(ChangedFunction)
-	ManualDisconnect.Connection = Connection
-
-	if IsNilParented then
-		ChangedFunction(nil, Object.Parent)
-	end
-
-	Object = nil :: any
-	return self:Add(ManualDisconnect, "Disconnect", IndexToUse)
 end
 
 --[=[

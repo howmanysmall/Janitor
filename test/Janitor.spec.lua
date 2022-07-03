@@ -67,6 +67,28 @@ return function()
 		setmetatable(self, nil)
 	end
 
+	local function GenerateOrderedString(Length: number)
+		local String = table.create(Length)
+		for Index = 1, Length do
+			String[Index] = Index
+		end
+
+		return table.concat(String, ",")
+	end
+
+	local function GetLength(Table: {[any]: any})
+		local Length = 0
+		for Key in next, Table do
+			if Key == "CurrentlyCleaning" or typeof(Key) == "userdata" then
+				continue
+			end
+
+			Length += 1
+		end
+
+		return Length
+	end
+
 	-- describe = describe :: describe
 	-- expect = expect :: expect
 	-- it = it :: it
@@ -381,7 +403,7 @@ return function()
 			end
 
 			NewJanitor:Cleanup()
-			expect(TotalRemoved).to.equal(FunctionsToAdd * 2)
+			expect(TotalRemoved).to.equal(FunctionsToAdd*2)
 		end)
 
 		it("should be unique", function()
@@ -416,6 +438,71 @@ return function()
 
 			task.wait(1.3)
 			expect(TotalRemoved).to.equal(FunctionsToAdd)
+		end)
+
+		it("should cleanup in order", function()
+			local NewJanitor = Janitor.new()
+			local FunctionsToAdd = 100
+			local GoalString = GenerateOrderedString(FunctionsToAdd)
+
+			local String = table.create(FunctionsToAdd)
+			for Index = 1, FunctionsToAdd do
+				NewJanitor:Add(function()
+					table.insert(String, Index)
+				end, true)
+			end
+
+			NewJanitor:Cleanup()
+			expect(table.concat(String, ",")).to.equal(GoalString)
+		end)
+
+		it("should cleanup in order even if a previous value was removed", function()
+			local NewJanitor = Janitor.new()
+			local FunctionsToAdd = 100
+			local GoalString = GenerateOrderedString(FunctionsToAdd)
+
+			local String = table.create(FunctionsToAdd)
+			for Index = 1, FunctionsToAdd do
+				NewJanitor:Add(function()
+					table.insert(String, Index)
+				end, true, Index)
+			end
+
+			NewJanitor:Remove(1)
+			NewJanitor:Cleanup()
+			expect(table.concat(String, ",")).to.equal(GoalString)
+		end)
+
+		it("should be empty after cleanup", function()
+			-- Test without using Index
+			do
+				local NewJanitor = Janitor.new()
+				local FunctionsToAdd = 100
+
+				for Index = 1, FunctionsToAdd do
+					NewJanitor:Add(function()
+						tostring(Index)
+					end, true)
+				end
+
+				NewJanitor:Cleanup()
+				expect(GetLength(NewJanitor)).to.equal(0)
+			end
+
+			-- Test using Index
+			do
+				local NewJanitor = Janitor.new()
+				local FunctionsToAdd = 100
+
+				for Index = 1, FunctionsToAdd do
+					NewJanitor:Add(function()
+						tostring(Index)
+					end, true, Index)
+				end
+
+				NewJanitor:Cleanup()
+				expect(GetLength(NewJanitor)).to.equal(0)
+			end
 		end)
 	end)
 
@@ -535,96 +622,96 @@ return function()
 		end)
 	end)
 
-	describe("LegacyLinkToInstance", function()
-		it("should link to an Instance", function()
-			local NewJanitor = Janitor.new()
-			local Part = NewJanitor:Add(Instance.new("Part"), "Destroy")
-			Part.Parent = ReplicatedStorage
+	-- describe("LegacyLinkToInstance", function()
+	-- 	it("should link to an Instance", function()
+	-- 		local NewJanitor = Janitor.new()
+	-- 		local Part = NewJanitor:Add(Instance.new("Part"), "Destroy")
+	-- 		Part.Parent = ReplicatedStorage
 
-			expect(function()
-				NewJanitor:LegacyLinkToInstance(Part)
-			end).never.to.throw()
+	-- 		expect(function()
+	-- 			NewJanitor:LegacyLinkToInstance(Part)
+	-- 		end).never.to.throw()
 
-			NewJanitor:Destroy()
-		end)
+	-- 		NewJanitor:Destroy()
+	-- 	end)
 
-		it("should cleanup once the Instance is destroyed", function()
-			local NewJanitor = Janitor.new()
-			local WasCleaned = false
+	-- 	it("should cleanup once the Instance is destroyed", function()
+	-- 		local NewJanitor = Janitor.new()
+	-- 		local WasCleaned = false
 
-			local Part = Instance.new("Part")
-			Part.Parent = Workspace
+	-- 		local Part = Instance.new("Part")
+	-- 		Part.Parent = Workspace
 
-			NewJanitor:Add(function()
-				WasCleaned = true
-			end, true)
+	-- 		NewJanitor:Add(function()
+	-- 			WasCleaned = true
+	-- 		end, true)
 
-			NewJanitor:LegacyLinkToInstance(Part)
+	-- 		NewJanitor:LegacyLinkToInstance(Part)
 
-			Part:Destroy()
-			task.wait(0.1)
+	-- 		Part:Destroy()
+	-- 		task.wait(0.1)
 
-			expect(WasCleaned).to.equal(true)
-			NewJanitor:Destroy()
-		end)
+	-- 		expect(WasCleaned).to.equal(true)
+	-- 		NewJanitor:Destroy()
+	-- 	end)
 
-		it("should work if the Instance is parented to nil when started", function()
-			local NewJanitor = Janitor.new()
-			local WasCleaned = false
+	-- 	it("should work if the Instance is parented to nil when started", function()
+	-- 		local NewJanitor = Janitor.new()
+	-- 		local WasCleaned = false
 
-			local Part = Instance.new("Part")
-			NewJanitor:Add(function()
-				WasCleaned = true
-			end, true)
+	-- 		local Part = Instance.new("Part")
+	-- 		NewJanitor:Add(function()
+	-- 			WasCleaned = true
+	-- 		end, true)
 
-			NewJanitor:LegacyLinkToInstance(Part)
-			Part.Parent = Workspace
+	-- 		NewJanitor:LegacyLinkToInstance(Part)
+	-- 		Part.Parent = Workspace
 
-			Part:Destroy()
-			task.wait(0.1)
+	-- 		Part:Destroy()
+	-- 		task.wait(0.1)
 
-			expect(WasCleaned).to.equal(true)
-			NewJanitor:Destroy()
-		end)
+	-- 		expect(WasCleaned).to.equal(true)
+	-- 		NewJanitor:Destroy()
+	-- 	end)
 
-		it("should work if the Instance is parented to nil", function()
-			local NewJanitor = Janitor.new()
-			local WasCleaned = false
+	-- 	it("should work if the Instance is parented to nil", function()
+	-- 		local NewJanitor = Janitor.new()
+	-- 		local WasCleaned = false
 
-			local Part = Instance.new("Part")
-			NewJanitor:Add(function()
-				WasCleaned = true
-			end, true)
+	-- 		local Part = Instance.new("Part")
+	-- 		NewJanitor:Add(function()
+	-- 			WasCleaned = true
+	-- 		end, true)
 
-			NewJanitor:LegacyLinkToInstance(Part)
+	-- 		NewJanitor:LegacyLinkToInstance(Part)
 
-			Part:Destroy()
-			task.wait(0.1)
+	-- 		Part:Destroy()
+	-- 		task.wait(0.1)
 
-			expect(WasCleaned).to.equal(true)
-			NewJanitor:Destroy()
-		end)
+	-- 		expect(WasCleaned).to.equal(true)
+	-- 		NewJanitor:Destroy()
+	-- 	end)
 
-		it("shouldn't run if the Instance is removed or parented to nil", function()
-			local NewJanitor = Janitor.new()
-			local Part = Instance.new("Part")
-			Part.Parent = ReplicatedStorage
+	-- 	it("shouldn't run if the Instance is removed or parented to nil", function()
+	-- 		local NewJanitor = Janitor.new()
+	-- 		local Part = Instance.new("Part")
+	-- 		Part.Parent = ReplicatedStorage
 
-			NewJanitor:Add(Noop, true, "Function")
-			NewJanitor:LegacyLinkToInstance(Part)
+	-- 		NewJanitor:Add(Noop, true, "Function")
+	-- 		NewJanitor:LegacyLinkToInstance(Part)
 
-			Part.Parent = nil
-			expect(NewJanitor:Get("Function")).to.equal(Noop)
-			Part.Parent = ReplicatedStorage
-			expect(NewJanitor:Get("Function")).to.equal(Noop)
+	-- 		Part.Parent = nil
+	-- 		expect(NewJanitor:Get("Function")).to.equal(Noop)
+	-- 		Part.Parent = ReplicatedStorage
+	-- 		expect(NewJanitor:Get("Function")).to.equal(Noop)
 
-			Part:Destroy()
-			task.wait(0.1)
-			expect(function()
-				NewJanitor:Destroy()
-			end).never.to.throw()
-		end)
-	end)
+	-- 		Part:Destroy()
+	-- 		task.wait(0.1)
+	-- 		expect(function()
+	-- 			NewJanitor:Destroy()
+	-- 		end).never.to.throw()
+	-- 	end)
+	-- end)
 
 	describe("LinkToInstances", function()
 		it("should not be tested", function()
