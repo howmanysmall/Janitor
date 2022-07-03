@@ -408,13 +408,14 @@ function Janitor:Get(Index: any): any?
 	return if This then This[Index] else nil
 end
 
-type OrderedData = {
-	Length: number,
-	Object: any,
-}
+type OrderedData = {number | any}
+-- type OrderedData = {
+-- 	[1]: number,
+-- 	[2]: any,
+-- }
 
 local function SortOrder(A: OrderedData, B: OrderedData)
-	return A.Length < B.Length
+	return A[1] < B[1]
 end
 
 local function GetFenv(self)
@@ -427,10 +428,7 @@ local function GetFenv(self)
 		end
 
 		Length += 1
-		Order[Length] = {
-			Length = ObjectData[1];
-			Object = Object;
-		}
+		Order[Length] = {ObjectData[1], Object}
 	end
 
 	table.sort(Order, SortOrder)
@@ -442,7 +440,7 @@ local function GetFenv(self)
 			return
 		end
 
-		local Object = OrderedData.Object
+		local Object = OrderedData[2]
 		return Object, self[Object]
 	end
 end
