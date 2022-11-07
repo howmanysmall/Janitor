@@ -270,7 +270,7 @@ function Janitor:Remove(Index: any)
 					if type(Object) == "function" then
 						Object()
 					else
-						task.cancel(Object)
+						pcall(task.cancel, Object)
 					end
 				else
 					local ObjectMethod = Object[MethodName]
@@ -348,7 +348,7 @@ function Janitor:RemoveList(...: any)
 							if type(Object) == "function" then
 								Object()
 							else
-								task.cancel(Object)
+								pcall(task.cancel, Object)
 							end
 						else
 							local ObjectMethod = Object[MethodName]
@@ -438,7 +438,7 @@ function Janitor:Cleanup()
 				if type(Object) == "function" then
 					Object()
 				else
-					task.cancel(Object)
+					pcall(task.cancel, Object)
 				end
 			else
 				local ObjectMethod = Object[MethodName]
