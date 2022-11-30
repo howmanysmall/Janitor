@@ -508,6 +508,36 @@ function Janitor:Get(Index: any): any?
 	return if This then This[Index] else nil
 end
 
+--[=[
+	Returns a frozen copy of the Janitor's indices.
+
+	### Luau:
+
+	```lua
+	local Obliterator = Janitor.new()
+	Obliterator:Add(workspace.Baseplate, "Destroy", "Baseplate")
+	print(Obliterator:GetAll().Baseplate) -- Prints Baseplate.
+	```
+
+	### TypeScript:
+
+	```ts
+	import { Workspace } from "@rbxts/services";
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor<{ Baseplate: Part }>();
+	Obliterator.Add(Workspace.FindFirstChild("Baseplate") as Part, "Destroy", "Baseplate");
+	print(Obliterator.GetAll().Baseplate); // Prints Baseplate.
+	```
+
+	@since v1.15.1
+	@return {[any]: any}
+]=]
+function Janitor:GetAll(): {[any]: any}
+	local This = self[IndicesReference]
+	return if This then table.freeze(table.clone(This)) else {}
+end
+
 local function GetFenv(self)
 	return function()
 		for Object, MethodName in next, self do
@@ -740,9 +770,10 @@ function Janitor:__tostring()
 	return "Janitor"
 end
 
+export type Class = typeof(Janitor.new())
 export type Janitor = {
 	ClassName: "Janitor",
-	CurrentlyCleaning: boolean?,
+	CurrentlyCleaning: boolean,
 
 	Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?) -> T,
 	AddPromise: <T>(self: Janitor, PromiseObject: T) -> T,
@@ -754,6 +785,7 @@ export type Janitor = {
 	RemoveListNoClean: (self: Janitor, ...any) -> Janitor,
 
 	Get: (self: Janitor, Index: any) -> any?,
+	GetAll: (self: Janitor) -> {[any]: any},
 
 	Cleanup: (self: Janitor) -> (),
 	Destroy: (self: Janitor) -> (),
