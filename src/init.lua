@@ -67,7 +67,7 @@ function Janitor.Is(Object: any): boolean
 	return type(Object) == "table" and getmetatable(Object) == Janitor
 end
 
-type StringOrTrue = string | boolean
+type BooleanOrString = boolean | string
 
 --[=[
 	Adds an `Object` to Janitor for later cleanup, where `MethodName` is the key of the method within `Object` which should be called at cleanup time.
@@ -147,7 +147,7 @@ type StringOrTrue = string | boolean
 	@param Index? any -- The index that can be used to clean up the object manually.
 	@return T -- The object that was passed as the first argument.
 ]=]
-function Janitor:Add<T>(Object: T, MethodName: StringOrTrue?, Index: any?): T
+function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?): T
 	if Index then
 		self:Remove(Index)
 
@@ -290,6 +290,50 @@ function Janitor:Remove(Index: any)
 end
 
 --[=[
+	Removes an object from the Janitor without running a cleanup.
+
+	### Luau
+
+	```lua
+	local Obliterator = Janitor.new()
+	Obliterator:Add(function()
+		print("Removed!")
+	end, true, "Function")
+
+	Obliterator:RemoveNoClean("Function") -- Does not print.
+	```
+
+	### TypeScript:
+
+	```ts
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor<{ Function: () => void }>();
+	Obliterator.Add(() => print("Removed!"), true, "Function");
+
+	Obliterator.RemoveNoClean("Function"); // Does not print.
+	```
+
+	@since v1.15
+	@param Index any -- The index you are removing.
+	@return Janitor
+]=]
+function Janitor:RemoveNoClean(Index: any)
+	local This = self[IndicesReference]
+
+	if This then
+		local Object = This[Index]
+		if Object then
+			self[Object] = nil
+		end
+
+		This[Index] = nil
+	end
+
+	return self
+end
+
+--[=[
 	Cleans up multiple objects at once.
 
 	### Luau:
@@ -337,9 +381,10 @@ function Janitor:RemoveList(...: any)
 		if Length == 1 then
 			return self:Remove(...)
 		else
-			for Index = 1, Length do
+			for SelectIndex = 1, Length do
 				-- MACRO
-				local Object = This[select(Index, ...)]
+				local Index = select(SelectIndex, ...)
+				local Object = This[Index]
 				if Object then
 					local MethodName = self[Object]
 
@@ -362,6 +407,70 @@ function Janitor:RemoveList(...: any)
 
 					This[Index] = nil
 				end
+			end
+		end
+	end
+
+	return self
+end
+
+--[=[
+	Cleans up multiple objects at once without running their cleanup.
+
+	### Luau:
+
+	```lua
+	local Obliterator = Janitor.new()
+	Obliterator:Add(function()
+		print("Removed One")
+	end, true, "One")
+
+	Obliterator:Add(function()
+		print("Removed Two")
+	end, true, "Two")
+
+	Obliterator:Add(function()
+		print("Removed Three")
+	end, true, "Three")
+
+	Obliterator:RemoveListNoClean("One", "Two", "Three") -- Nothing is printed.
+	```
+
+	### TypeScript:
+
+	```ts
+	import { Janitor } from "@rbxts/janitor";
+
+	type NoOp = () => void
+
+	const Obliterator = new Janitor<{ One: NoOp, Two: NoOp, Three: NoOp }>();
+	Obliterator.Add(() => print("Removed One"), true, "One");
+	Obliterator.Add(() => print("Removed Two"), true, "Two");
+	Obliterator.Add(() => print("Removed Three"), true, "Three");
+
+	Obliterator.RemoveListNoClean("One", "Two", "Three"); // Nothing is printed.
+	```
+
+	@since v1.15
+	@param ... any -- The indices you want to remove.
+	@return Janitor
+]=]
+function Janitor:RemoveListNoClean(...: any)
+	local This = self[IndicesReference]
+	if This then
+		local Length = select("#", ...)
+		if Length == 1 then
+			return self:RemoveNoClean(...)
+		else
+			for SelectIndex = 1, Length do
+				-- MACRO
+				local Index = select(SelectIndex, ...)
+				local Object = This[Index]
+				if Object then
+					self[Object] = nil
+				end
+
+				This[Index] = nil
 			end
 		end
 	end
@@ -620,7 +729,7 @@ end
 ]=]
 function Janitor:LinkToInstances(...: Instance)
 	local ManualCleanup = Janitor.new()
-	for _, Object in ipairs({...}) do
+	for _, Object in {...} do
 		ManualCleanup:Add(self:LinkToInstance(Object, true), "Disconnect")
 	end
 
@@ -631,6 +740,29 @@ function Janitor:__tostring()
 	return "Janitor"
 end
 
-export type Janitor = typeof(Janitor.new())
+export type Janitor = {
+	ClassName: "Janitor",
+	CurrentlyCleaning: boolean?,
+
+	Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?) -> T,
+	AddPromise: <T>(self: Janitor, PromiseObject: T) -> T,
+
+	Remove: (self: Janitor, Index: any) -> Janitor,
+	RemoveNoClean: (self: Janitor, Index: any) -> Janitor,
+
+	RemoveList: (self: Janitor, ...any) -> Janitor,
+	RemoveListNoClean: (self: Janitor, ...any) -> Janitor,
+
+	Get: (self: Janitor, Index: any) -> any?,
+
+	Cleanup: (self: Janitor) -> (),
+	Destroy: (self: Janitor) -> (),
+
+	LinkToInstance: (self: Janitor, Object: Instance, AllowMultiple: boolean?) -> RBXScriptConnection,
+	LegacyLinkToInstance: (self: Janitor, Object: Instance, AllowMultiple: boolean?) -> RbxScriptConnection,
+
+	LinkToInstances: (self: Janitor, ...Instance) -> Janitor,
+}
+
 table.freeze(Janitor)
 return Janitor
