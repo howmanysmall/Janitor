@@ -275,7 +275,11 @@ function Janitor:Remove(Index: any)
 				else
 					local ObjectMethod = Object[MethodName]
 					if ObjectMethod then
-						ObjectMethod(Object)
+						if typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
+							pcall(ObjectMethod, Object)
+						else
+							ObjectMethod(Object)
+						end
 					end
 				end
 
@@ -398,7 +402,11 @@ function Janitor:RemoveList(...: any)
 						else
 							local ObjectMethod = Object[MethodName]
 							if ObjectMethod then
-								ObjectMethod(Object)
+								if typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
+									pcall(ObjectMethod, Object)
+								else
+									ObjectMethod(Object)
+								end
 							end
 						end
 
@@ -582,7 +590,11 @@ function Janitor:Cleanup()
 			else
 				local ObjectMethod = Object[MethodName]
 				if ObjectMethod then
-					ObjectMethod(Object)
+					if typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
+						pcall(ObjectMethod, Object)
+					else
+						ObjectMethod(Object)
+					end
 				end
 			end
 
