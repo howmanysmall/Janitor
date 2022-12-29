@@ -9,12 +9,14 @@
 local GetPromiseLibrary = require(script.GetPromiseLibrary)
 local RbxScriptConnection = require(script.RbxScriptConnection)
 local Symbol = require(script.Symbol)
-local FoundPromiseLibrary, Promise = GetPromiseLibrary()
+local FoundPromiseLibrary, Promise, QuentyPromise = GetPromiseLibrary()
 
 local IndicesReference = Symbol("IndicesReference")
 local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
+local TaskIndex = Symbol("TaskIndex")
 
-local INVALID_METHOD_NAME = "Object is a %s and as such expected `true?` for the method name and instead got %s. Traceback: %s"
+local INVALID_METHOD_NAME =
+	"Object is a %s and as such expected `true?` for the method name and instead got %s. Traceback: %s"
 local METHOD_NOT_FOUND_ERROR = "Object %s doesn't have method %s, are you sure you want to add it? Traceback: %s"
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s)) Traceback: %s"
 
@@ -31,7 +33,7 @@ local Janitor = {}
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
 Janitor[IndicesReference] = nil
-Janitor.__index = Janitor
+Janitor[TaskIndex] = nil
 
 --[=[
 	@prop CurrentlyCleaning boolean
@@ -54,6 +56,7 @@ function Janitor.new()
 	return setmetatable({
 		CurrentlyCleaning = false;
 		[IndicesReference] = nil;
+		[TaskIndex] = 0;
 	}, Janitor)
 end
 
@@ -169,12 +172,37 @@ function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?): T
 		end
 	else
 		if not (Object :: any)[NewMethodName] then
-			warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(Object), tostring(NewMethodName), debug.traceback(nil :: any, 2)))
+			warn(
+				string.format(
+					METHOD_NOT_FOUND_ERROR,
+					tostring(Object),
+					tostring(NewMethodName),
+					debug.traceback(nil :: any, 2)
+				)
+			)
 		end
 	end
 
 	self[Object] = NewMethodName
 	return Object
+end
+
+local function IsQuentyPromise(Object)
+	return type(Object) == "table"
+		and (
+			type(Object.IsPending) == "function"
+			and type(Object.IsFulfilled) == "function"
+			and type(Object.IsRejected) == "function"
+			and type(Object.Wait) == "function"
+			and type(Object.Yield) == "function"
+			and type(Object.Resolve) == "function"
+			and type(Object.Reject) == "function"
+			and type(Object.Then) == "function"
+			and type(Object.Tap) == "function"
+			and type(Object.Finally) == "function"
+			and type(Object.Catch) == "function"
+			and type(Object.Destroy) == "function"
+		)
 end
 
 --[=[
@@ -206,7 +234,14 @@ end
 function Janitor:AddPromise(PromiseObject)
 	if FoundPromiseLibrary then
 		if not Promise.is(PromiseObject) then
-			error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil :: any, 2)))
+			error(
+				string.format(
+					NOT_A_PROMISE,
+					typeof(PromiseObject),
+					tostring(PromiseObject),
+					debug.traceback(nil :: any, 2)
+				)
+			)
 		end
 
 		if PromiseObject:getStatus() == Promise.Status.Started then
@@ -541,7 +576,7 @@ end
 local function GetFenv(self)
 	return function()
 		for Object, MethodName in next, self do
-			if Object ~= IndicesReference then
+			if Object ~= IndicesReference and Object ~= TaskIndex then
 				return Object, MethodName
 			end
 		end
@@ -609,8 +644,6 @@ end
 ]=]
 function Janitor:Destroy()
 	self:Cleanup()
-	table.clear(self)
-	setmetatable(self, nil)
 end
 
 Janitor.__call = Janitor.Cleanup
@@ -770,6 +803,52 @@ function Janitor:__tostring()
 	return "Janitor"
 end
 
+-- Maid Compatibility
+Janitor.isMaid = Janitor.Is
+Janitor.DoCleaning = Janitor.Cleanup
+
+function Janitor:GiveTask(Task: any, MethodName: BooleanOrString?)
+	if not Task then
+		error("Task cannot be false or nil", 2)
+	end
+
+	local Id = self[TaskIndex] + 1
+	self[TaskIndex] = Id
+	self:Add(Task, MethodName, Id)
+	return Id
+end
+
+function Janitor:GivePromise(PromiseObject)
+	if not PromiseObject:IsPending() then
+		return PromiseObject
+	end
+
+	local Id = newproxy(false)
+	local NewPromise = self:Add(PromiseObject.resolved(PromiseObject), "Destroy", Id)
+
+	NewPromise:Finally(function()
+		self:Remove(Id)
+	end)
+
+	return NewPromise
+end
+
+function Janitor:__index(Index)
+	if Janitor[Index] then
+		return Janitor[Index]
+	else
+		return self:Get(Index)
+	end
+end
+
+function Janitor:__newindex(Index, Value)
+	if Janitor[Index] ~= nil or self[Index] ~= nil then
+		error(string.format("Cannot use '%*' as a Maid key", tostring(Index)), 2)
+	end
+
+	self:Add(Value, false, Index)
+end
+
 export type Class = typeof(Janitor.new())
 export type Janitor = {
 	ClassName: "Janitor",
@@ -794,6 +873,11 @@ export type Janitor = {
 	LegacyLinkToInstance: (self: Janitor, Object: Instance, AllowMultiple: boolean?) -> RbxScriptConnection,
 
 	LinkToInstances: (self: Janitor, ...Instance) -> Janitor,
+
+	-- Maid Compat
+	DoCleaning: (self: Janitor) -> (),
+	GiveTask: (self: Janitor, Task: any, MethodName: BooleanOrString?) -> number,
+	GivePromise: <T>(self: Janitor, PromiseObject: T) -> T,
 }
 
 table.freeze(Janitor)

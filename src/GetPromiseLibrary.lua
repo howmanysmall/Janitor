@@ -4,10 +4,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
-local LOCATIONS_TO_SEARCH = {script.Parent.Parent, ReplicatedFirst, ReplicatedStorage, ServerScriptService, ServerStorage}
+local LOCATIONS_TO_SEARCH = {
+	script.Parent.Parent;
+	ReplicatedFirst;
+	ReplicatedStorage;
+	ServerScriptService;
+	ServerStorage;
+}
 
 local function FindFirstDescendantWithNameAndClassName(Parent: Instance, Name: string, ClassName: string)
-	for _, Descendant in ipairs(Parent:GetDescendants()) do
+	for _, Descendant in Parent:GetDescendants() do
 		if Descendant:IsA(ClassName) and Descendant.Name == Name then
 			return Descendant
 		end
@@ -30,7 +36,7 @@ local function GetPromiseLibrary()
 	end
 
 	local Promise
-	for _, Location in ipairs(LOCATIONS_TO_SEARCH) do
+	for _, Location in LOCATIONS_TO_SEARCH do
 		Promise = FindFirstDescendantWithNameAndClassName(Location, "Promise", "ModuleScript")
 		if Promise then
 			break
