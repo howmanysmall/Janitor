@@ -154,10 +154,10 @@ function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?): T
 	if Index then
 		self:Remove(Index)
 
-		local This = self[IndicesReference]
+		local This = rawget(self, IndicesReference)
 		if not This then
 			This = {}
-			self[IndicesReference] = This
+			rawset(self, IndicesReference, This)
 		end
 
 		This[Index] = Object
@@ -183,26 +183,8 @@ function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?): T
 		end
 	end
 
-	self[Object] = NewMethodName
+	rawset(self, Object, NewMethodName)
 	return Object
-end
-
-local function IsQuentyPromise(Object)
-	return type(Object) == "table"
-		and (
-			type(Object.IsPending) == "function"
-			and type(Object.IsFulfilled) == "function"
-			and type(Object.IsRejected) == "function"
-			and type(Object.Wait) == "function"
-			and type(Object.Yield) == "function"
-			and type(Object.Resolve) == "function"
-			and type(Object.Reject) == "function"
-			and type(Object.Then) == "function"
-			and type(Object.Tap) == "function"
-			and type(Object.Finally) == "function"
-			and type(Object.Catch) == "function"
-			and type(Object.Destroy) == "function"
-		)
 end
 
 --[=[
@@ -292,13 +274,13 @@ end
 	@return Janitor
 ]=]
 function Janitor:Remove(Index: any)
-	local This = self[IndicesReference]
+	local This = rawget(self, IndicesReference)
 
 	if This then
 		local Object = This[Index]
 
 		if Object then
-			local MethodName = self[Object]
+			local MethodName = rawget(self, Object)
 
 			if MethodName then
 				if MethodName == true then
@@ -310,11 +292,11 @@ function Janitor:Remove(Index: any)
 				else
 					local ObjectMethod = Object[MethodName]
 					if ObjectMethod then
-						ObjectMethod(Object)
+						pcall(ObjectMethod, Object)
 					end
 				end
 
-				self[Object] = nil
+				rawset(self, Object, nil)
 			end
 
 			This[Index] = nil
@@ -354,12 +336,12 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveNoClean(Index: any)
-	local This = self[IndicesReference]
+	local This = rawget(self, IndicesReference)
 
 	if This then
 		local Object = This[Index]
 		if Object then
-			self[Object] = nil
+			rawset(self, Object, nil)
 		end
 
 		This[Index] = nil
@@ -410,7 +392,7 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveList(...: any)
-	local This = self[IndicesReference]
+	local This = rawget(self, IndicesReference)
 	if This then
 		local Length = select("#", ...)
 		if Length == 1 then
@@ -421,7 +403,7 @@ function Janitor:RemoveList(...: any)
 				local Index = select(SelectIndex, ...)
 				local Object = This[Index]
 				if Object then
-					local MethodName = self[Object]
+					local MethodName = rawget(self, Object)
 
 					if MethodName then
 						if MethodName == true then
@@ -433,11 +415,11 @@ function Janitor:RemoveList(...: any)
 						else
 							local ObjectMethod = Object[MethodName]
 							if ObjectMethod then
-								ObjectMethod(Object)
+								pcall(ObjectMethod, Object)
 							end
 						end
 
-						self[Object] = nil
+						rawset(self, Object, nil)
 					end
 
 					This[Index] = nil
@@ -491,7 +473,7 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveListNoClean(...: any)
-	local This = self[IndicesReference]
+	local This = rawget(self, IndicesReference)
 	if This then
 		local Length = select("#", ...)
 		if Length == 1 then
@@ -502,7 +484,7 @@ function Janitor:RemoveListNoClean(...: any)
 				local Index = select(SelectIndex, ...)
 				local Object = This[Index]
 				if Object then
-					self[Object] = nil
+					rawset(self, Object, nil)
 				end
 
 				This[Index] = nil
@@ -539,7 +521,7 @@ end
 	@return any? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
 ]=]
 function Janitor:Get(Index: any): any?
-	local This = self[IndicesReference]
+	local This = rawget(self, IndicesReference)
 	return if This then This[Index] else nil
 end
 
@@ -569,7 +551,7 @@ end
 	@return {[any]: any}
 ]=]
 function Janitor:GetAll(): {[any]: any}
-	local This = self[IndicesReference]
+	local This = rawget(self, IndicesReference)
 	return if This then table.freeze(table.clone(This)) else {}
 end
 
@@ -601,8 +583,8 @@ end
 	```
 ]=]
 function Janitor:Cleanup()
-	if not self.CurrentlyCleaning then
-		self.CurrentlyCleaning = nil
+	if not rawget(self, "CurrentlyCleaning") then
+		rawset(self, "CurrentlyCleaning", nil)
 
 		local Get = GetFenv(self)
 		local Object, MethodName = Get()
@@ -617,21 +599,21 @@ function Janitor:Cleanup()
 			else
 				local ObjectMethod = Object[MethodName]
 				if ObjectMethod then
-					ObjectMethod(Object)
+					pcall(ObjectMethod, Object)
 				end
 			end
 
-			self[Object] = nil
+			rawset(self, Object, nil)
 			Object, MethodName = Get()
 		end
 
-		local This = self[IndicesReference]
+		local This = rawget(self, IndicesReference)
 		if This then
 			table.clear(This)
-			self[IndicesReference] = {}
+			rawset(self, IndicesReference, {})
 		end
 
-		self.CurrentlyCleaning = false
+		rawset(self, "CurrentlyCleaning", false)
 	end
 end
 
@@ -644,6 +626,8 @@ end
 ]=]
 function Janitor:Destroy()
 	self:Cleanup()
+	table.clear(self)
+	setmetatable(self, nil)
 end
 
 Janitor.__call = Janitor.Cleanup
@@ -812,8 +796,8 @@ function Janitor:GiveTask(Task: any, MethodName: BooleanOrString?)
 		error("Task cannot be false or nil", 2)
 	end
 
-	local Id = self[TaskIndex] + 1
-	self[TaskIndex] = Id
+	local Id = rawget(self, TaskIndex) + 1
+	rawset(self, TaskIndex, Id)
 	self:Add(Task, MethodName, Id)
 	return Id
 end
