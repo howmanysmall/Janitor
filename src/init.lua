@@ -7,9 +7,8 @@
 -- Cleanup edge cases fixed by codesenseAye.
 
 local GetPromiseLibrary = require(script.GetPromiseLibrary)
-local RbxScriptConnection = require(script.RbxScriptConnection)
 local Symbol = require(script.Symbol)
-local FoundPromiseLibrary, Promise, QuentyPromise = GetPromiseLibrary()
+local FoundPromiseLibrary, Promise = GetPromiseLibrary()
 
 local IndicesReference = Symbol("IndicesReference")
 local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
@@ -19,8 +18,6 @@ local INVALID_METHOD_NAME =
 	"Object is a %s and as such expected `true?` for the method name and instead got %s. Traceback: %s"
 local METHOD_NOT_FOUND_ERROR = "Object %s doesn't have method %s, are you sure you want to add it? Traceback: %s"
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s)) Traceback: %s"
-
-type RbxScriptConnection = RbxScriptConnection.RbxScriptConnection
 
 --[=[
 	Janitor is a light-weight, flexible object for cleaning up connections, instances, or anything. This implementation covers all use cases,
@@ -682,93 +679,6 @@ function Janitor:LinkToInstance(Object: Instance, AllowMultiple: boolean?): RBXS
 end
 
 --[=[
-	This is the legacy LinkToInstance function. It is kept for backwards compatibility in case something is different with `Instance.Destroying`.
-
-	"Links" this Janitor to an Instance, such that the Janitor will `Cleanup` when the Instance is `Destroyed()` and garbage collected.
-	A Janitor may only be linked to one instance at a time, unless `AllowMultiple` is true. When called with a truthy `AllowMultiple` parameter,
-	the Janitor will "link" the Instance without overwriting any previous links, and will also not be overwritable.
-	When called with a falsy `AllowMultiple` parameter, the Janitor will overwrite the previous link which was also called with a falsy `AllowMultiple` parameter, if applicable.
-	This returns a mock `RBXScriptConnection` (see: [RbxScriptConnection](/api/RbxScriptConnection)).
-
-	### Luau:
-
-	```lua
-	local Obliterator = Janitor.new()
-
-	Obliterator:Add(function()
-		print("Cleaning up!")
-	end, true)
-
-	do
-		local Folder = Instance.new("Folder")
-		Obliterator:LinkToInstance(Folder)
-		Folder:Destroy()
-	end
-	```
-
-	### TypeScript:
-
-	```ts
-	import { Janitor } from "@rbxts/janitor";
-
-	const Obliterator = new Janitor();
-	Obliterator.Add(() => print("Cleaning up!"), true);
-
-	{
-		const Folder = new Instance("Folder");
-		Obliterator.LinkToInstance(Folder, false);
-		Folder.Destroy();
-	}
-	```
-
-	@deprecated v1.4.1 -- Use `Janitor:LinkToInstance` instead.
-	@param Object Instance -- The instance you want to link the Janitor to.
-	@param AllowMultiple? boolean -- Whether or not to allow multiple links on the same Janitor.
-	@return RbxScriptConnection -- A pseudo RBXScriptConnection that can be disconnected to prevent the cleanup of LinkToInstance.
-]=]
-function Janitor:LegacyLinkToInstance(Object: Instance, AllowMultiple: boolean?): RbxScriptConnection
-	local Connection
-	local IndexToUse = AllowMultiple and newproxy(false) or LinkToInstanceIndex
-	local IsNilParented = Object.Parent == nil
-	local ManualDisconnect = setmetatable({}, RbxScriptConnection)
-
-	local function ChangedFunction(_DoNotUse, NewParent)
-		if ManualDisconnect.Connected then
-			_DoNotUse = nil
-			IsNilParented = NewParent == nil
-
-			if IsNilParented then
-				task.defer(function()
-					if not ManualDisconnect.Connected then
-						return
-					elseif not Connection.Connected then
-						self:Cleanup()
-					else
-						while IsNilParented and Connection.Connected and ManualDisconnect.Connected do
-							task.wait()
-						end
-
-						if ManualDisconnect.Connected and IsNilParented then
-							self:Cleanup()
-						end
-					end
-				end)
-			end
-		end
-	end
-
-	Connection = Object.AncestryChanged:Connect(ChangedFunction)
-	ManualDisconnect.Connection = Connection
-
-	if IsNilParented then
-		ChangedFunction(nil, Object.Parent)
-	end
-
-	Object = nil :: any
-	return self:Add(ManualDisconnect, "Disconnect", IndexToUse)
-end
-
---[=[
 	Links several instances to a new Janitor, which is then returned.
 
 	@param ... Instance -- All the Instances you want linked.
@@ -854,7 +764,6 @@ export type Janitor = {
 	Destroy: (self: Janitor) -> (),
 
 	LinkToInstance: (self: Janitor, Object: Instance, AllowMultiple: boolean?) -> RBXScriptConnection,
-	LegacyLinkToInstance: (self: Janitor, Object: Instance, AllowMultiple: boolean?) -> RbxScriptConnection,
 
 	LinkToInstances: (self: Janitor, ...Instance) -> Janitor,
 
