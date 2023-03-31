@@ -568,7 +568,7 @@ function Janitor:Get(Index: any): any?
 		return HeapEntry.Value.Index == Index
 	end)
 
-	return if RemoveIndex then Queue.Heap[RemoveIndex] else nil
+	return if RemoveIndex then Queue.Heap[RemoveIndex].Value.Object else nil
 end
 
 --[=[
