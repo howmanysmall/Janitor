@@ -6,19 +6,22 @@
 -- LinkToInstance fixed by Elttob.
 -- Cleanup edge cases fixed by codesenseAye.
 
+-- This is a fork of Janitor that adds priority support.
+
 local GetPromiseLibrary = require(script.GetPromiseLibrary)
-local RbxScriptConnection = require(script.RbxScriptConnection)
+local MinPriorityQueue = require(script.MinPriorityQueue)
 local Symbol = require(script.Symbol)
 local FoundPromiseLibrary, Promise = GetPromiseLibrary()
 
-local IndicesReference = Symbol("IndicesReference")
 local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
+local ObjectsReference = Symbol("ObjectsReference")
+local PriorityReference = Symbol("PriorityReference")
 
 local INVALID_METHOD_NAME = "Object is a %s and as such expected `true?` for the method name and instead got %s. Traceback: %s"
 local METHOD_NOT_FOUND_ERROR = "Object %s doesn't have method %s, are you sure you want to add it? Traceback: %s"
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s)) Traceback: %s"
 
-type RbxScriptConnection = RbxScriptConnection.RbxScriptConnection
+type MinPriorityQueue<T> = MinPriorityQueue.MinPriorityQueue<T>
 
 --[=[
 	Janitor is a light-weight, flexible object for cleaning up connections, instances, or anything. This implementation covers all use cases,
@@ -30,7 +33,8 @@ type RbxScriptConnection = RbxScriptConnection.RbxScriptConnection
 local Janitor = {}
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
-Janitor[IndicesReference] = nil
+Janitor[ObjectsReference] = nil
+Janitor[PriorityReference] = nil
 Janitor.__index = Janitor
 
 --[=[
@@ -46,15 +50,23 @@ local TypeDefaults = {
 	RBXScriptConnection = "Disconnect";
 }
 
+type IJanitorEntry = {
+	Object: unknown,
+	Method: BooleanOrString,
+	Index: any?,
+}
+
 --[=[
 	Instantiates a new Janitor object.
 	@return Janitor
 ]=]
-function Janitor.new()
+function Janitor.new(): Janitor
 	return setmetatable({
 		CurrentlyCleaning = false;
-		[IndicesReference] = nil;
-	}, Janitor)
+
+		[ObjectsReference] = MinPriorityQueue.new({} :: IJanitorEntry);
+		[PriorityReference] = {};
+	}, Janitor) :: any
 end
 
 --[=[
@@ -68,6 +80,22 @@ function Janitor.Is(Object: any): boolean
 end
 
 type BooleanOrString = boolean | string
+
+local function GetValueNotInSet(Set: {[number]: true}, Base: number?)
+	local TrueBase = if Base then Base else 1
+	if not Set[TrueBase] then
+		Set[TrueBase] = true
+		return TrueBase
+	else
+		local Value = TrueBase + 1
+		while Set[Value] do
+			Value += 1
+		end
+
+		Set[Value] = true
+		return Value
+	end
+end
 
 --[=[
 	Adds an `Object` to Janitor for later cleanup, where `MethodName` is the key of the method within `Object` which should be called at cleanup time.
@@ -147,17 +175,9 @@ type BooleanOrString = boolean | string
 	@param Index? any -- The index that can be used to clean up the object manually.
 	@return T -- The object that was passed as the first argument.
 ]=]
-function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?): T
+function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?, Priority: number?): T
 	if Index then
 		self:Remove(Index)
-
-		local This = self[IndicesReference]
-		if not This then
-			This = {}
-			self[IndicesReference] = This
-		end
-
-		This[Index] = Object
 	end
 
 	local TypeOf = typeof(Object)
@@ -173,7 +193,13 @@ function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?): T
 		end
 	end
 
-	self[Object] = NewMethodName
+	local TruePriority = GetValueNotInSet(self[PriorityReference], Priority);
+	(self[ObjectsReference] :: MinPriorityQueue<IJanitorEntry>):Insert({
+		Object = Object;
+		Method = NewMethodName;
+		Index = Index;
+	}, TruePriority)
+
 	return Object
 end
 
@@ -203,7 +229,7 @@ end
 	@param PromiseObject Promise -- The promise you want to add to the Janitor.
 	@return Promise
 ]=]
-function Janitor:AddPromise(PromiseObject)
+function Janitor:AddPromise(PromiseObject, Priority: number?)
 	if FoundPromiseLibrary then
 		if not Promise.is(PromiseObject) then
 			error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil :: any, 2)))
@@ -219,7 +245,7 @@ function Janitor:AddPromise(PromiseObject)
 				end
 
 				Resolve(PromiseObject)
-			end), "cancel", Id)
+			end), "cancel", Id, Priority)
 
 			NewPromise:finallyCall(self.Remove, self, Id)
 			return NewPromise
@@ -257,33 +283,32 @@ end
 	@return Janitor
 ]=]
 function Janitor:Remove(Index: any)
-	local This = self[IndicesReference]
+	local Value = (self[ObjectsReference] :: MinPriorityQueue<IJanitorEntry>):Remove(function(HeapEntry)
+		return HeapEntry.Value.Index == Index
+	end)
 
-	if This then
-		local Object = This[Index]
+	if Value then
+		local CleanupData = Value.Value
+		local MethodName = CleanupData.Method
 
-		if Object then
-			local MethodName = self[Object]
-
-			if MethodName then
-				if MethodName == true then
-					if type(Object) == "function" then
-						Object()
-					else
-						pcall(task.cancel, Object)
-					end
+		if MethodName then
+			local Object = CleanupData.Object
+			if MethodName == true then
+				if type(Object) == "function" then
+					Object()
 				else
-					local ObjectMethod = Object[MethodName]
-					if ObjectMethod then
-						ObjectMethod(Object)
-					end
+					pcall(task.cancel, Object)
 				end
-
-				self[Object] = nil
+			else
+				local ObjectMethod = Object[MethodName]
+				if ObjectMethod then
+					ObjectMethod(Object)
+				end
 			end
-
-			This[Index] = nil
 		end
+
+		self[PriorityReference][Value.Priority] = nil
+		table.clear(Value)
 	end
 
 	return self
@@ -319,15 +344,13 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveNoClean(Index: any)
-	local This = self[IndicesReference]
+	local Value = (self[ObjectsReference] :: MinPriorityQueue<IJanitorEntry>):Remove(function(HeapEntry)
+		return HeapEntry.Value.Index == Index
+	end)
 
-	if This then
-		local Object = This[Index]
-		if Object then
-			self[Object] = nil
-		end
-
-		This[Index] = nil
+	if Value then
+		self[PriorityReference][Value.Priority] = nil
+		table.clear(Value)
 	end
 
 	return self
@@ -375,38 +398,66 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveList(...: any)
-	local This = self[IndicesReference]
-	if This then
-		local Length = select("#", ...)
-		if Length == 1 then
-			return self:Remove(...)
-		else
-			for SelectIndex = 1, Length do
-				-- MACRO
-				local Index = select(SelectIndex, ...)
-				local Object = This[Index]
-				if Object then
-					local MethodName = self[Object]
+	local Queue: MinPriorityQueue<IJanitorEntry> = self[ObjectsReference]
+	local Length = select("#", ...)
+	if Length == 1 then
+		local Index = ...
+		local Value = Queue:Remove(function(HeapEntry)
+			return HeapEntry.Value.Index == Index
+		end)
 
-					if MethodName then
-						if MethodName == true then
-							if type(Object) == "function" then
-								Object()
-							else
-								pcall(task.cancel, Object)
-							end
-						else
-							local ObjectMethod = Object[MethodName]
-							if ObjectMethod then
-								ObjectMethod(Object)
-							end
-						end
+		if Value then
+			local CleanupData = Value.Value
+			local MethodName = CleanupData.Method
 
-						self[Object] = nil
+			if MethodName then
+				local Object = CleanupData.Object
+				if MethodName == true then
+					if type(Object) == "function" then
+						Object()
+					else
+						pcall(task.cancel, Object)
 					end
-
-					This[Index] = nil
+				else
+					local ObjectMethod = Object[MethodName]
+					if ObjectMethod then
+						ObjectMethod(Object)
+					end
 				end
+			end
+
+			self[PriorityReference][Value.Priority] = nil
+			table.clear(Value)
+		end
+	else
+		for SelectIndex = 1, Length do
+			local Index = select(SelectIndex, ...)
+			local Value = Queue:Remove(function(HeapEntry)
+				return HeapEntry.Value.Index == Index
+			end)
+
+			if Value then
+				local CleanupData = Value.Value
+				local MethodName = CleanupData.Method
+
+				if MethodName then
+					local Object = CleanupData.Object
+					if MethodName == true then
+						if type(Object) == "function" then
+							Object()
+						else
+							pcall(task.cancel, Object)
+						end
+					else
+						local ObjectMethod = Object[MethodName]
+						if ObjectMethod then
+							ObjectMethod(Object)
+						end
+					end
+				end
+
+				self[PriorityReference][Value.Priority] = nil
+				table.clear(Value)
 			end
 		end
 	end
@@ -456,21 +507,29 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveListNoClean(...: any)
-	local This = self[IndicesReference]
-	if This then
-		local Length = select("#", ...)
-		if Length == 1 then
-			return self:RemoveNoClean(...)
-		else
-			for SelectIndex = 1, Length do
-				-- MACRO
-				local Index = select(SelectIndex, ...)
-				local Object = This[Index]
-				if Object then
-					self[Object] = nil
-				end
+	local Queue: MinPriorityQueue<IJanitorEntry> = self[ObjectsReference]
+	local Length = select("#", ...)
+	if Length == 1 then
+		local Index = ...
+		local Value = Queue:Remove(function(HeapEntry)
+			return HeapEntry.Value.Index == Index
+		end)
 
-				This[Index] = nil
+		if Value then
+			self[PriorityReference][Value.Priority] = nil
+			table.clear(Value)
+		end
+	else
+		for SelectIndex = 1, Length do
+			-- MACRO
+			local Index = select(SelectIndex, ...)
+			local Value = Queue:Remove(function(HeapEntry)
+				return HeapEntry.Value.Index == Index
+			end)
+
+			if Value then
+				self[PriorityReference][Value.Priority] = nil
+				table.clear(Value)
 			end
 		end
 	end
@@ -504,8 +563,12 @@ end
 	@return any? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
 ]=]
 function Janitor:Get(Index: any): any?
-	local This = self[IndicesReference]
-	return if This then This[Index] else nil
+	local Queue: MinPriorityQueue<IJanitorEntry> = self[ObjectsReference]
+	local RemoveIndex = Queue:Find(function(HeapEntry)
+		return HeapEntry.Value.Index == Index
+	end)
+
+	return if RemoveIndex then Queue.Heap[RemoveIndex] else nil
 end
 
 --[=[
@@ -534,18 +597,18 @@ end
 	@return {[any]: any}
 ]=]
 function Janitor:GetAll(): {[any]: any}
-	local This = self[IndicesReference]
-	return if This then table.freeze(table.clone(This)) else {}
-end
+	local Queue: MinPriorityQueue<IJanitorEntry> = self[ObjectsReference]
+	local All = {}
 
-local function GetFenv(self)
-	return function()
-		for Object, MethodName in next, self do
-			if Object ~= IndicesReference then
-				return Object, MethodName
-			end
+	for _, HeapEntry in Queue.Heap do
+		local Value = HeapEntry.Value
+		local Index = Value.Index
+		if Index ~= nil then
+			All[Index] = Value.Object
 		end
 	end
+
+	return All
 end
 
 --[=[
@@ -569,33 +632,31 @@ function Janitor:Cleanup()
 	if not self.CurrentlyCleaning then
 		self.CurrentlyCleaning = nil
 
-		local Get = GetFenv(self)
-		local Object, MethodName = Get()
+		for _, Value in self[ObjectsReference].Heap do
+			local CleanupData = Value.Value
+			local MethodName = CleanupData.Method
 
-		while Object and MethodName do -- changed to a while loop so that if you add to the janitor inside of a callback it doesn't get untracked (instead it will loop continuously which is a lot better than a hard to pindown edgecase)
-			if MethodName == true then
-				if type(Object) == "function" then
-					Object()
+			if MethodName then
+				local Object = CleanupData.Object
+				if MethodName == true then
+					if type(Object) == "function" then
+						Object()
+					else
+						pcall(task.cancel, Object)
+					end
 				else
-					pcall(task.cancel, Object)
-				end
-			else
-				local ObjectMethod = Object[MethodName]
-				if ObjectMethod then
-					ObjectMethod(Object)
+					local ObjectMethod = Object[MethodName]
+					if ObjectMethod then
+						ObjectMethod(Object)
+					end
 				end
 			end
 
-			self[Object] = nil
-			Object, MethodName = Get()
+			table.clear(Value)
 		end
 
-		local This = self[IndicesReference]
-		if This then
-			table.clear(This)
-			self[IndicesReference] = {}
-		end
-
+		self[ObjectsReference]:Clear()
+		table.clear(self[PriorityReference])
 		self.CurrentlyCleaning = false
 	end
 end
@@ -656,99 +717,12 @@ Janitor.__call = Janitor.Cleanup
 	@param AllowMultiple? boolean -- Whether or not to allow multiple links on the same Janitor.
 	@return RBXScriptConnection -- A RBXScriptConnection that can be disconnected to prevent the cleanup of LinkToInstance.
 ]=]
-function Janitor:LinkToInstance(Object: Instance, AllowMultiple: boolean?): RBXScriptConnection
+function Janitor:LinkToInstance(Object: Instance, AllowMultiple: boolean?, Priority: number?): RBXScriptConnection
 	local IndexToUse = AllowMultiple and newproxy(false) or LinkToInstanceIndex
 
 	return self:Add(Object.Destroying:Connect(function()
 		self:Cleanup()
-	end), "Disconnect", IndexToUse)
-end
-
---[=[
-	This is the legacy LinkToInstance function. It is kept for backwards compatibility in case something is different with `Instance.Destroying`.
-
-	"Links" this Janitor to an Instance, such that the Janitor will `Cleanup` when the Instance is `Destroyed()` and garbage collected.
-	A Janitor may only be linked to one instance at a time, unless `AllowMultiple` is true. When called with a truthy `AllowMultiple` parameter,
-	the Janitor will "link" the Instance without overwriting any previous links, and will also not be overwritable.
-	When called with a falsy `AllowMultiple` parameter, the Janitor will overwrite the previous link which was also called with a falsy `AllowMultiple` parameter, if applicable.
-	This returns a mock `RBXScriptConnection` (see: [RbxScriptConnection](/api/RbxScriptConnection)).
-
-	### Luau:
-
-	```lua
-	local Obliterator = Janitor.new()
-
-	Obliterator:Add(function()
-		print("Cleaning up!")
-	end, true)
-
-	do
-		local Folder = Instance.new("Folder")
-		Obliterator:LinkToInstance(Folder)
-		Folder:Destroy()
-	end
-	```
-
-	### TypeScript:
-
-	```ts
-	import { Janitor } from "@rbxts/janitor";
-
-	const Obliterator = new Janitor();
-	Obliterator.Add(() => print("Cleaning up!"), true);
-
-	{
-		const Folder = new Instance("Folder");
-		Obliterator.LinkToInstance(Folder, false);
-		Folder.Destroy();
-	}
-	```
-
-	@deprecated v1.4.1 -- Use `Janitor:LinkToInstance` instead.
-	@param Object Instance -- The instance you want to link the Janitor to.
-	@param AllowMultiple? boolean -- Whether or not to allow multiple links on the same Janitor.
-	@return RbxScriptConnection -- A pseudo RBXScriptConnection that can be disconnected to prevent the cleanup of LinkToInstance.
-]=]
-function Janitor:LegacyLinkToInstance(Object: Instance, AllowMultiple: boolean?): RbxScriptConnection
-	local Connection
-	local IndexToUse = AllowMultiple and newproxy(false) or LinkToInstanceIndex
-	local IsNilParented = Object.Parent == nil
-	local ManualDisconnect = setmetatable({}, RbxScriptConnection)
-
-	local function ChangedFunction(_DoNotUse, NewParent)
-		if ManualDisconnect.Connected then
-			_DoNotUse = nil
-			IsNilParented = NewParent == nil
-
-			if IsNilParented then
-				task.defer(function()
-					if not ManualDisconnect.Connected then
-						return
-					elseif not Connection.Connected then
-						self:Cleanup()
-					else
-						while IsNilParented and Connection.Connected and ManualDisconnect.Connected do
-							task.wait()
-						end
-
-						if ManualDisconnect.Connected and IsNilParented then
-							self:Cleanup()
-						end
-					end
-				end)
-			end
-		end
-	end
-
-	Connection = Object.AncestryChanged:Connect(ChangedFunction)
-	ManualDisconnect.Connection = Connection
-
-	if IsNilParented then
-		ChangedFunction(nil, Object.Parent)
-	end
-
-	Object = nil :: any
-	return self:Add(ManualDisconnect, "Disconnect", IndexToUse)
+	end), "Disconnect", IndexToUse, Priority)
 end
 
 --[=[
@@ -766,17 +740,31 @@ function Janitor:LinkToInstances(...: Instance)
 	return ManualCleanup
 end
 
+type IAddEntry = {
+	Object: unknown,
+	Method: unknown?,
+	Name: unknown?,
+	Priority: number?,
+}
+
+function Janitor:AddList(...: IAddEntry)
+	for _, Value in {...} do
+		self:Add(Value.Object, Value.Method, Value.Name, Value.Priority)
+	end
+end
+
+Janitor.CleanUp = Janitor.Cleanup
+
 function Janitor:__tostring()
 	return "Janitor"
 end
 
-export type Class = typeof(Janitor.new())
 export type Janitor = {
 	ClassName: "Janitor",
 	CurrentlyCleaning: boolean,
 
-	Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?) -> T,
-	AddPromise: <T>(self: Janitor, PromiseObject: T) -> T,
+	Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?, Priority: number?) -> T,
+	AddPromise: <T>(self: Janitor, PromiseObject: T, Priority: number?) -> T,
 
 	Remove: (self: Janitor, Index: any) -> Janitor,
 	RemoveNoClean: (self: Janitor, Index: any) -> Janitor,
@@ -791,9 +779,12 @@ export type Janitor = {
 	Destroy: (self: Janitor) -> (),
 
 	LinkToInstance: (self: Janitor, Object: Instance, AllowMultiple: boolean?) -> RBXScriptConnection,
-	LegacyLinkToInstance: (self: Janitor, Object: Instance, AllowMultiple: boolean?) -> RbxScriptConnection,
 
 	LinkToInstances: (self: Janitor, ...Instance) -> Janitor,
+
+	-- ProFork
+	AddList: (self: Janitor, ...IAddEntry) -> (),
+	CleanUp: (self: Janitor) -> (),
 }
 
 table.freeze(Janitor)
