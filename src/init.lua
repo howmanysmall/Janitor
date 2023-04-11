@@ -50,11 +50,11 @@ local TypeDefaults = {
 	Instantiates a new Janitor object.
 	@return Janitor
 ]=]
-function Janitor.new()
+function Janitor.new(): Janitor
 	return setmetatable({
 		CurrentlyCleaning = false;
 		[IndicesReference] = nil;
-	}, Janitor)
+	}, Janitor) :: any
 end
 
 --[=[
@@ -770,7 +770,6 @@ function Janitor:__tostring()
 	return "Janitor"
 end
 
-export type Class = typeof(Janitor.new())
 export type Janitor = {
 	ClassName: "Janitor",
 	CurrentlyCleaning: boolean,
