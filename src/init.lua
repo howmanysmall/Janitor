@@ -567,7 +567,7 @@ end
 ]=]
 function Janitor:Cleanup()
 	if not self.CurrentlyCleaning then
-		self.CurrentlyCleaning = nil
+		self.CurrentlyCleaning = true
 
 		local Get = GetFenv(self)
 		local Object, MethodName = Get()
