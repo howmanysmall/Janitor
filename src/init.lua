@@ -270,7 +270,18 @@ function Janitor:Remove(Index: any)
 					if type(Object) == "function" then
 						Object()
 					else
-						pcall(task.cancel, Object)
+						local Cancelled
+						if coroutine.running() ~= Object then
+							Cancelled = pcall(function()
+								task.cancel(Object)
+							end)
+						end
+
+						if not Cancelled then
+							task.defer(function()
+								task.cancel(Object)
+							end)
+						end
 					end
 				else
 					local ObjectMethod = Object[MethodName]
@@ -393,7 +404,18 @@ function Janitor:RemoveList(...: any)
 							if type(Object) == "function" then
 								Object()
 							else
-								pcall(task.cancel, Object)
+								local Cancelled
+								if coroutine.running() ~= Object then
+									Cancelled = pcall(function()
+										task.cancel(Object)
+									end)
+								end
+
+								if not Cancelled then
+									task.defer(function()
+										task.cancel(Object)
+									end)
+								end
 							end
 						else
 							local ObjectMethod = Object[MethodName]
@@ -577,7 +599,18 @@ function Janitor:Cleanup()
 				if type(Object) == "function" then
 					Object()
 				else
-					pcall(task.cancel, Object)
+					local Cancelled
+					if coroutine.running() ~= Object then
+						Cancelled = pcall(function()
+							task.cancel(Object)
+						end)
+					end
+
+					if not Cancelled then
+						task.defer(function()
+							task.cancel(Object)
+						end)
+					end
 				end
 			else
 				local ObjectMethod = Object[MethodName]
