@@ -27,7 +27,9 @@ type RbxScriptConnection = RbxScriptConnection.RbxScriptConnection
 
 	@class Janitor
 ]=]
-local Janitor = {}
+local Janitor = {
+	SuppressInstanceReDestroy = false;
+}
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
 Janitor[IndicesReference] = nil
@@ -275,7 +277,7 @@ function Janitor:Remove(Index: any)
 				else
 					local ObjectMethod = Object[MethodName]
 					if ObjectMethod then
-						if typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
+						if self.SuppressInstanceReDestroy and typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
 							pcall(ObjectMethod, Object)
 						else
 							ObjectMethod(Object)
@@ -402,7 +404,7 @@ function Janitor:RemoveList(...: any)
 						else
 							local ObjectMethod = Object[MethodName]
 							if ObjectMethod then
-								if typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
+								if self.SuppressInstanceReDestroy and typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
 									pcall(ObjectMethod, Object)
 								else
 									ObjectMethod(Object)
@@ -590,7 +592,7 @@ function Janitor:Cleanup()
 			else
 				local ObjectMethod = Object[MethodName]
 				if ObjectMethod then
-					if typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
+					if self.SuppressInstanceReDestroy and typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
 						pcall(ObjectMethod, Object)
 					else
 						ObjectMethod(Object)
