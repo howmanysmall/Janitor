@@ -52,11 +52,11 @@ local TypeDefaults = {
 	Instantiates a new Janitor object.
 	@return Janitor
 ]=]
-function Janitor.new()
+function Janitor.new(): Janitor
 	return setmetatable({
 		CurrentlyCleaning = false;
 		[IndicesReference] = nil;
-	}, Janitor)
+	}, Janitor) :: any
 end
 
 --[=[
@@ -272,7 +272,18 @@ function Janitor:Remove(Index: any)
 					if type(Object) == "function" then
 						Object()
 					else
-						pcall(task.cancel, Object)
+						local Cancelled
+						if coroutine.running() ~= Object then
+							Cancelled = pcall(function()
+								task.cancel(Object)
+							end)
+						end
+
+						if not Cancelled then
+							task.defer(function()
+								task.cancel(Object)
+							end)
+						end
 					end
 				else
 					local ObjectMethod = Object[MethodName]
@@ -399,7 +410,18 @@ function Janitor:RemoveList(...: any)
 							if type(Object) == "function" then
 								Object()
 							else
-								pcall(task.cancel, Object)
+								local Cancelled
+								if coroutine.running() ~= Object then
+									Cancelled = pcall(function()
+										task.cancel(Object)
+									end)
+								end
+
+								if not Cancelled then
+									task.defer(function()
+										task.cancel(Object)
+									end)
+								end
 							end
 						else
 							local ObjectMethod = Object[MethodName]
@@ -587,7 +609,18 @@ function Janitor:Cleanup()
 				if type(Object) == "function" then
 					Object()
 				else
-					pcall(task.cancel, Object)
+					local Cancelled
+					if coroutine.running() ~= Object then
+						Cancelled = pcall(function()
+							task.cancel(Object)
+						end)
+					end
+
+					if not Cancelled then
+						task.defer(function()
+							task.cancel(Object)
+						end)
+					end
 				end
 			else
 				local ObjectMethod = Object[MethodName]
@@ -784,7 +817,6 @@ function Janitor:__tostring()
 	return "Janitor"
 end
 
-export type Class = typeof(Janitor.new())
 export type Janitor = {
 	ClassName: "Janitor",
 	CurrentlyCleaning: boolean,
