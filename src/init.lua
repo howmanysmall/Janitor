@@ -624,7 +624,7 @@ function Janitor:Cleanup()
 			else
 				local ObjectMethod = Object[MethodName]
 				if ObjectMethod then
-					if self.SuppressInstanceReDestroy and typeof(Object) == "Instance" then -- avoids error if the object is already destroyed
+					if self.SuppressInstanceReDestroy and MethodName == "Destroy" and typeof(Object) == "Instance" then
 						pcall(ObjectMethod, Object)
 					else
 						ObjectMethod(Object)
