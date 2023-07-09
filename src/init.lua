@@ -27,12 +27,11 @@ type RbxScriptConnection = RbxScriptConnection.RbxScriptConnection
 
 	@class Janitor
 ]=]
-local Janitor = {
-	SuppressInstanceReDestroy = false;
-}
+local Janitor = {}
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
 Janitor[IndicesReference] = nil
+Janitor.SuppressInstanceReDestroy = false;
 Janitor.__index = Janitor
 
 --[=[
