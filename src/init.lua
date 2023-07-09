@@ -31,7 +31,7 @@ local Janitor = {}
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
 Janitor[IndicesReference] = nil
-Janitor.SuppressInstanceReDestroy = false;
+Janitor.SuppressInstanceReDestroy = false
 Janitor.__index = Janitor
 
 --[=[
