@@ -30,15 +30,25 @@ type RbxScriptConnection = RbxScriptConnection.RbxScriptConnection
 local Janitor = {}
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
-Janitor[IndicesReference] = nil
 Janitor.SuppressInstanceReDestroy = false
+Janitor[IndicesReference] = nil
 Janitor.__index = Janitor
 
 --[=[
 	@prop CurrentlyCleaning boolean
+	@readonly
 	@within Janitor
 
 	Whether or not the Janitor is currently cleaning up.
+]=]
+
+--[=[
+	@prop SuppressInstanceReDestroy boolean
+	@within Janitor
+
+	Whether or not you want to suppress the re-destroying
+	of instances. Default is false, which is the original
+	behavior.
 ]=]
 
 local TypeDefaults = {
@@ -400,48 +410,7 @@ function Janitor:RemoveList(...: any)
 			return self:Remove(...)
 		else
 			for SelectIndex = 1, Length do
-				-- MACRO
-				local Index = select(SelectIndex, ...)
-				local Object = This[Index]
-				if Object then
-					local MethodName = self[Object]
-
-					if MethodName then
-						if MethodName == true then
-							if type(Object) == "function" then
-								Object()
-							else
-								local Cancelled
-								if coroutine.running() ~= Object then
-									Cancelled = pcall(function()
-										task.cancel(Object)
-									end)
-								end
-
-								if not Cancelled then
-									task.defer(function()
-										if Object then
-											task.cancel(Object)
-										end
-									end)
-								end
-							end
-						else
-							local ObjectMethod = Object[MethodName]
-							if ObjectMethod then
-								if self.SuppressInstanceReDestroy and MethodName == "Destroy" and typeof(Object) == "Instance" then
-									pcall(ObjectMethod, Object)
-								else
-									ObjectMethod(Object)
-								end
-							end
-						end
-
-						self[Object] = nil
-					end
-
-					This[Index] = nil
-				end
+				self:Remove(select(SelectIndex, ...))
 			end
 		end
 	end
@@ -825,6 +794,7 @@ end
 export type Janitor = {
 	ClassName: "Janitor",
 	CurrentlyCleaning: boolean,
+	SuppressInstanceReDestroy: boolean,
 
 	Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?) -> T,
 	AddPromise: <T>(self: Janitor, PromiseObject: T) -> T,
