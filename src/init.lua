@@ -33,6 +33,7 @@ type MinPriorityQueue<T> = MinPriorityQueue.MinPriorityQueue<T>
 local Janitor = {}
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
+Janitor.SuppressInstanceReDestroy = false
 Janitor[ObjectsReference] = nil
 Janitor[PriorityReference] = nil
 Janitor.__index = Janitor
@@ -297,12 +298,29 @@ function Janitor:Remove(Index: any)
 				if type(Object) == "function" then
 					Object()
 				else
-					pcall(task.cancel, Object)
+					local Cancelled
+					if coroutine.running() ~= Object then
+						Cancelled = pcall(function()
+							task.cancel(Object)
+						end)
+					end
+
+					if not Cancelled then
+						task.defer(function()
+							if Object then
+								task.cancel(Object)
+							end
+						end)
+					end
 				end
 			else
 				local ObjectMethod = Object[MethodName]
 				if ObjectMethod then
-					ObjectMethod(Object)
+					if self.SuppressInstanceReDestroy and MethodName == "Destroy" and typeof(Object) == "Instance" then
+						pcall(ObjectMethod, Object)
+					else
+						ObjectMethod(Object)
+					end
 				end
 			end
 		end
@@ -398,67 +416,12 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveList(...: any)
-	local Queue: MinPriorityQueue<IJanitorEntry> = self[ObjectsReference]
 	local Length = select("#", ...)
 	if Length == 1 then
-		local Index = ...
-		local Value = Queue:Remove(function(HeapEntry)
-			return HeapEntry.Value.Index == Index
-		end)
-
-		if Value then
-			local CleanupData = Value.Value
-			local MethodName = CleanupData.Method
-
-			if MethodName then
-				local Object = CleanupData.Object
-				if MethodName == true then
-					if type(Object) == "function" then
-						Object()
-					else
-						pcall(task.cancel, Object)
-					end
-				else
-					local ObjectMethod = Object[MethodName]
-					if ObjectMethod then
-						ObjectMethod(Object)
-					end
-				end
-			end
-
-			self[PriorityReference][Value.Priority] = nil
-			table.clear(Value)
-		end
+		return self:Remove(...)
 	else
 		for SelectIndex = 1, Length do
-			local Index = select(SelectIndex, ...)
-			local Value = Queue:Remove(function(HeapEntry)
-				return HeapEntry.Value.Index == Index
-			end)
-
-			if Value then
-				local CleanupData = Value.Value
-				local MethodName = CleanupData.Method
-
-				if MethodName then
-					local Object = CleanupData.Object
-					if MethodName == true then
-						if type(Object) == "function" then
-							Object()
-						else
-							pcall(task.cancel, Object)
-						end
-					else
-						local ObjectMethod = Object[MethodName]
-						if ObjectMethod then
-							ObjectMethod(Object)
-						end
-					end
-				end
-
-				self[PriorityReference][Value.Priority] = nil
-				table.clear(Value)
-			end
+			self:Remove(select(SelectIndex, ...))
 		end
 	end
 
@@ -521,16 +484,7 @@ function Janitor:RemoveListNoClean(...: any)
 		end
 	else
 		for SelectIndex = 1, Length do
-			-- MACRO
-			local Index = select(SelectIndex, ...)
-			local Value = Queue:Remove(function(HeapEntry)
-				return HeapEntry.Value.Index == Index
-			end)
-
-			if Value then
-				self[PriorityReference][Value.Priority] = nil
-				table.clear(Value)
-			end
+			self:RemoveNoClean(select(SelectIndex, ...))
 		end
 	end
 
@@ -642,12 +596,29 @@ function Janitor:Cleanup()
 					if type(Object) == "function" then
 						Object()
 					else
-						pcall(task.cancel, Object)
+						local Cancelled
+						if coroutine.running() ~= Object then
+							Cancelled = pcall(function()
+								task.cancel(Object)
+							end)
+						end
+
+						if not Cancelled then
+							task.defer(function()
+								if Object then
+									task.cancel(Object)
+								end
+							end)
+						end
 					end
 				else
 					local ObjectMethod = Object[MethodName]
 					if ObjectMethod then
-						ObjectMethod(Object)
+						if self.SuppressInstanceReDestroy and MethodName == "Destroy" and typeof(Object) == "Instance" then
+							pcall(ObjectMethod, Object)
+						else
+							ObjectMethod(Object)
+						end
 					end
 				end
 			end
@@ -762,6 +733,7 @@ end
 export type Janitor = {
 	ClassName: "Janitor",
 	CurrentlyCleaning: boolean,
+	SuppressInstanceReDestroy: boolean,
 
 	Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?, Priority: number?) -> T,
 	AddPromise: <T>(self: Janitor, PromiseObject: T, Priority: number?) -> T,
