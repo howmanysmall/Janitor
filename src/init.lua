@@ -31,6 +31,7 @@ local Janitor = {}
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
 Janitor[IndicesReference] = nil
+Janitor.SuppressInstanceReDestroy = false
 Janitor.__index = Janitor
 
 --[=[
@@ -288,7 +289,11 @@ function Janitor:Remove(Index: any)
 				else
 					local ObjectMethod = Object[MethodName]
 					if ObjectMethod then
-						ObjectMethod(Object)
+						if self.SuppressInstanceReDestroy and MethodName == "Destroy" and typeof(Object) == "Instance" then
+							pcall(ObjectMethod, Object)
+						else
+							ObjectMethod(Object)
+						end
 					end
 				end
 
@@ -424,7 +429,11 @@ function Janitor:RemoveList(...: any)
 						else
 							local ObjectMethod = Object[MethodName]
 							if ObjectMethod then
-								ObjectMethod(Object)
+								if self.SuppressInstanceReDestroy and MethodName == "Destroy" and typeof(Object) == "Instance" then
+									pcall(ObjectMethod, Object)
+								else
+									ObjectMethod(Object)
+								end
 							end
 						end
 
@@ -621,7 +630,11 @@ function Janitor:Cleanup()
 			else
 				local ObjectMethod = Object[MethodName]
 				if ObjectMethod then
-					ObjectMethod(Object)
+					if self.SuppressInstanceReDestroy and MethodName == "Destroy" and typeof(Object) == "Instance" then
+						pcall(ObjectMethod, Object)
+					else
+						ObjectMethod(Object)
+					end
 				end
 			end
 
