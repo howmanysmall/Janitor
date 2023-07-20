@@ -279,7 +279,9 @@ function Janitor:Remove(Index: any)
 
 						if not Cancelled then
 							task.defer(function()
-								task.cancel(Object)
+								if Object then
+									task.cancel(Object)
+								end
 							end)
 						end
 					end
@@ -413,7 +415,9 @@ function Janitor:RemoveList(...: any)
 
 								if not Cancelled then
 									task.defer(function()
-										task.cancel(Object)
+										if Object then
+											task.cancel(Object)
+										end
 									end)
 								end
 							end
@@ -608,7 +612,9 @@ function Janitor:Cleanup()
 
 					if not Cancelled then
 						task.defer(function()
-							task.cancel(Object)
+							if Object then
+								task.cancel(Object)
+							end
 						end)
 					end
 				end
