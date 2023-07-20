@@ -11,7 +11,7 @@ label = "Discord"
 position = "right"
 
 [[navbar.items]]
-href = "twitter.com/howmanysmaII"
+href = "https://twitter.com/howmanysmaII"
 label = "Twitter"
 position = "right"
 
