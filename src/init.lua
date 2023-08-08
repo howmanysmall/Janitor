@@ -576,7 +576,7 @@ end
 local function GetFenv(self)
 	return function()
 		for Object, MethodName in next, self do
-			if Object ~= IndicesReference then
+			if Object ~= IndicesReference and Object ~= "SuppressInstanceReDestroy" then
 				return Object, MethodName
 			end
 		end
