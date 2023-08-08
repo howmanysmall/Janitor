@@ -40,8 +40,7 @@ return function()
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 	local Janitor = require(script.Parent)
-	local GetPromiseLibrary = require(script.Parent.GetPromiseLibrary)
-	local FoundPromiseLibrary, Promise = GetPromiseLibrary()
+	local Promise = require(script.Parent.Parent.Promise)
 
 	local BasicClass = {}
 	BasicClass.__index = BasicClass
@@ -74,7 +73,6 @@ return function()
 	-- itSKIP = itSKIP :: it
 
 	local function Noop() end
-	local PromiseFunction = FoundPromiseLibrary and describe or describeSKIP
 
 	describe("Is", function()
 		it("should return true iff the passed value is a Janitor", function()
@@ -204,7 +202,7 @@ return function()
 		end)
 	end)
 
-	PromiseFunction("AddPromise", function()
+	describe("AddPromise", function()
 		it("should add a Promise", function()
 			local NewJanitor = Janitor.new()
 			local AddedPromise = NewJanitor:AddPromise(Promise.delay(60))

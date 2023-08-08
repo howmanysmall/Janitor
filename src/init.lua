@@ -6,10 +6,9 @@
 -- LinkToInstance fixed by Elttob.
 -- Cleanup edge cases fixed by codesenseAye.
 
-local GetPromiseLibrary = require(script.GetPromiseLibrary)
+local Promise = require(script.Parent.Promise)
 local RbxScriptConnection = require(script.RbxScriptConnection)
 local Symbol = require(script.Symbol)
-local FoundPromiseLibrary, Promise = GetPromiseLibrary()
 
 local IndicesReference = Symbol("IndicesReference")
 local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
@@ -30,15 +29,25 @@ type RbxScriptConnection = RbxScriptConnection.RbxScriptConnection
 local Janitor = {}
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
-Janitor[IndicesReference] = nil
 Janitor.SuppressInstanceReDestroy = false
+Janitor[IndicesReference] = nil
 Janitor.__index = Janitor
 
 --[=[
 	@prop CurrentlyCleaning boolean
+	@readonly
 	@within Janitor
 
 	Whether or not the Janitor is currently cleaning up.
+]=]
+
+--[=[
+	@prop SuppressInstanceReDestroy boolean
+	@within Janitor
+
+	Whether or not you want to suppress the re-destroying
+	of instances. Default is false, which is the original
+	behavior.
 ]=]
 
 local TypeDefaults = {
@@ -205,28 +214,24 @@ end
 	@return Promise
 ]=]
 function Janitor:AddPromise(PromiseObject)
-	if FoundPromiseLibrary then
-		if not Promise.is(PromiseObject) then
-			error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil :: any, 2)))
-		end
+	if not Promise.is(PromiseObject) then
+		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil :: any, 2)))
+	end
 
-		if PromiseObject:getStatus() == Promise.Status.Started then
-			local Id = newproxy(false)
-			local NewPromise = self:Add(Promise.new(function(Resolve, _, OnCancel)
-				if OnCancel(function()
-					PromiseObject:cancel()
-				end) then
-					return
-				end
+	if PromiseObject:getStatus() == Promise.Status.Started then
+		local Id = newproxy(false)
+		local NewPromise = self:Add(Promise.new(function(Resolve, _, OnCancel)
+			if OnCancel(function()
+				PromiseObject:cancel()
+			end) then
+				return
+			end
 
-				Resolve(PromiseObject)
-			end), "cancel", Id)
+			Resolve(PromiseObject)
+		end), "cancel", Id)
 
-			NewPromise:finallyCall(self.Remove, self, Id)
-			return NewPromise
-		else
-			return PromiseObject
-		end
+		NewPromise:finallyCall(self.Remove, self, Id)
+		return NewPromise
 	else
 		return PromiseObject
 	end
@@ -400,48 +405,7 @@ function Janitor:RemoveList(...: any)
 			return self:Remove(...)
 		else
 			for SelectIndex = 1, Length do
-				-- MACRO
-				local Index = select(SelectIndex, ...)
-				local Object = This[Index]
-				if Object then
-					local MethodName = self[Object]
-
-					if MethodName then
-						if MethodName == true then
-							if type(Object) == "function" then
-								Object()
-							else
-								local Cancelled
-								if coroutine.running() ~= Object then
-									Cancelled = pcall(function()
-										task.cancel(Object)
-									end)
-								end
-
-								if not Cancelled then
-									task.defer(function()
-										if Object then
-											task.cancel(Object)
-										end
-									end)
-								end
-							end
-						else
-							local ObjectMethod = Object[MethodName]
-							if ObjectMethod then
-								if self.SuppressInstanceReDestroy and MethodName == "Destroy" and typeof(Object) == "Instance" then
-									pcall(ObjectMethod, Object)
-								else
-									ObjectMethod(Object)
-								end
-							end
-						end
-
-						self[Object] = nil
-					end
-
-					This[Index] = nil
-				end
+				self:Remove(select(SelectIndex, ...))
 			end
 		end
 	end
@@ -825,6 +789,7 @@ end
 export type Janitor = {
 	ClassName: "Janitor",
 	CurrentlyCleaning: boolean,
+	SuppressInstanceReDestroy: boolean,
 
 	Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?) -> T,
 	AddPromise: <T>(self: Janitor, PromiseObject: T) -> T,

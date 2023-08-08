@@ -4,10 +4,13 @@
 		"$className": "DataModel",
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
-			"$ignoreUnknownInstances": true,
-			"Janitor": {
-				"$path": "src",
-				"$ignoreUnknownInstances": true
+			"Packages": {
+				"$path": "Packages",
+				"$ignoreUnknownInstances": true,
+				"Janitor": {
+					"$path": "default.project.json",
+					"$ignoreUnknownInstances": true
+				}
 			}
 		}
 	}
