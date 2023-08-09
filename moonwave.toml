@@ -1,4 +1,4 @@
-classOrder = ["Janitor", "RbxScriptConnection"]
+classOrder = ["Janitor"]
 changelog = true
 gitSourceBranch = "main"
 

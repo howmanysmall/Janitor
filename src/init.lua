@@ -7,12 +7,21 @@
 -- Cleanup edge cases fixed by codesenseAye.
 
 local Promise = require(script.Parent.Promise)
-local Symbol = require(script.Symbol)
 
-local IndicesReference = Symbol("IndicesReference")
-local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
+local IndicesReference = setmetatable({}, {
+	__tostring = function()
+		return "IndicesReference"
+	end;
+})
 
-local INVALID_METHOD_NAME = "Object is a %* and as such expected `true?` for the method name and instead got %*. Traceback: %*"
+local LinkToInstanceIndex = setmetatable({}, {
+	__tostring = function()
+		return "LinkToInstanceIndex"
+	end;
+})
+
+local INVALID_METHOD_NAME =
+	"Object is a %* and as such expected `true?` for the method name and instead got %*. Traceback: %*"
 local METHOD_NOT_FOUND_ERROR = "Object %* doesn't have method %*, are you sure you want to add it? Traceback: %*"
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %* (%*)) Traceback: %*"
 
@@ -41,6 +50,7 @@ Janitor.__index = Janitor
 --[=[
 	@prop SuppressInstanceReDestroy boolean
 	@within Janitor
+	@since 1.15.4
 
 	Whether or not you want to suppress the re-destroying
 	of instances. Default is false, which is the original
@@ -150,7 +160,7 @@ type BooleanOrString = boolean | string
 	```
 
 	@param Object T -- The object you want to clean up.
-	@param MethodName? string|true -- The name of the method that will be used to clean up. If not passed, it will first check if the object's type exists in TypeDefaults, and if that doesn't exist, it assumes `Destroy`.
+	@param MethodName? boolean | string -- The name of the method that will be used to clean up. If not passed, it will first check if the object's type exists in TypeDefaults, and if that doesn't exist, it assumes `Destroy`.
 	@param Index? any -- The index that can be used to clean up the object manually.
 	@return T -- The object that was passed as the first argument.
 ]=]
@@ -172,11 +182,18 @@ function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?): T
 
 	if TypeOf == "function" or TypeOf == "thread" then
 		if NewMethodName ~= true then
-			warn(string.format(INVALID_METHOD_NAME, TypeOf, tostring(NewMethodName), debug.traceback(nil :: any, 2)))
+			warn(string.format(INVALID_METHOD_NAME, TypeOf, tostring(NewMethodName), debug.traceback(nil, 2)))
 		end
 	else
 		if not (Object :: any)[NewMethodName] then
-			warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(Object), tostring(NewMethodName), debug.traceback(nil :: any, 2)))
+			warn(
+				string.format(
+					METHOD_NOT_FOUND_ERROR,
+					tostring(Object),
+					tostring(NewMethodName),
+					debug.traceback(nil, 2)
+				)
+			)
 		end
 	end
 
@@ -212,7 +229,7 @@ end
 ]=]
 function Janitor:AddPromise(PromiseObject)
 	if not Promise.is(PromiseObject) then
-		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil :: any, 2)))
+		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil, 2)))
 	end
 
 	if PromiseObject:getStatus() == Promise.Status.Started then
@@ -291,7 +308,11 @@ function Janitor:Remove(Index: any)
 				else
 					local ObjectMethod = Object[MethodName]
 					if ObjectMethod then
-						if self.SuppressInstanceReDestroy and MethodName == "Destroy" and typeof(Object) == "Instance" then
+						if
+							self.SuppressInstanceReDestroy
+							and MethodName == "Destroy"
+							and typeof(Object) == "Instance"
+						then
 							pcall(ObjectMethod, Object)
 						else
 							ObjectMethod(Object)
@@ -677,6 +698,8 @@ function Janitor:LinkToInstance(Object: Instance, AllowMultiple: boolean?): RBXS
 	end), "Disconnect", IndexToUse)
 end
 
+Janitor.LegacyLinkToInstance = Janitor.LinkToInstance
+
 --[=[
 	Links several instances to a new Janitor, which is then returned.
 
@@ -685,7 +708,12 @@ end
 ]=]
 function Janitor:LinkToInstances(...: Instance)
 	local ManualCleanup = Janitor.new()
-	for _, Object in {...} do
+	for Index = 1, select("#", ...) do
+		local Object = select(Index, ...)
+		if typeof(Object) ~= "Instance" then
+			continue
+		end
+
 		ManualCleanup:Add(self:LinkToInstance(Object, true), "Disconnect")
 	end
 

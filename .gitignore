@@ -49,3 +49,5 @@ build
 Garbage
 
 Packages/
+
+*.code-workspace
