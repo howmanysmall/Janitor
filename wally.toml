@@ -27,4 +27,4 @@ exclude = [
 ]
 
 [dependencies]
-Promise = "evaera/promise@4.0.0"
+Promise = "evaera/promise@4.0.0-rc.2"

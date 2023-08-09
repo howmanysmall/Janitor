@@ -5,21 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.15.5] - 2023-08-09
+## [2.0.0] - 2023-08-09
+
+### Changed
+
+- The Promise dependency has been bumped to `4.0.0-rc.2`.
 
 ### Fixed
 
-- Fixed an error that would only happen if you set SuppressInstanceReDestroy (tries to clean it up).
+- Fixed an error that would only happen if you set SuppressInstanceReDestroy (tries to clean it up). Thanks Meta-Maxim!
+
+### Removed
+
+- Removed `LegacyLinkToInstance`. This reduces the overall size of the package.
+
+## [1.15.5] - 2023-07-28
+
+### Changed
+
+- Promise is now a required dependency. This prevents a bug with `AddPromise` not detecting a Promise library if it is not
+called exactly `Promise`. Thanks colbert2677!
 
 ## [1.15.4] - 2023-07-20
 
 ### Added
 
-- Added a toggle to avoid double destruction of instances.
+- Added a toggle to avoid double destruction of instances. Thanks Meta-Maxim!
 
 ### Fixed
 
-- Fixed an error being thrown when an ended thread is cleaned up. (#31)
+- Fixed an error being thrown when an ended thread is cleaned up. (#31) Thanks brinkokevin!
 
 ## [1.15.3] - 2023-07-01
 
