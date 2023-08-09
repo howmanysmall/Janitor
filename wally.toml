@@ -9,6 +9,7 @@ exclude = [
 	"docs",
 	".moonwave",
 	"test",
+	"Packages",
 	"Janitor.rbxm",
 	"Janitor.rbxmx",
 	"BuildJanitor.lua",
