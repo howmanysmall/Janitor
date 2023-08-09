@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[315],{63891:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/howmanysmall/Janitor/blob/main","baseUrl":"/Janitor/","classOrder":["Janitor"],"apiCategories":[]}')}}]);
