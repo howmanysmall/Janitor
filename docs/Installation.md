@@ -23,7 +23,7 @@ This method uses `HttpService` to install Janitor.
 <textarea readonly rows="5" onClick={e => e.target.select()} style={{
    width: "100%"
 }}>
-   {`local ReplicatedStorage = game:GetService("ReplicatedStorage")
+{`local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 local HttpEnabled = HttpService.HttpEnabled
 HttpService.HttpEnabled = true
@@ -88,9 +88,9 @@ HttpService.HttpEnabled = HttpEnabled`}
 ### Method 3 - Manual
 
 1. Visit the [latest release](https://github.com/howmanysmall/Janitor/releases)
-2. Under *Assets*, click `Janitor.rbxm`
-3. - Using [Rojo](https://rojo.space/)? Put the file into your game directly.
-   - Using Roblox Studio? Drag the file onto the viewport. It should insert under Workspace.
+2. Under _Assets_, click `Janitor.rbxm`
+3.  - Using [Rojo](https://rojo.space/)? Put the file into your game directly.
+    - Using Roblox Studio? Drag the file onto the viewport. It should insert under Workspace.
 
 ### Method 4 - Wally
 
