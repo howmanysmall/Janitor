@@ -1,6 +1,3 @@
 {
-	"recommendations": [
-		"nightrains.robloxlsp",
-		"kampfkarren.selene-vscode",
-	],
+	"recommendations": ["nightrains.robloxlsp", "kampfkarren.selene-vscode"]
 }
