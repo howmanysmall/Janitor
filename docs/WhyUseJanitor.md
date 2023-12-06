@@ -23,7 +23,7 @@ With Maid, you can't tell it to do anything other than `:Destroy()`, `:Disconnec
 `Janitor:Add()` also accepts a custom reference to store under, which keeps the API more consistent.
 
 |                                        | **Janitor**                                 | **Maid**                  |
-| -------------------------------------- | ------------------------------------------- | ------------------------- |
+|----------------------------------------|---------------------------------------------|---------------------------|
 | Adding an Instance                     | `Janitor:Add(Instance, "Destroy")`          | `Maid:GiveTask(Instance)` |
 | Adding an Instance under a given index | `Janitor:Add(Instance, "Destroy", "Index")` | `Maid.Index = Instance`   |
 

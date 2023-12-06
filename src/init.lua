@@ -11,13 +11,13 @@ local Promise = require(script.Parent.Promise)
 local IndicesReference = setmetatable({}, {
 	__tostring = function()
 		return "IndicesReference"
-	end,
+	end;
 })
 
 local LinkToInstanceIndex = setmetatable({}, {
 	__tostring = function()
 		return "LinkToInstanceIndex"
-	end,
+	end;
 })
 
 local INVALID_METHOD_NAME =
@@ -58,9 +58,9 @@ Janitor.__index = Janitor
 ]=]
 
 local TypeDefaults = {
-	["function"] = true,
-	thread = true,
-	RBXScriptConnection = "Disconnect",
+	["function"] = true;
+	thread = true;
+	RBXScriptConnection = "Disconnect";
 }
 
 --[=[
@@ -69,8 +69,8 @@ local TypeDefaults = {
 ]=]
 function Janitor.new(): Janitor
 	return setmetatable({
-		CurrentlyCleaning = false,
-		[IndicesReference] = nil,
+		CurrentlyCleaning = false;
+		[IndicesReference] = nil;
 	}, Janitor) :: any
 end
 
@@ -234,19 +234,15 @@ function Janitor:AddPromise(PromiseObject)
 
 	if PromiseObject:getStatus() == Promise.Status.Started then
 		local Id = newproxy(false)
-		local NewPromise = self:Add(
-			Promise.new(function(Resolve, _, OnCancel)
-				if OnCancel(function()
-					PromiseObject:cancel()
-				end) then
-					return
-				end
+		local NewPromise = self:Add(Promise.new(function(Resolve, _, OnCancel)
+			if OnCancel(function()
+				PromiseObject:cancel()
+			end) then
+				return
+			end
 
-				Resolve(PromiseObject)
-			end),
-			"cancel",
-			Id
-		)
+			Resolve(PromiseObject)
+		end), "cancel", Id)
 
 		NewPromise:finallyCall(self.Remove, self, Id)
 		return NewPromise
@@ -554,7 +550,7 @@ end
 	@since v1.15.1
 	@return {[any]: any}
 ]=]
-function Janitor:GetAll(): { [any]: any }
+function Janitor:GetAll(): {[any]: any}
 	local This = self[IndicesReference]
 	return if This then table.freeze(table.clone(This)) else {}
 end
@@ -697,13 +693,9 @@ Janitor.__call = Janitor.Cleanup
 function Janitor:LinkToInstance(Object: Instance, AllowMultiple: boolean?): RBXScriptConnection
 	local IndexToUse = if AllowMultiple then newproxy(false) else LinkToInstanceIndex
 
-	return self:Add(
-		Object.Destroying:Connect(function()
-			self:Cleanup()
-		end),
-		"Disconnect",
-		IndexToUse
-	)
+	return self:Add(Object.Destroying:Connect(function()
+		self:Cleanup()
+	end), "Disconnect", IndexToUse)
 end
 
 Janitor.LegacyLinkToInstance = Janitor.LinkToInstance
@@ -747,7 +739,7 @@ export type Janitor = {
 	RemoveListNoClean: (self: Janitor, ...any) -> Janitor,
 
 	Get: (self: Janitor, Index: any) -> any?,
-	GetAll: (self: Janitor) -> { [any]: any },
+	GetAll: (self: Janitor) -> {[any]: any},
 
 	Cleanup: (self: Janitor) -> (),
 	Destroy: (self: Janitor) -> (),
