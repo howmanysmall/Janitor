@@ -9,5 +9,5 @@ dependencies = []
 
 [[package]]
 name = "howmanysmall/janitor"
-version = "1.15.6"
+version = "1.15.7"
 dependencies = [["Promise", "evaera/promise@4.0.0"]]

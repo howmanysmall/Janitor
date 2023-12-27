@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.7] - 2023-12-27
+
+### Added
+
+- Added `Janitor.instanceof` for rbxts usage.
+
+### Changed
+
+- Made the Promise dependency "optional". It's still required in the Wally file, but it's not actually required if it can't detect it.
+- Updated the dependencies in the aftman file.
+- Changed one of the tests to use itSKIP.
+
 ## [1.15.6] - 2023-08-09
 
 ### Added

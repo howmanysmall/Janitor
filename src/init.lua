@@ -1,3 +1,5 @@
+--!optimize 2
+--!strict
 -- Compiled with L+ C Edition
 -- Janitor
 -- Original by Validark
@@ -6,7 +8,7 @@
 -- LinkToInstance fixed by Elttob.
 -- Cleanup edge cases fixed by codesenseAye.
 
-local Promise = require(script.Parent.Promise)
+local Promise = if script.Parent:FindFirstChild("Promise") then require(script.Parent.Promise) else nil
 
 local IndicesReference = setmetatable({}, {
 	__tostring = function()
@@ -83,6 +85,16 @@ end
 function Janitor.Is(Object: any): boolean
 	return type(Object) == "table" and getmetatable(Object) == Janitor
 end
+
+--[=[
+	An alias for [Janitor.Is](#Is). This is intended for roblox-ts support.
+
+	@function instanceof
+	@within Janitor
+	@param Object any -- The object you are checking.
+	@return boolean -- `true` if `Object` is a Janitor.
+]=]
+Janitor.instanceof = Janitor.Is
 
 type BooleanOrString = boolean | string
 
@@ -228,6 +240,10 @@ end
 	@return Promise
 ]=]
 function Janitor:AddPromise(PromiseObject)
+	if not Promise then
+		return PromiseObject
+	end
+
 	if not Promise.is(PromiseObject) then
 		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil, 2)))
 	end

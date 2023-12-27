@@ -625,7 +625,7 @@ return function()
 	end)
 
 	describe("LinkToInstances", function()
-		it("should not be tested", function()
+		itSKIP("should not be tested", function()
 			expect(not not "i should do this later").to.equal(true)
 		end)
 	end)
