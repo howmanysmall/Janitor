@@ -1,5 +1,6 @@
 --!optimize 2
 --!strict
+
 -- Compiled with L+ C Edition
 -- Janitor
 -- Original by Validark
@@ -194,23 +195,47 @@ function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?): T
 
 	if TypeOf == "function" or TypeOf == "thread" then
 		if NewMethodName ~= true then
-			warn(string.format(INVALID_METHOD_NAME, TypeOf, tostring(NewMethodName), debug.traceback(nil, 2)))
+			warn(string.format(INVALID_METHOD_NAME, TypeOf, `{NewMethodName}`, debug.traceback(nil, 2)))
 		end
 	else
 		if not (Object :: any)[NewMethodName] then
-			warn(
-				string.format(
-					METHOD_NOT_FOUND_ERROR,
-					tostring(Object),
-					tostring(NewMethodName),
-					debug.traceback(nil, 2)
-				)
-			)
+			warn(string.format(METHOD_NOT_FOUND_ERROR, `{Object}`, `{NewMethodName}`, debug.traceback(nil, 2)))
 		end
 	end
 
 	self[Object] = NewMethodName
 	return Object
+end
+
+--[=[
+	Constructs an object for you and adds it to the Janitor. It's really just shorthand for `Janitor:Add(Object.new(), MethodName, Index)`.
+
+	### Luau:
+
+	```lua
+	local Obliterator = Janitor.new()
+	local SubObliterator = Obliterator:AddObject(Janitor, "Destroy")
+	-- SubObliterator is another Janitor!
+	```
+
+	### TypeScript:
+
+	```ts
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor();
+	const SubObliterator = Obliterator.AddObject(Janitor, "Destroy");
+	```
+
+	@since v1.16.0
+	@param Constructor {new: (A...) -> T} -- The constructor for the object you want to add to the Janitor.
+	@param MethodName? boolean | string -- The name of the method that will be used to clean up. If not passed, it will first check if the object's type exists in TypeDefaults, and if that doesn't exist, it assumes `Destroy`.
+	@param Index? any -- The index that can be used to clean up the object manually.
+	@param ... A... -- The arguments that will be passed to the constructor.
+	@return T -- The object that was passed as the first argument.
+]=]
+function Janitor:AddObject<T, A...>(Constructor: {new: (A...) -> T}, MethodName: BooleanOrString?, Index: any?, ...: A...): T
+	return self:Add(Constructor.new(...), MethodName, Index)
 end
 
 --[=[
@@ -245,7 +270,7 @@ function Janitor:AddPromise(PromiseObject)
 	end
 
 	if not Promise.is(PromiseObject) then
-		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil, 2)))
+		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), `{PromiseObject}`, debug.traceback(nil, 2)))
 	end
 
 	if PromiseObject:getStatus() == Promise.Status.Started then
@@ -260,11 +285,14 @@ function Janitor:AddPromise(PromiseObject)
 			Resolve(PromiseObject)
 		end), "cancel", Id)
 
-		NewPromise:finallyCall(self.Remove, self, Id)
+		NewPromise:finally(function()
+			self:Remove(Id)
+		end)
+
 		return NewPromise
-	else
-		return PromiseObject
 	end
+
+	return PromiseObject
 end
 
 --[=[
@@ -437,10 +465,11 @@ function Janitor:RemoveList(...: any)
 		local Length = select("#", ...)
 		if Length == 1 then
 			return self:Remove(...)
-		else
-			for SelectIndex = 1, Length do
-				self:Remove(select(SelectIndex, ...))
-			end
+		end
+
+		for SelectIndex = 1, Length do
+			local Remove = select(SelectIndex, ...)
+			self:Remove(Remove)
 		end
 	end
 
@@ -494,17 +523,17 @@ function Janitor:RemoveListNoClean(...: any)
 		local Length = select("#", ...)
 		if Length == 1 then
 			return self:RemoveNoClean(...)
-		else
-			for SelectIndex = 1, Length do
-				-- MACRO
-				local Index = select(SelectIndex, ...)
-				local Object = This[Index]
-				if Object then
-					self[Object] = nil
-				end
+		end
 
-				This[Index] = nil
+		for SelectIndex = 1, Length do
+			-- MACRO
+			local Index = select(SelectIndex, ...)
+			local Object = This[Index]
+			if Object then
+				self[Object] = nil
 			end
+
+			This[Index] = nil
 		end
 	end
 
@@ -596,6 +625,7 @@ end
 
 	```ts
 	Obliterator.Cleanup()
+	// TypeScript version doesn't support the __call method of cleaning.
 	```
 ]=]
 function Janitor:Cleanup()
@@ -740,29 +770,43 @@ function Janitor:__tostring()
 	return "Janitor"
 end
 
-export type Janitor = {
+export type Janitor = typeof(setmetatable(
+	{} :: {
+		ClassName: "Janitor",
+		CurrentlyCleaning: boolean,
+		SuppressInstanceReDestroy: boolean,
+
+		Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?) -> T,
+		AddObject: <T, A...>(
+			self: Janitor,
+			Constructor: {new: (A...) -> T},
+			MethodName: BooleanOrString?,
+			Index: any?,
+			A...
+		) -> T,
+		AddPromise: <T>(self: Janitor, PromiseObject: T) -> T,
+
+		Remove: (self: Janitor, Index: any) -> Janitor,
+		RemoveNoClean: (self: Janitor, Index: any) -> Janitor,
+
+		RemoveList: (self: Janitor, ...any) -> Janitor,
+		RemoveListNoClean: (self: Janitor, ...any) -> Janitor,
+
+		Get: (self: Janitor, Index: any) -> any?,
+		GetAll: (self: Janitor) -> {[any]: any},
+
+		Cleanup: (self: Janitor) -> (),
+		Destroy: (self: Janitor) -> (),
+
+		LinkToInstance: (self: Janitor, Object: Instance, AllowMultiple: boolean?) -> RBXScriptConnection,
+		LinkToInstances: (self: Janitor, ...Instance) -> Janitor,
+	},
+	{} :: {__call: (self: Janitor) -> ()}
+))
+
+return table.freeze(Janitor :: {
 	ClassName: "Janitor",
-	CurrentlyCleaning: boolean,
-	SuppressInstanceReDestroy: boolean,
-
-	Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?) -> T,
-	AddPromise: <T>(self: Janitor, PromiseObject: T) -> T,
-
-	Remove: (self: Janitor, Index: any) -> Janitor,
-	RemoveNoClean: (self: Janitor, Index: any) -> Janitor,
-
-	RemoveList: (self: Janitor, ...any) -> Janitor,
-	RemoveListNoClean: (self: Janitor, ...any) -> Janitor,
-
-	Get: (self: Janitor, Index: any) -> any?,
-	GetAll: (self: Janitor) -> {[any]: any},
-
-	Cleanup: (self: Janitor) -> (),
-	Destroy: (self: Janitor) -> (),
-
-	LinkToInstance: (self: Janitor, Object: Instance, AllowMultiple: boolean?) -> RBXScriptConnection,
-	LinkToInstances: (self: Janitor, ...Instance) -> Janitor,
-}
-
-table.freeze(Janitor)
-return Janitor
+	new: () -> Janitor,
+	Is: (Value: any) -> boolean,
+	instanceof: (Value: any) -> boolean,
+})
