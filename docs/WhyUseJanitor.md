@@ -34,3 +34,7 @@ Janitor also allows linking to an Instance via the `Janitor:LinkToInstance()` me
 ### Native support for Promises
 
 Janitor is the only library of its kind that supports cancelling Promises.
+
+### TypeScript Support
+
+Janitor has the best TypeScript support of any library like it. You have full intellisense with the objects stored in it, as well as the methods you can use to cleanup with.
