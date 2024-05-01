@@ -6,25 +6,30 @@ realm = "shared"
 registry = "https://github.com/UpliftGames/wally-index"
 version = "1.16.0"
 exclude = [
-	"docs",
+	".gitignore",
 	".moonwave",
-	"test",
-	"Packages",
-	"Janitor.rbxm",
-	"Janitor.rbxmx",
+	".styluaignore",
+	"aftman.toml",
 	"BuildJanitor.lua",
 	"changelog.md",
-	"README.md",
-	".styluaignore",
-	".gitignore",
+	"docs",
 	"foreman.toml",
+	"Janitor.rbxm",
+	"Janitor.rbxmx",
+	"LICENSE",
 	"Luau.toml",
 	"moonwave.toml",
+	"Packages",
+	"place.project.json",
+	"README.md",
 	"rotriever.toml",
 	"selene.toml",
 	"stylua.toml",
+	"test",
 	"testez-companion.toml",
 	"testez.toml",
+	"testez.yml",
+	"testplace.project.json",
 ]
 
 [dependencies]
