@@ -1,5 +1,5 @@
 [package]
-name = "howmanysmall/janitor"
+name = "howmanysmall/already-janitor"
 description = "A garbage collector object implementation for Roblox, featuring support for custom cleanup methods, Promises, and instance linking."
 license = "MIT"
 realm = "shared"
