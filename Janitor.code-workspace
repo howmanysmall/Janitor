@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": ".",
+		},
+	],
+
+	"settings": {
+		"editor.fontFamily": "'Cascadia Code', 'JetBrains Mono', \"Ligalex Mono\", Consolas, 'Courier New', monospace",
+		"editor.fontLigatures": "'ss02', 'zero'",
+	},
+}

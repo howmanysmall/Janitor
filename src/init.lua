@@ -1,3 +1,6 @@
+--!native
+--!optimize 2
+
 -- Compiled with L+ C Edition
 -- Janitor
 -- Original by Validark
@@ -8,18 +11,30 @@
 
 -- This is a fork of Janitor that adds priority support.
 
-local GetPromiseLibrary = require(script.GetPromiseLibrary)
 local MinPriorityQueue = require(script.MinPriorityQueue)
-local Symbol = require(script.Symbol)
-local FoundPromiseLibrary, Promise = GetPromiseLibrary()
+local Promise = if script.Parent:FindFirstChild("Promise") then require(script.Parent.Promise) else nil
 
-local LinkToInstanceIndex = Symbol("LinkToInstanceIndex")
-local ObjectsReference = Symbol("ObjectsReference")
-local PriorityReference = Symbol("PriorityReference")
+local ObjectsReference = setmetatable({}, {
+	__tostring = function()
+		return "ObjectsReference"
+	end;
+})
 
-local INVALID_METHOD_NAME = "Object is a %s and as such expected `true?` for the method name and instead got %s. Traceback: %s"
-local METHOD_NOT_FOUND_ERROR = "Object %s doesn't have method %s, are you sure you want to add it? Traceback: %s"
-local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %s (%s)) Traceback: %s"
+local LinkToInstanceIndex = setmetatable({}, {
+	__tostring = function()
+		return "LinkToInstanceIndex"
+	end;
+})
+
+local PriorityReference = setmetatable({}, {
+	__tostring = function()
+		return "PriorityReference"
+	end;
+})
+
+local INVALID_METHOD_NAME = "Object is a %* and as such expected `true?` for the method name and instead got %*. Traceback: %*"
+local METHOD_NOT_FOUND_ERROR = "Object %* doesn't have method %*, are you sure you want to add it? Traceback: %*"
+local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %* (%*)) Traceback: %*"
 
 type MinPriorityQueue<T> = MinPriorityQueue.MinPriorityQueue<T>
 
@@ -51,7 +66,7 @@ local TypeDefaults = {
 	RBXScriptConnection = "Disconnect";
 }
 
-type IJanitorEntry = {
+type JanitorEntry = {
 	Object: unknown,
 	Method: BooleanOrString,
 	Index: any?,
@@ -65,7 +80,7 @@ function Janitor.new(): Janitor
 	return setmetatable({
 		CurrentlyCleaning = false;
 
-		[ObjectsReference] = MinPriorityQueue.new({} :: IJanitorEntry);
+		[ObjectsReference] = MinPriorityQueue.new({} :: JanitorEntry);
 		[PriorityReference] = {};
 	}, Janitor) :: any
 end
@@ -82,20 +97,20 @@ end
 
 type BooleanOrString = boolean | string
 
-local function GetValueNotInSet(Set: {[number]: true}, Base: number?)
+local function GetValueNotInSet(Set: {true}, Base: number?)
 	local TrueBase = if Base then Base else 1
 	if not Set[TrueBase] then
 		Set[TrueBase] = true
 		return TrueBase
-	else
-		local Value = TrueBase + 1
-		while Set[Value] do
-			Value += 1
-		end
-
-		Set[Value] = true
-		return Value
 	end
+
+	local Value = TrueBase + 1
+	while Set[Value] do
+		Value += 1
+	end
+
+	Set[Value] = true
+	return Value
 end
 
 --[=[
@@ -195,13 +210,44 @@ function Janitor:Add<T>(Object: T, MethodName: BooleanOrString?, Index: any?, Pr
 	end
 
 	local TruePriority = GetValueNotInSet(self[PriorityReference], Priority);
-	(self[ObjectsReference] :: MinPriorityQueue<IJanitorEntry>):Insert({
+	(self[ObjectsReference] :: MinPriorityQueue<JanitorEntry>):Insert({
 		Object = Object;
 		Method = NewMethodName;
 		Index = Index;
 	}, TruePriority)
 
 	return Object
+end
+
+--[=[
+	Constructs an object for you and adds it to the Janitor. It's really just shorthand for `Janitor:Add(Object.new(), MethodName, Index)`.
+
+	### Luau:
+
+	```lua
+	local Obliterator = Janitor.new()
+	local SubObliterator = Obliterator:AddObject(Janitor, "Destroy")
+	-- SubObliterator is another Janitor!
+	```
+
+	### TypeScript:
+
+	```ts
+	import { Janitor } from "@rbxts/janitor";
+
+	const Obliterator = new Janitor();
+	const SubObliterator = Obliterator.AddObject(Janitor, "Destroy");
+	```
+
+	@since v1.16.0
+	@param Constructor {new: (A...) -> T} -- The constructor for the object you want to add to the Janitor.
+	@param MethodName? boolean | string -- The name of the method that will be used to clean up. If not passed, it will first check if the object's type exists in TypeDefaults, and if that doesn't exist, it assumes `Destroy`.
+	@param Index? any -- The index that can be used to clean up the object manually.
+	@param ... A... -- The arguments that will be passed to the constructor.
+	@return T -- The object that was passed as the first argument.
+]=]
+function Janitor:AddObject<T, A...>(Constructor: {new: (A...) -> T}, MethodName: BooleanOrString?, Index: any?, Priority: number?, ...: A...): T
+	return self:Add(Constructor.new(...), MethodName, Index, Priority)
 end
 
 --[=[
@@ -231,28 +277,31 @@ end
 	@return Promise
 ]=]
 function Janitor:AddPromise(PromiseObject, Priority: number?)
-	if FoundPromiseLibrary then
-		if not Promise.is(PromiseObject) then
-			error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil :: any, 2)))
-		end
+	if not Promise then
+		return PromiseObject
+	end
 
-		if PromiseObject:getStatus() == Promise.Status.Started then
-			local Id = newproxy(false)
-			local NewPromise = self:Add(Promise.new(function(Resolve, _, OnCancel)
-				if OnCancel(function()
-					PromiseObject:cancel()
-				end) then
-					return
-				end
+	if not Promise.is(PromiseObject) then
+		error(string.format(NOT_A_PROMISE, typeof(PromiseObject), tostring(PromiseObject), debug.traceback(nil :: any, 2)))
+	end
 
-				Resolve(PromiseObject)
-			end), "cancel", Id, Priority)
+	if PromiseObject:getStatus() == Promise.Status.Started then
+		local Id = newproxy(false)
+		local NewPromise = self:Add(Promise.new(function(Resolve, _, OnCancel)
+			if OnCancel(function()
+				PromiseObject:cancel()
+			end) then
+				return
+			end
 
-			NewPromise:finallyCall(self.Remove, self, Id)
-			return NewPromise
-		else
-			return PromiseObject
-		end
+			Resolve(PromiseObject)
+		end), "cancel", Id, Priority)
+
+		NewPromise:finally(function()
+			self:Remove(Id)
+		end)
+
+		return NewPromise
 	else
 		return PromiseObject
 	end
@@ -284,7 +333,7 @@ end
 	@return Janitor
 ]=]
 function Janitor:Remove(Index: any)
-	local Value = (self[ObjectsReference] :: MinPriorityQueue<IJanitorEntry>):Remove(function(HeapEntry)
+	local Value = (self[ObjectsReference] :: MinPriorityQueue<JanitorEntry>):Remove(function(HeapEntry)
 		return HeapEntry.Value.Index == Index
 	end)
 
@@ -362,7 +411,7 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveNoClean(Index: any)
-	local Value = (self[ObjectsReference] :: MinPriorityQueue<IJanitorEntry>):Remove(function(HeapEntry)
+	local Value = (self[ObjectsReference] :: MinPriorityQueue<JanitorEntry>):Remove(function(HeapEntry)
 		return HeapEntry.Value.Index == Index
 	end)
 
@@ -419,10 +468,10 @@ function Janitor:RemoveList(...: any)
 	local Length = select("#", ...)
 	if Length == 1 then
 		return self:Remove(...)
-	else
-		for SelectIndex = 1, Length do
-			self:Remove(select(SelectIndex, ...))
-		end
+	end
+
+	for SelectIndex = 1, Length do
+		self:Remove(select(SelectIndex, ...))
 	end
 
 	return self
@@ -470,7 +519,7 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveListNoClean(...: any)
-	local Queue: MinPriorityQueue<IJanitorEntry> = self[ObjectsReference]
+	local Queue: MinPriorityQueue<JanitorEntry> = self[ObjectsReference]
 	local Length = select("#", ...)
 	if Length == 1 then
 		local Index = ...
@@ -517,7 +566,7 @@ end
 	@return any? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
 ]=]
 function Janitor:Get(Index: any): any?
-	local Queue: MinPriorityQueue<IJanitorEntry> = self[ObjectsReference]
+	local Queue: MinPriorityQueue<JanitorEntry> = self[ObjectsReference]
 	local RemoveIndex = Queue:Find(function(HeapEntry)
 		return HeapEntry.Value.Index == Index
 	end)
@@ -551,7 +600,7 @@ end
 	@return {[any]: any}
 ]=]
 function Janitor:GetAll(): {[any]: any}
-	local Queue: MinPriorityQueue<IJanitorEntry> = self[ObjectsReference]
+	local Queue: MinPriorityQueue<JanitorEntry> = self[ObjectsReference]
 	local All = {}
 
 	for _, HeapEntry in Queue.Heap do
@@ -704,22 +753,28 @@ end
 ]=]
 function Janitor:LinkToInstances(...: Instance)
 	local ManualCleanup = Janitor.new()
-	for _, Object in {...} do
+	for Index = 1, select("#", ...) do
+		local Object = select(Index, ...)
+		if typeof(Object) ~= "Instance" then
+			continue
+		end
+
 		ManualCleanup:Add(self:LinkToInstance(Object, true), "Disconnect")
 	end
 
 	return ManualCleanup
 end
 
-type IAddEntry = {
+type AddEntry = {
 	Object: unknown,
 	Method: unknown?,
 	Name: unknown?,
 	Priority: number?,
 }
 
-function Janitor:AddList(...: IAddEntry)
-	for _, Value in {...} do
+function Janitor:AddList(...: AddEntry)
+	for Index = 1, select("#", ...) do
+		local Value = select(Index, ...)
 		self:Add(Value.Object, Value.Method, Value.Name, Value.Priority)
 	end
 end
@@ -730,12 +785,13 @@ function Janitor:__tostring()
 	return "Janitor"
 end
 
-export type Janitor = {
+export type Janitor = typeof(setmetatable({} :: {
 	ClassName: "Janitor",
 	CurrentlyCleaning: boolean,
 	SuppressInstanceReDestroy: boolean,
 
 	Add: <T>(self: Janitor, Object: T, MethodName: BooleanOrString?, Index: any?, Priority: number?) -> T,
+	AddObject: <T, A...>(self: Janitor, Constructor: {new: (A...) -> T}, MethodName: BooleanOrString?, Index: any?, Priority: number?, A...) -> T,
 	AddPromise: <T>(self: Janitor, PromiseObject: T, Priority: number?) -> T,
 
 	Remove: (self: Janitor, Index: any) -> Janitor,
@@ -755,9 +811,13 @@ export type Janitor = {
 	LinkToInstances: (self: Janitor, ...Instance) -> Janitor,
 
 	-- ProFork
-	AddList: (self: Janitor, ...IAddEntry) -> (),
+	AddList: (self: Janitor, ...AddEntry) -> (),
 	CleanUp: (self: Janitor) -> (),
-}
+}, {} :: {__call: (self: Janitor) -> ()}))
 
-table.freeze(Janitor)
-return Janitor
+return table.freeze(Janitor :: {
+	ClassName: "Janitor",
+	new: () -> Janitor,
+	Is: (Value: any) -> boolean,
+	instanceof: (Value: any) -> boolean,
+})
