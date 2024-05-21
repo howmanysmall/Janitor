@@ -40,8 +40,7 @@ return function()
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 	local Janitor = require(script.Parent)
-	local GetPromiseLibrary = require(script.Parent.GetPromiseLibrary)
-	local FoundPromiseLibrary, Promise = GetPromiseLibrary()
+	local Promise = if script.Parent.Parent:FindFirstChild("Promise") then require(script.Parent.Parent.Promise) else nil
 
 	local BasicClass = {}
 	BasicClass.__index = BasicClass
@@ -74,7 +73,6 @@ return function()
 	-- itSKIP = itSKIP :: it
 
 	local function Noop() end
-	local PromiseFunction = FoundPromiseLibrary and describe or describeSKIP
 
 	describe("Is", function()
 		it("should return true iff the passed value is a Janitor", function()
@@ -204,8 +202,9 @@ return function()
 		end)
 	end)
 
-	PromiseFunction("AddPromise", function()
-		it("should add a Promise", function()
+	describe("AddPromise", function()
+		local itFunction = if Promise then it else itSKIP
+		itFunction("should add a Promise", function()
 			local NewJanitor = Janitor.new()
 			local AddedPromise = NewJanitor:AddPromise(Promise.delay(60))
 
@@ -213,7 +212,7 @@ return function()
 			NewJanitor:Destroy()
 		end)
 
-		it("should cancel the Promise when destroyed", function()
+		itFunction("should cancel the Promise when destroyed", function()
 			local NewJanitor = Janitor.new()
 			local WasCancelled = false
 
@@ -231,7 +230,7 @@ return function()
 			expect(WasCancelled).to.equal(true)
 		end)
 
-		it("should not remove any values from the return", function()
+		itFunction("should not remove any values from the return", function()
 			local NewJanitor = Janitor.new()
 			local _, Value = NewJanitor:AddPromise(Promise.new(function(Resolve)
 				Resolve(true)
@@ -241,7 +240,7 @@ return function()
 			NewJanitor:Destroy()
 		end)
 
-		it("should throw if the passed value isn't a Promise", function()
+		itFunction("should throw if the passed value isn't a Promise", function()
 			local NewJanitor = Janitor.new()
 			expect(function()
 				NewJanitor:AddPromise(BasicClass.new())
@@ -627,7 +626,7 @@ return function()
 	end)
 
 	describe("LinkToInstances", function()
-		it("should not be tested", function()
+		itSKIP("should not be tested", function()
 			expect(not not "i should do this later").to.equal(true)
 		end)
 	end)
