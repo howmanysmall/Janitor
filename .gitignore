@@ -48,4 +48,6 @@ Janitor.rbxmx
 build
 Garbage
 
-Packages
+Packages/
+
+*.code-workspace

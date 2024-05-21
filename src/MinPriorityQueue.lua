@@ -1,13 +1,11 @@
---[=[
-	In a min priority queue, elements are inserted in the order in which they arrive the queue and the maximum value is always removed first from the queue.
+--!native
+--!optimize 2
 
-	@class MinPriorityQueue
-]=]
 local MinPriorityQueue = {}
 MinPriorityQueue.ClassName = "MinPriorityQueue"
 MinPriorityQueue.__index = MinPriorityQueue
 
-export type HeapEntry<T = unknown> = {
+export type HeapEntry<T = any> = {
 	Priority: number,
 	Value: T,
 }
@@ -16,31 +14,7 @@ local function PriorityCheck(A: number, B: number)
 	return A < B
 end
 
---[=[
-	@within MinPriorityQueue
-	@prop Length number
-	The length of the MinPriorityQueue.
-]=]
-
---[=[
-	@within MinPriorityQueue
-	@prop Heap Array<HeapEntry<T>>
-	The heap data of the MinPriorityQueue.
-]=]
-
---[=[
-	@numbererface HeapEntry
-	@within MinPriorityQueue
-	.Priority number -- The priority of the entry.
-	.Value T -- The value of the entry.
-	This is the numbererface for the entries in the MinPriorityQueue.
-]=]
-
---[=[
-	Creates a new `MinPriorityQueue`.
-	@return MinPriorityQueue<T>
-]=]
-function MinPriorityQueue.new<T>(ValueType: T): MinPriorityQueue<T>
+function MinPriorityQueue.new<T>(_: T): MinPriorityQueue<T>
 	return setmetatable({
 		Heap = {};
 		Length = 0;
@@ -65,12 +39,7 @@ function MinPriorityQueue:IsEmpty(): boolean
 end
 
 local function FindClosestIndex<T>(self: MinPriorityQueue<T>, Priority: number, Low: number, High: number): number
-	local Middle
-
-	do
-		local Sum = Low + High
-		Middle = (Sum - Sum % 2) / 2
-	end
+	local Middle = (Low + High) // 2
 
 	if Middle == 0 then
 		return -1
@@ -91,8 +60,7 @@ local function FindClosestIndex<T>(self: MinPriorityQueue<T>, Priority: number, 
 			Low = Middle + 1
 		end
 
-		local Sum = Low + High
-		Middle = (Sum - Sum % 2) / 2
+		Middle = (Low + High) // 2
 		Element = Heap[Middle]
 	end
 
@@ -437,7 +405,7 @@ function MinPriorityQueue:__tostring()
 	return string.format("MinPriorityQueue<{\n%s\n}>", table.concat(Array, "\n"))
 end
 
-export type MinPriorityQueue<T = unknown> = {
+export type MinPriorityQueue<T = any> = {
 	ClassName: "MinPriorityQueue",
 
 	Heap: {HeapEntry<T>},
@@ -456,8 +424,14 @@ export type MinPriorityQueue<T = unknown> = {
 	PopElement: (self: MinPriorityQueue<T>, OnlyValues: boolean?) -> T | HeapEntry<T> | nil,
 	ToArray: (self: MinPriorityQueue<T>, OnlyValues: boolean?) -> {T} | {HeapEntry<T>},
 
-	Iterator: (self: MinPriorityQueue<T>, OnlyValues: boolean?) -> typeof(ipairs({} :: {HeapEntry<T>})) | typeof(ipairs({} :: {T})),
-	ReverseIterator: (self: MinPriorityQueue<T>, OnlyValues: boolean?) -> typeof(ipairs({} :: {HeapEntry<T>})) | typeof(ipairs({} :: {T})),
+	Iterator: (
+		self: MinPriorityQueue<T>,
+		OnlyValues: boolean?
+	) -> typeof(ipairs({} :: {HeapEntry<T>})) | typeof(ipairs({} :: {T})),
+	ReverseIterator: (
+		self: MinPriorityQueue<T>,
+		OnlyValues: boolean?
+	) -> typeof(ipairs({} :: {HeapEntry<T>})) | typeof(ipairs({} :: {T})),
 
 	Clear: (self: MinPriorityQueue<T>) -> MinPriorityQueue<T>,
 
