@@ -49,5 +49,7 @@ build
 Garbage
 
 Packages/
+DevPackages/
 
 *.code-workspace
+sourcemap.json

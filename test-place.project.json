@@ -4,10 +4,9 @@
 		"$className": "DataModel",
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
-			"$path": "DevPackages",
-			"Janitor": {
-				"$path": "Janitor"
-			}
+			"$path": "Packages",
+			"Janitor": {"$path": "./default.project.json"},
+			"DevPackages": {"$path": "DevPackages"}
 		}
 	}
 }
