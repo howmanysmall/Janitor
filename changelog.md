@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Rewrote the API to be correct for Luau LSP strict mode and Roblox strict mode.
 - Changed the `Janitor.AddPromise` API to be a better typed version.
+- Rewrote the code to be a little bit more readable.
 
 ### Fixed
 

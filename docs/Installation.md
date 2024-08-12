@@ -101,7 +101,7 @@ HttpService.HttpEnabled = HttpEnabled`}
 
 ```toml
 [dependencies]
-Janitor = "howmanysmall/janitor@^1.16.0"
+Janitor = "howmanysmall/janitor@^1.17.0"
 ```
 
 ## Next

@@ -1,4 +1,5 @@
 # Janitor
+
 Janitor library. This branch is for the thread safe version of Janitor that does not use a global state.
 
 [Original](https://github.com/RoStrap/Events/blob/master/Janitor.lua) was made by [Validark](https://github.com/Validark), however he doesn't really maintain that version anymore. It does have all the [original documentation](https://rostrap.github.io/Libraries/Events/Janitor/) for it though.
@@ -27,7 +28,7 @@ If your project uses Janitor, leave a PR on the readme!
 - `Janitor:Add` also accepts a custom reference to store under, which keeps the api more consistent. (`Maid.A = X` and `Maid:GiveTask(Y)` vs `Janitor:Add(X, nil, "A")` and `Janitor:Add(Y)`)
 - Janitor also allows linking to an Instance, so when the Instance is destroyed, the Janitor cleans up everything along with it.
 
-### Some less important benefits:
+### Some less important benefits
 
 - Runs a little better than Maid does.
 
