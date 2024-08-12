@@ -157,7 +157,7 @@ end
 	Determines if the passed object is a Janitor. This checks the metatable
 	directly.
 
-	@param object any -- The object you are checking.
+	@param object unknown -- The object you are checking.
 	@return boolean -- `true` if `object` is a Janitor.
 ]=]
 function Janitor.Is(object: any): boolean
@@ -170,8 +170,8 @@ end
 	@function instanceof
 	@within Janitor
 
-	@param object any -- The object you are checking.
-	@return boolean -- `true` if `Object` is a Janitor.
+	@param object unknown -- The object you are checking.
+	@return boolean -- `true` if `object` is a Janitor.
 ]=]
 Janitor.instanceof = Janitor.Is
 
@@ -347,7 +347,7 @@ end
 
 	@param object T -- The object you want to clean up.
 	@param methodName? boolean | string -- The name of the method that will be used to clean up. If not passed, it will first check if the object's type exists in TypeDefaults, and if that doesn't exist, it assumes `Destroy`.
-	@param index? any -- The index that can be used to clean up the object manually.
+	@param index? unknown -- The index that can be used to clean up the object manually.
 	@return T -- The object that was passed as the first argument.
 ]=]
 Private.Add = Add
@@ -376,7 +376,7 @@ Private.Add = Add
 	@since v1.16.0
 	@param constructor {new: (A...) -> T} -- The constructor for the object you want to add to the Janitor.
 	@param methodName? boolean | string -- The name of the method that will be used to clean up. If not passed, it will first check if the object's type exists in TypeDefaults, and if that doesn't exist, it assumes `Destroy`.
-	@param index? any -- The index that can be used to clean up the object manually.
+	@param index? unknown -- The index that can be used to clean up the object manually.
 	@param ... A... -- The arguments that will be passed to the constructor.
 	@return T -- The object that was passed as the first argument.
 ]=]
@@ -470,7 +470,7 @@ end
 	@method Remove
 	@within Janitor
 
-	@param index any -- The index you want to remove.
+	@param index unknown -- The index you want to remove.
 	@return Janitor
 ]=]
 Private.Remove = Remove
@@ -504,7 +504,7 @@ Private.Remove = Remove
 	@within Janitor
 
 	@since v1.15.0
-	@param index any -- The index you are removing.
+	@param index unknown -- The index you are removing.
 	@return Janitor
 ]=]
 function Private:RemoveNoClean(index: any)
@@ -559,7 +559,7 @@ end
 	```
 
 	@since v1.14.0
-	@param ... any -- The indices you want to remove.
+	@param ... unknown -- The indices you want to remove.
 	@return Janitor
 ]=]
 function Janitor:RemoveList(...: any)
@@ -630,7 +630,7 @@ end
 	```
 
 	@since v1.15.0
-	@param ... any -- The indices you want to remove.
+	@param ... unknown -- The indices you want to remove.
 	@return Janitor
 ]=]
 function Janitor:RemoveListNoClean(...: any)
@@ -717,8 +717,8 @@ end
 	print(obliterator.Get("Baseplate")); // Returns Baseplate.
 	```
 
-	@param index any -- The index that the object is stored under.
-	@return any? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
+	@param index unknown -- The index that the object is stored under.
+	@return unknown? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
 ]=]
 function Janitor:Get(index: any): any?
 	local this = Janitors[self]
