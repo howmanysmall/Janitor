@@ -15,6 +15,43 @@ local stdio = require("@lune/stdio")
 local PROJECT_NAME = "built-release.project.json"
 local SOURCEMAP_NAME = "built-sourcemap.json"
 
+local EXTRA_STEPS: {
+	{
+		Enabled: boolean,
+		Name: string,
+		Function: (builtProject: FileInstance.FileInstance) -> boolean,
+	}
+} =
+	{
+		{
+			Enabled = true;
+			Name = "Fix Promise import";
+			Function = function(builtProject)
+				local promise = builtProject:FindFirstFile("Promise.luau")
+				if not promise then
+					return false
+				end
+
+				local promiseFileSource = promise:Read()
+				if not promiseFileSource then
+					return false
+				end
+
+				promise:Write(
+					(
+						string.gsub(
+							promiseFileSource,
+							"local Packages = script.Parent.Parent",
+							"local Packages = script.Parent.Packages"
+						)
+					)
+				)
+
+				return true
+			end;
+		};
+	}
+
 type Cleanup = () -> ()
 
 local function CreateBuildProject(): Cleanup
@@ -53,6 +90,13 @@ local function CreateBuildProject(): Cleanup
 		if child.IsDirectory and #child:GetChildren() == 0 then
 			child:Destroy()
 		end
+	end
+
+	for _, extraStep in EXTRA_STEPS do
+		if not extraStep.Enabled then
+			continue
+		end
+		extraStep.Function(builtProject)
 	end
 
 	if not fs.isFile(PROJECT_NAME) then

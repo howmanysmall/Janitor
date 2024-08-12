@@ -142,9 +142,10 @@ function Private:GetDescendants()
 end
 
 function FileInstance:FindFirstFile(name, recursive)
+	name = PathUtilities.Join(self.Name, name)
 	if recursive then
 		for _, descendant in self:GetDescendants() do
-			if descendant.Name == name then
+			if PathUtilities.OsPath(descendant.Name) == name then
 				return descendant
 			end
 		end
@@ -153,7 +154,7 @@ function FileInstance:FindFirstFile(name, recursive)
 	end
 
 	for _, child in self:GetChildren() do
-		if child.Name == name then
+		if PathUtilities.OsPath(child.Name) == name then
 			return child
 		end
 	end
@@ -161,9 +162,10 @@ function FileInstance:FindFirstFile(name, recursive)
 	return nil
 end
 function FileInstance:FindFirstDirectory(name, recursive)
+	name = PathUtilities.Join(self.Name, name)
 	if recursive then
 		for _, descendant in self:GetDescendants() do
-			if descendant.IsDirectory and descendant.Name == name then
+			if descendant.IsDirectory and PathUtilities.OsPath(descendant.Name) == name then
 				return descendant
 			end
 		end
@@ -172,7 +174,7 @@ function FileInstance:FindFirstDirectory(name, recursive)
 	end
 
 	for _, child in self:GetChildren() do
-		if child.IsDirectory and child.Name == name then
+		if child.IsDirectory and PathUtilities.OsPath(child.Name) == name then
 			return child
 		end
 	end
