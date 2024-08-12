@@ -1,0 +1,8 @@
+{
+	"aliases": {},
+	"languageMode": "strict",
+	"lint": {
+		"*": true
+	},
+	"globals": []
+}

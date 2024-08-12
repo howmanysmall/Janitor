@@ -1,7 +1,0 @@
-[package]
-author = "howmanysmall"
-content_root = "./src"
-dependencies_root = "./src"
-license = "MIT"
-name = "howmanysmall/Janitor"
-version = "1.13.13"

@@ -6,7 +6,7 @@ sidebar_position: 1
 
 Here are some quick links to get started using Janitor:
 
-- [Installation guide](/docs/Installation)
+- [Installation guide](/docs/installation)
 - [**API Docs**](/api/Janitor)
-- [Why use Janitor?](/docs/WhyUseJanitor)
-- [Who uses Janitor?](/docs/WhoUsesJanitor)
+- [Why use Janitor?](/docs/why-use-janitor)
+- [Who uses Janitor?](/docs/who-uses-janitor)

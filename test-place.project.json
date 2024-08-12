@@ -1,0 +1,12 @@
+{
+	"name": "janitor-test-place",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"$path": "Packages",
+			"Janitor": {"$path": "./default.project.json"},
+			"DevPackages": {"$path": "DevPackages"}
+		}
+	}
+}

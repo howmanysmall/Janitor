@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 2024-08-12
+
+### Added
+
+- Removed old TestEZ unit testing in favor of Jest.
+- Added Lune scripts for building.
+- Improved the documentation.
+- Fixed doc comments being way too long.
+
+### Changed
+
+- Rewrote the API to be correct for Luau LSP strict mode and Roblox strict mode.
+- Changed the `Janitor.AddPromise` API to be a better typed version.
+- Rewrote the code to be a little bit more readable.
+- Optimized the code with funny micro optimizations.
+
+### Fixed
+
+- Fixed suspicious thread cleanup.
+
 ## [1.16.0] - 2024-05-01
 
 ### Added
