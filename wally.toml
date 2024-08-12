@@ -6,6 +6,7 @@ realm = "shared"
 registry = "https://github.com/UpliftGames/wally-index"
 version = "1.17.0"
 exclude = ["**"]
+authors = ["Validark <Validark@pm.me>", "HowManySmall <howmanysmall@gmail.com>", "OverHash <>", "codesenseAye <>"]
 include = ["src", "src/**", "wally.toml", "wally.lock", "default.project.json", "LICENSE", "README.md"]
 
 [dependencies]
