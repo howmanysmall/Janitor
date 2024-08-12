@@ -48,8 +48,8 @@ Janitor.rbxmx
 build
 Garbage
 
-Packages/
-DevPackages/
+/Packages/
+/DevPackages/
 
 *.code-workspace
 sourcemap.json

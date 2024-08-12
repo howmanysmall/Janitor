@@ -4,7 +4,7 @@ description = "A garbage collector object implementation for Roblox, featuring s
 license = "MIT"
 realm = "shared"
 registry = "https://github.com/UpliftGames/wally-index"
-version = "1.17.0"
+version = "1.16.0"
 exclude = ["**"]
 include = ["src", "src/**", "wally.toml", "wally.lock", "default.project.json", "LICENSE", "README.md"]
 

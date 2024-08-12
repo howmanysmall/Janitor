@@ -3,10 +3,10 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
-local JestGlobals = require(script.Parent.Parent.DevPackages.JestGlobals)
+local JestGlobals = require(script.Parent.Parent.Parent.DevPackages.JestGlobals)
 
-local Janitor = require(script.Parent)
-local Promise = require(script.Parent.Promise)
+local Janitor = require(script.Parent.Parent)
+local Promise = require(script.Parent.Parent.Promise)
 
 local describe = JestGlobals.describe
 local expect = JestGlobals.expect

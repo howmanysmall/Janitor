@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.17.0] - 2024-08-12
 
+### Added
+
+- Removed old TestEZ unit testing in favor of Jest.
+
 ### Changed
 
 - Rewrote the API to be correct for Luau LSP strict mode and Roblox strict mode.
+- Changed the `Janitor.AddPromise` API to be a better typed version.
 
 ### Fixed
 
