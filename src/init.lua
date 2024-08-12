@@ -342,10 +342,9 @@ function Janitor:Remove(Index: any)
 						end
 
 						if not Cancelled then
+							local ToCleanup = Object
 							task.defer(function()
-								if Object then
-									task.cancel(Object)
-								end
+								task.cancel(ToCleanup)
 							end)
 						end
 					end
@@ -570,6 +569,8 @@ function Janitor:Get(Index: any): any?
 	return if This then This[Index] else nil
 end
 
+loa
+
 --[=[
 	Returns a frozen copy of the Janitor's indices.
 
@@ -648,10 +649,9 @@ function Janitor:Cleanup()
 					end
 
 					if not Cancelled then
+						local ToCleanup = Object
 						task.defer(function()
-							if Object then
-								task.cancel(Object)
-							end
+							task.cancel(ToCleanup)
 						end)
 					end
 				end

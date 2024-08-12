@@ -4,33 +4,9 @@ description = "A garbage collector object implementation for Roblox, featuring s
 license = "MIT"
 realm = "shared"
 registry = "https://github.com/UpliftGames/wally-index"
-version = "1.16.0"
-exclude = [
-	".gitignore",
-	".moonwave",
-	".styluaignore",
-	"aftman.toml",
-	"BuildJanitor.lua",
-	"changelog.md",
-	"docs",
-	"foreman.toml",
-	"Janitor.rbxm",
-	"Janitor.rbxmx",
-	"LICENSE",
-	"Luau.toml",
-	"moonwave.toml",
-	"Packages",
-	"place.project.json",
-	"README.md",
-	"rotriever.toml",
-	"selene.toml",
-	"stylua.toml",
-	"test",
-	"testez-companion.toml",
-	"testez.toml",
-	"testez.yml",
-	"testplace.project.json",
-]
+version = "1.17.0"
+exclude = ["**"]
+include = ["src", "src/**", "wally.toml", "wally.lock", "default.project.json", "LICENSE", "README.md"]
 
 [dependencies]
-Promise = "evaera/promise@4.0.0-rc.2"
+Promise = "evaera/promise@4.0.0"
