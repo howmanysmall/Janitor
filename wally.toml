@@ -11,7 +11,3 @@ include = ["src", "src/**", "wally.toml", "wally.lock", "default.project.json", 
 
 [dependencies]
 Promise = "evaera/promise@4.0.0"
-
-[dev-dependencies]
-Jest = "jsdotlua/jest@3.6.1-rc.2"
-JestGlobals = "jsdotlua/jest-globals@3.6.1-rc.2"
