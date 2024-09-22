@@ -10,6 +10,10 @@ Most of what I can say about why use something similar to Janitor has already be
 
 Janitor makes dealing with garbage collection much less annoying and stressful because it manages them all in a nice interface.
 
+### High Performance
+
+While I don't really *recommend* using Janitor if you're gonna be cleaning up every frame, it is significantly faster than any other library with a similar API design.
+
 ### Returning
 
 `Janitor:Add()` returns the first object passed, which Maid does not.
