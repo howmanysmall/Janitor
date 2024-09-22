@@ -22,10 +22,13 @@ With Maid, you can't tell it to do anything other than `:Destroy()`, `:Disconnec
 
 `Janitor:Add()` also accepts a custom reference to store under, which keeps the API more consistent.
 
-|                                        | **Janitor**                                 | **Maid**                  |
-|----------------------------------------|---------------------------------------------|---------------------------|
-| Adding an Instance                     | `Janitor:Add(Instance, "Destroy")`          | `Maid:GiveTask(Instance)` |
-| Adding an Instance under a given index | `Janitor:Add(Instance, "Destroy", "Index")` | `Maid.Index = Instance`   |
+|                                          | **Janitor**                             | **Maid**                  | **Trove**                    |
+|------------------------------------------|-----------------------------------------|---------------------------|------------------------------|
+| Adding an Instance                       | `Janitor:Add(Instance)`                 | `Maid:GiveTask(Instance)` | `Trove:Add(Instance)`        |
+| Adding an Instance with a given index    | `Janitor:Add(Instance, false, "Index")` | `Maid.Index = Instance`   | **CAN NOT DO THIS**          |
+| Adding an Instance with a cleanup method | `Janitor:Add(Tween, "Cancel")`          | **CAN NOT DO THIS**       | `Trove:Add(Tween, "Cancel")` |
+| Removing an Instance                     | `Janitor:Remove("Index")`               | `Maid.Index = nil`        | **CAN NOT DO THIS**          |
+| Removing without cleanup                 | `Janitor:RemoveNoClean("Index")`        | **CAN NOT DO THIS**       | **CAN NOT DO THIS**          |
 
 ### LinkToInstance
 
