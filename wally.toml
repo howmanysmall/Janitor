@@ -1,16 +1,16 @@
 [package]
-name = "howmanysmall/janitor"
+authors = ["Validark <Validark@pm.me>", "HowManySmall <howmanysmall@gmail.com>", "OverHash <>", "codesenseAye <>"]
 description = "A garbage collector object implementation for Roblox, featuring support for custom cleanup methods, Promises, and instance linking."
+exclude = ["**"]
+include = ["src", "src/**", "wally.toml", "wally.lock", "default.project.json", "LICENSE", "README.md"]
 license = "MIT"
+name = "howmanysmall/janitor"
 realm = "shared"
 registry = "https://github.com/UpliftGames/wally-index"
-version = "1.17.0"
-exclude = ["**"]
-authors = ["Validark <Validark@pm.me>", "HowManySmall <howmanysmall@gmail.com>", "OverHash <>", "codesenseAye <>"]
-include = ["src", "src/**", "wally.toml", "wally.lock", "default.project.json", "LICENSE", "README.md"]
+version = "1.18.0"
 
 [dependencies]
-Promise = "evaera/promise@4.0.0"
+Promise = "howmanysmall/typed-promise@4.0.3"
 
 [dev-dependencies]
 Jest = "jsdotlua/jest@3.6.1-rc.2"

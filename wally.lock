@@ -9,8 +9,13 @@ dependencies = []
 
 [[package]]
 name = "howmanysmall/janitor"
-version = "1.17.0"
-dependencies = [["Promise", "evaera/promise@4.0.0"], ["Jest", "jsdotlua/jest@3.6.1-rc.2"], ["JestGlobals", "jsdotlua/jest-globals@3.6.1-rc.2"]]
+version = "1.18.0"
+dependencies = [["Promise", "howmanysmall/typed-promise@4.0.3"], ["Jest", "jsdotlua/jest@3.6.1-rc.2"], ["JestGlobals", "jsdotlua/jest-globals@3.6.1-rc.2"]]
+
+[[package]]
+name = "howmanysmall/typed-promise"
+version = "4.0.3"
+dependencies = [["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]
 name = "jsdotlua/boolean"

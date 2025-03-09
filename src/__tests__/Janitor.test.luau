@@ -1,6 +1,8 @@
 --!optimize 2
 --!strict
 
+_G.__IS_UNIT_TESTING__ = true
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local JestGlobals = require(script.Parent.Parent.Parent.DevPackages.JestGlobals)
@@ -42,7 +44,7 @@ end
 
 type BasicClass = {
 	CleanupFunction: nil | () -> (),
-	AddCleanupFunction: (self: BasicClass, Function: nil | () -> ()) -> BasicClass,
+	AddCleanupFunction: (self: BasicClass, callback: nil | () -> ()) -> BasicClass,
 	Destroy: (self: BasicClass) -> (),
 }
 type Static = {
@@ -52,31 +54,31 @@ type Static = {
 local BasicClass = {} :: BasicClass & Static
 BasicClass.ClassName = "BasicClass";
 (BasicClass :: any).__index = BasicClass
-function BasicClass.new()
+function BasicClass.new(): BasicClass
 	return setmetatable({
 		CleanupFunction = nil;
 	}, BasicClass) :: never
 end
-function BasicClass:AddCleanupFunction(Function)
-	self.CleanupFunction = Function
+function BasicClass:AddCleanupFunction(callback: nil | () -> ()): BasicClass
+	self.CleanupFunction = callback
 	return self
 end
-function BasicClass:Destroy()
-	local CleanupFunction = self.CleanupFunction
-	if CleanupFunction then
-		CleanupFunction()
+function BasicClass:Destroy(): ()
+	local cleanupFunction = self.CleanupFunction
+	if cleanupFunction then
+		cleanupFunction()
 	end
 	table.clear(self)
 	setmetatable(self, nil)
 end
 
-local function NoOperation() end
+local function NoOperation(): () end
 
 describe("Janitor.Is", function()
 	it("should return true iff the passed value is a Janitor", function()
-		local NewJanitor = Janitor.new()
-		expect(Janitor.Is(NewJanitor)).toBe(true)
-		NewJanitor:Destroy()
+		local janitor = Janitor.new()
+		expect(Janitor.Is(janitor)).toBe(true)
+		janitor:Destroy()
 	end)
 
 	it("should return false iff the passed value is anything else", function()
@@ -88,121 +90,121 @@ end)
 
 describe("Janitor.new", function()
 	it("should create a new Janitor", function()
-		local NewJanitor = Janitor.new()
-		expect(NewJanitor).toBeDefined()
-		expect(Janitor.Is(NewJanitor)).toBe(true)
-		NewJanitor:Destroy()
+		local janitor = Janitor.new()
+		expect(janitor).toBeDefined()
+		expect(Janitor.Is(janitor)).toBe(true)
+		janitor:Destroy()
 	end)
 end)
 
 describe("Janitor.Add", function()
 	it("should add things", function()
-		local NewJanitor = Janitor.new()
+		local janitor = Janitor.new()
 		expect(function()
-			NewJanitor:Add(NoOperation, true)
+			janitor:Add(NoOperation, true)
 		end).never.toThrow()
 
-		NewJanitor:Destroy()
+		janitor:Destroy()
 	end)
 
 	it("should add things with the given index", function()
-		local NewJanitor = Janitor.new()
+		local janitor = Janitor.new()
 		expect(function()
-			NewJanitor:Add(NoOperation, true, "Function")
+			janitor:Add(NoOperation, true, "Function")
 		end).never.toThrow()
 
-		expect(NewJanitor:Get("Function")).toEqual(expect.any("function"))
-		NewJanitor:Destroy()
+		expect(janitor:Get("Function")).toEqual(expect.any("function"))
+		janitor:Destroy()
 	end)
 
 	it("should overwrite indexes", function()
-		local NewJanitor = Janitor.new()
-		local WasRemoved = false
-		NewJanitor:Add(function()
-			WasRemoved = true
+		local janitor = Janitor.new()
+		local wasRemoved = false
+		janitor:Add(function()
+			wasRemoved = true
 		end, true, "Function")
 
-		NewJanitor:Add(NoOperation, true, "Function")
+		janitor:Add(NoOperation, true, "Function")
 
-		expect(WasRemoved).toBe(true)
-		NewJanitor:Destroy()
+		expect(wasRemoved).toBe(true)
+		janitor:Destroy()
 	end)
 
 	it("should return the passed object", function()
-		local NewJanitor = Janitor.new()
-		local Part = NewJanitor:Add(Instance.new("Part"), "Destroy")
+		local janitor = Janitor.new()
+		local part = janitor:Add(Instance.new("Part"), "Destroy")
 
-		expect(Part).toBeDefined()
-		expect(Part).toEqual(expect.any("Instance"))
-		expect(Part.ClassName).toBe("Part")
-		NewJanitor:Destroy()
+		expect(part).toBeDefined()
+		expect(part).toEqual(expect.any("Instance"))
+		expect(part.ClassName).toBe("Part")
+		janitor:Destroy()
 	end)
 
 	it("should clean up instances, objects, functions, connections, and threads", function()
-		local FunctionWasDestroyed = false
-		local JanitorWasDestroyed = false
-		local BasicClassWasDestroyed = false
-		local ThreadWasRan = false
+		local functionWasDestroyed = false
+		local janitorWasDestroyed = false
+		local basicClassWasDestroyed = false
+		local threadWasRan = false
 
-		local NewJanitor = Janitor.new()
-		local Part = NewJanitor:Add(Instance.new("Part"), "Destroy")
-		Part.Parent = ReplicatedStorage
+		local janitor = Janitor.new()
+		local part = janitor:Add(Instance.new("Part"), "Destroy")
+		part.Parent = ReplicatedStorage
 
-		local Connection = NewJanitor:Add(Part.ChildRemoved:Connect(NoOperation), "Disconnect")
+		local connection = janitor:Add(part.ChildRemoved:Connect(NoOperation), "Disconnect")
 
-		NewJanitor:Add(function()
-			FunctionWasDestroyed = true
+		janitor:Add(function()
+			functionWasDestroyed = true
 		end, true)
 
-		NewJanitor:Add(Janitor.new(), "Destroy"):Add(function()
-			JanitorWasDestroyed = true
+		janitor:Add(Janitor.new(), "Destroy"):Add(function()
+			janitorWasDestroyed = true
 		end, true)
 
-		NewJanitor:Add(BasicClass.new(), "Destroy"):AddCleanupFunction(function()
-			BasicClassWasDestroyed = true
+		janitor:Add(BasicClass.new(), "Destroy"):AddCleanupFunction(function()
+			basicClassWasDestroyed = true
 		end)
 
-		NewJanitor:Add(task.delay(1, function()
-			ThreadWasRan = true
+		janitor:Add(task.delay(1, function()
+			threadWasRan = true
 		end), true)
 
-		NewJanitor:Destroy()
-		expect(Part.Parent).toBeUndefined()
-		expect(Connection.Connected).toBe(false)
-		expect(FunctionWasDestroyed).toBe(true)
-		expect(JanitorWasDestroyed).toBe(true)
-		expect(BasicClassWasDestroyed).toBe(true)
-		expect(ThreadWasRan).toBe(false)
+		janitor:Destroy()
+		expect(part.Parent).toBeUndefined()
+		expect(connection.Connected).toBe(false)
+		expect(functionWasDestroyed).toBe(true)
+		expect(janitorWasDestroyed).toBe(true)
+		expect(basicClassWasDestroyed).toBe(true)
+		expect(threadWasRan).toBe(false)
 	end)
 
 	it("should clean up everything correctly", function()
-		local NewJanitor = Janitor.new()
-		local CleanedUp = 0
-		local TotalToAdd = 5000
+		local janitor = Janitor.new()
+		local cleanedUp = 0
+		local totalToAdd = 5000
 
-		for Index = 1, TotalToAdd do
-			NewJanitor:Add(function()
-				CleanedUp += 1
-			end, true, Index)
+		for index = 1, totalToAdd do
+			janitor:Add(function()
+				cleanedUp += 1
+			end, true, index)
 		end
 
-		for Index = TotalToAdd, 1, -1 do
-			NewJanitor:Remove(Index)
+		for index = totalToAdd, 1, -1 do
+			janitor:Remove(index)
 		end
 
-		NewJanitor:Destroy()
-		expect(CleanedUp).toBe(TotalToAdd)
+		janitor:Destroy()
+		expect(cleanedUp).toBe(totalToAdd)
 	end)
 
 	it("should infer types if not given", function()
-		local NewJanitor = Janitor.new()
-		local Connection = NewJanitor:Add(ReplicatedStorage.AncestryChanged:Connect(NoOperation))
-		NewJanitor:Destroy()
+		local janitor = Janitor.new()
+		local connection = janitor:Add(ReplicatedStorage.AncestryChanged:Connect(NoOperation))
+		janitor:Destroy()
 
 		if IS_DEFERRED then
 			task.wait()
 		end
-		expect(Connection.Connected).toBe(false)
+		expect(connection.Connected).toBe(false)
 	end)
 end)
 
@@ -212,338 +214,373 @@ describe("Janitor.AddPromise", function()
 	end
 
 	it("should add a Promise", function()
-		local NewJanitor = Janitor.new()
-		local AddedPromise = NewJanitor:AddPromise(Promise.delay(60))
+		local janitor = Janitor.new()
+		local addedPromise = janitor:AddPromise(Promise.delay(60))
 
-		expect(Promise.is(AddedPromise)).toBe(true)
-		NewJanitor:Destroy()
+		expect(Promise.is(addedPromise)).toBe(true)
+		janitor:Destroy()
 	end)
 
 	it("should cancel the Promise when destroyed", function()
-		local NewJanitor = Janitor.new()
-		local WasCancelled = false
+		local janitor = Janitor.new()
+		local wasCancelled = false
 
-		NewJanitor:AddPromise(Promise.new(function(Resolve, _, OnCancel)
-			if OnCancel(function()
-				WasCancelled = true
+		janitor:AddPromise(Promise.new(function(resolve, _, onCancel)
+			if onCancel(function()
+				wasCancelled = true
 			end) then
 				return
 			end
 
-			return Promise.delay(60):andThen(Resolve)
+			return Promise.delay(60):andThen(resolve)
 		end))
 
-		NewJanitor:Destroy()
-		expect(WasCancelled).toBe(true)
+		janitor:Destroy()
+		expect(wasCancelled).toBe(true)
 	end)
 
 	it("should not remove any values from the return", function()
-		local NewJanitor = Janitor.new()
-		local _, Value = NewJanitor:AddPromise(Promise.new(function(Resolve)
-			Resolve(true)
-		end)):await()
+		local janitor = Janitor.new()
+		local _, value = janitor
+			:AddPromise(Promise.new(function(resolve)
+				resolve(true)
+			end))
+			:await()
 
-		expect(Value).toBe(true)
-		NewJanitor:Destroy()
+		expect(value).toBe(true)
+		janitor:Destroy()
 	end)
 
 	it("should throw if the passed value isn't a Promise", function()
-		local NewJanitor = Janitor.new()
+		local janitor = Janitor.new()
 		expect(function()
-			NewJanitor:AddPromise(BasicClass.new() :: never)
+			janitor:AddPromise(BasicClass.new() :: never)
 		end).toThrow()
 
-		NewJanitor:Destroy()
+		janitor:Destroy()
 	end)
 end)
 
 describe("Janitor.Remove", function()
 	it("should always return the Janitor", function()
-		local NewJanitor = Janitor.new()
-		NewJanitor:Add(NoOperation, true, "Function")
+		local janitor = Janitor.new()
+		janitor:Add(NoOperation, true, "Function")
 
-		expect(NewJanitor:Remove("Function")).toBe(NewJanitor)
-		expect(NewJanitor:Remove("Function")).toBe(NewJanitor)
-		NewJanitor:Destroy()
+		expect(janitor:Remove("Function")).toBe(janitor)
+		expect(janitor:Remove("Function")).toBe(janitor)
+		janitor:Destroy()
 	end)
 
 	it("should always remove the value", function()
-		local NewJanitor = Janitor.new()
-		local WasRemoved = false
+		local janitor = Janitor.new()
+		local wasRemoved = false
 
-		NewJanitor:Add(function()
-			WasRemoved = true
+		janitor:Add(function()
+			wasRemoved = true
 		end, true, "Function")
 
-		NewJanitor:Remove("Function")
+		janitor:Remove("Function")
 
 		expect(AwaitCondition(function()
-			return WasRemoved
+			return wasRemoved
 		end, 1)).toBe(true)
-		NewJanitor:Destroy()
+		janitor:Destroy()
 	end)
 
 	it("should properly remove values that are already destroyed", function()
 		-- credit to OverHash for pointing out this breaking.
-		local NewJanitor = Janitor.new()
-		local X = 0
+		local janitor = Janitor.new()
+		local value = 0
 
-		local SubJanitor = Janitor.new()
-		SubJanitor:Add(function()
-			X += 1
+		local subJanitor = Janitor.new()
+		subJanitor:Add(function()
+			value += 1
 		end, true)
 
-		NewJanitor:Add(SubJanitor, "Destroy")
-		SubJanitor:Destroy()
+		janitor:Add(subJanitor, "Destroy")
+		subJanitor:Destroy()
 		expect(function()
-			NewJanitor:Destroy()
+			janitor:Destroy()
 		end).never.toThrow()
 
-		expect(X).toBe(1)
+		expect(value).toBe(1)
+	end)
+
+	it("should clean up everything efficiently", function()
+		local janitor = Janitor.new()
+		local functionsToAdd = 1_000_000
+		local threadsToAdd = 200_000
+		local classesToAdd = 1_000_000
+		local instancesToAdd = 100_000
+
+		local amountAdded = 0
+
+		for _ = 1, functionsToAdd do
+			amountAdded += 1
+			janitor:Add(NoOperation, true, amountAdded)
+		end
+		for _ = 1, threadsToAdd do
+			amountAdded += 1
+			janitor:Add(task.delay(5, NoOperation), true, amountAdded)
+		end
+		for _ = 1, classesToAdd do
+			amountAdded += 1
+			janitor:Add(BasicClass.new(), "Destroy", amountAdded)
+		end
+		for _ = 1, instancesToAdd do
+			amountAdded += 1
+			janitor:Add(Instance.new("Part"), "Destroy", amountAdded)
+		end
+
+		for index = 1, amountAdded do
+			janitor:Remove(index)
+		end
+
+		janitor:Destroy()
 	end)
 end)
 
 describe("Janitor.RemoveList", function()
 	it("should always return the Janitor", function()
-		local NewJanitor = Janitor.new()
-		NewJanitor:Add(NoOperation, true, "Function")
+		local janitor = Janitor.new()
+		janitor:Add(NoOperation, true, "Function")
 
-		expect(NewJanitor:RemoveList("Function")).toBe(NewJanitor)
-		expect(NewJanitor:RemoveList("Function")).toBe(NewJanitor)
-		NewJanitor:Destroy()
+		expect(janitor:RemoveList("Function")).toBe(janitor)
+		expect(janitor:RemoveList("Function")).toBe(janitor)
+		janitor:Destroy()
 	end)
 
 	it("should always remove the value", function()
-		local NewJanitor = Janitor.new()
-		local WasRemoved = false
+		local janitor = Janitor.new()
+		local wasRemoved = false
 
-		NewJanitor:Add(function()
-			WasRemoved = true
+		janitor:Add(function()
+			wasRemoved = true
 		end, true, "Function")
 
-		NewJanitor:RemoveList("Function")
+		janitor:RemoveList("Function")
 
-		expect(WasRemoved).toBe(true)
-		NewJanitor:Destroy()
+		expect(wasRemoved).toBe(true)
+		janitor:Destroy()
 	end)
 
 	it("should properly remove multiple values", function()
-		local NewJanitor = Janitor.new()
-		local OneRan = false
-		local TwoRan = false
-		local ThreeRan = false
+		local janitor = Janitor.new()
+		local oneRan = false
+		local twoRan = false
+		local threeRan = false
 
-		NewJanitor:Add(function()
-			OneRan = true
+		janitor:Add(function()
+			oneRan = true
 		end, true, 1)
 
-		NewJanitor:Add(function()
-			TwoRan = true
+		janitor:Add(function()
+			twoRan = true
 		end, true, 2)
 
-		NewJanitor:Add(function()
-			ThreeRan = true
+		janitor:Add(function()
+			threeRan = true
 		end, true, 3)
 
-		NewJanitor:RemoveList(1, 2, 3)
-		expect(OneRan).toBe(true)
-		expect(TwoRan).toBe(true)
-		expect(ThreeRan).toBe(true)
+		janitor:RemoveList(1, 2, 3)
+		expect(oneRan).toBe(true)
+		expect(twoRan).toBe(true)
+		expect(threeRan).toBe(true)
 	end)
 end)
 
 describe("Janitor.Get", function()
 	it("should return the value iff it exists", function()
-		local NewJanitor = Janitor.new()
-		NewJanitor:Add(NoOperation, true, "Function")
-		expect(NewJanitor:Get("Function")).toBe(NoOperation)
-		NewJanitor:Destroy()
+		local janitor = Janitor.new()
+		janitor:Add(NoOperation, true, "Function")
+		expect(janitor:Get("Function")).toBe(NoOperation)
+		janitor:Destroy()
 	end)
 
 	it("should return void iff the value doesn't exist", function()
-		local NewJanitor = Janitor.new()
-		expect(NewJanitor:Get("Function")).toBeUndefined()
-		NewJanitor:Destroy()
+		local janitor = Janitor.new()
+		expect(janitor:Get("Function")).toBeUndefined()
+		janitor:Destroy()
 	end)
 end)
 
 describe("Janitor.Cleanup", function()
 	it("should cleanup everything", function()
-		local NewJanitor = Janitor.new()
-		local TotalRemoved = 0
-		local FunctionsToAdd = 500
+		local janitor = Janitor.new()
+		local totalRemoved = 0
+		local functionsToAdd = 500
 
-		for _ = 1, FunctionsToAdd do
-			NewJanitor:Add(function()
-				TotalRemoved += 1
+		for _ = 1, functionsToAdd do
+			janitor:Add(function()
+				totalRemoved += 1
 			end, true)
 		end
 
-		NewJanitor:Cleanup()
-		expect(TotalRemoved).toBe(FunctionsToAdd)
+		janitor:Cleanup()
+		expect(totalRemoved).toBe(functionsToAdd)
 
-		for _ = 1, FunctionsToAdd do
-			NewJanitor:Add(function()
-				TotalRemoved += 1
+		for _ = 1, functionsToAdd do
+			janitor:Add(function()
+				totalRemoved += 1
 			end, true)
 		end
 
-		NewJanitor:Cleanup()
-		expect(TotalRemoved).toBe(FunctionsToAdd * 2)
+		janitor:Cleanup()
+		expect(totalRemoved).toBe(functionsToAdd * 2)
 	end)
 
 	it("should be unique", function()
-		local NewJanitor = Janitor.new()
-		local Janitor2 = Janitor.new()
-		local TotalRemoved = 0
-		local FunctionsToAdd = 500
+		local janitor = Janitor.new()
+		local janitor2 = Janitor.new()
+		local totalRemoved = 0
+		local functionsToAdd = 500
 
-		expect(NewJanitor.CurrentlyCleaning).toBe(false)
-		expect(Janitor2.CurrentlyCleaning).toBe(false)
+		expect(janitor.CurrentlyCleaning).toBe(false)
+		expect(janitor2.CurrentlyCleaning).toBe(false)
 
-		local HasWaitCompleted = false
+		local hasWaitCompleted = false
 
-		for Index = 1, FunctionsToAdd do
-			if Index == FunctionsToAdd then
-				NewJanitor:Add(function()
-					TotalRemoved += 1
+		for index = 1, functionsToAdd do
+			if index == functionsToAdd then
+				janitor:Add(function()
+					totalRemoved += 1
 					task.wait(1)
-					HasWaitCompleted = true
+					hasWaitCompleted = true
 				end, true)
 			else
-				NewJanitor:Add(function()
-					TotalRemoved += 1
+				janitor:Add(function()
+					totalRemoved += 1
 				end, true)
 			end
 		end
 
 		task.spawn(function()
-			NewJanitor:Cleanup()
+			janitor:Cleanup()
 		end)
 
 		task.wait()
-		expect(NewJanitor.CurrentlyCleaning).toBe(true)
-		expect(Janitor2.CurrentlyCleaning).toBe(false)
+		expect(janitor.CurrentlyCleaning).toBe(true)
+		expect(janitor2.CurrentlyCleaning).toBe(false)
 
 		expect(AwaitCondition(function()
-			return HasWaitCompleted
+			return hasWaitCompleted
 		end, 5)).toBe(true)
-		expect(TotalRemoved).toBe(FunctionsToAdd)
+		expect(totalRemoved).toBe(functionsToAdd)
 	end)
 end)
 
 describe("Janitor.Destroy", function()
 	it("should cleanup everything", function()
-		local NewJanitor = Janitor.new()
-		local TotalRemoved = 0
-		local FunctionsToAdd = 500
+		local janitor = Janitor.new()
+		local totalRemoved = 0
+		local functionsToAdd = 500
 
-		for _ = 1, FunctionsToAdd do
-			NewJanitor:Add(function()
-				TotalRemoved += 1
+		for _ = 1, functionsToAdd do
+			janitor:Add(function()
+				totalRemoved += 1
 			end, true)
 		end
 
-		NewJanitor:Destroy()
-		expect(TotalRemoved).toBe(FunctionsToAdd)
+		janitor:Destroy()
+		expect(totalRemoved).toBe(functionsToAdd)
 	end)
 
 	it("should render the Janitor unusable", function()
-		local NewJanitor = Janitor.new()
-		NewJanitor:Destroy()
+		local janitor = Janitor.new()
+		janitor:Destroy()
 		expect(function()
-			NewJanitor:Add(NoOperation, true)
+			janitor:Add(NoOperation, true)
 		end).toBeTruthy()
 	end)
 end)
 
 describe("Janitor.LinkToInstance", function()
 	it("should link to an Instance", function()
-		local NewJanitor = Janitor.new()
-		local Part = NewJanitor:Add(Instance.new("Part"), "Destroy")
-		Part.Parent = ReplicatedStorage
+		local janitor = Janitor.new()
+		local part = janitor:Add(Instance.new("Part"), "Destroy")
+		part.Parent = ReplicatedStorage
 
 		expect(function()
-			NewJanitor:LinkToInstance(Part)
+			janitor:LinkToInstance(part)
 		end).never.toThrow()
 
-		NewJanitor:Destroy()
+		janitor:Destroy()
 	end)
 
 	it("should cleanup once the Instance is destroyed", function()
-		local NewJanitor = Janitor.new()
-		local WasCleaned = false
+		local janitor = Janitor.new()
+		local wasCleaned = false
 
-		local Part = Instance.new("Part")
-		Part.Parent = Workspace
+		local part = Instance.new("Part")
+		part.Parent = Workspace
 
-		NewJanitor:Add(function()
-			WasCleaned = true
+		janitor:Add(function()
+			wasCleaned = true
 		end, true)
 
-		NewJanitor:LinkToInstance(Part)
+		janitor:LinkToInstance(part)
 
-		Part:Destroy()
+		part:Destroy()
 		task.wait(0.1)
 
-		expect(WasCleaned).toBe(true)
-		NewJanitor:Destroy()
+		expect(wasCleaned).toBe(true)
+		janitor:Destroy()
 	end)
 
 	it("should work if the Instance is parented to nil when started", function()
-		local NewJanitor = Janitor.new()
-		local WasCleaned = false
+		local janitor = Janitor.new()
+		local wasCleaned = false
 
-		local Part = Instance.new("Part")
-		NewJanitor:Add(function()
-			WasCleaned = true
+		local part = Instance.new("Part")
+		janitor:Add(function()
+			wasCleaned = true
 		end, true)
 
-		NewJanitor:LinkToInstance(Part)
-		Part.Parent = Workspace
+		janitor:LinkToInstance(part)
+		part.Parent = Workspace
 
-		Part:Destroy()
+		part:Destroy()
 		expect(AwaitCondition(function()
-			return WasCleaned
+			return wasCleaned
 		end, 1)).toBe(true)
-		NewJanitor:Destroy()
+		janitor:Destroy()
 	end)
 
 	it("should work if the Instance is parented to nil", function()
-		local NewJanitor = Janitor.new()
-		local WasCleaned = false
+		local janitor = Janitor.new()
+		local wsCleaned = false
 
-		local Part = Instance.new("Part")
-		NewJanitor:Add(function()
-			WasCleaned = true
+		local part = Instance.new("Part")
+		janitor:Add(function()
+			wsCleaned = true
 		end, true)
 
-		NewJanitor:LinkToInstance(Part)
+		janitor:LinkToInstance(part)
 
-		Part:Destroy()
+		part:Destroy()
 		expect(AwaitCondition(function()
-			return WasCleaned
+			return wsCleaned
 		end, 1)).toBe(true)
-		NewJanitor:Destroy()
+		janitor:Destroy()
 	end)
 
 	it("shouldn't run if the Instance is removed or parented to nil", function()
-		local NewJanitor = Janitor.new()
-		local Part = Instance.new("Part")
-		Part.Parent = ReplicatedStorage
+		local janitor = Janitor.new()
+		local part = Instance.new("Part")
+		part.Parent = ReplicatedStorage
 
-		NewJanitor:Add(NoOperation, true, "Function")
-		NewJanitor:LinkToInstance(Part)
+		janitor:Add(NoOperation, true, "Function")
+		janitor:LinkToInstance(part)
 
-		Part.Parent = nil
-		expect(NewJanitor:Get("Function")).toBe(NoOperation)
-		Part.Parent = ReplicatedStorage
-		expect(NewJanitor:Get("Function")).toBe(NoOperation)
+		part.Parent = nil
+		expect(janitor:Get("Function")).toBe(NoOperation)
+		part.Parent = ReplicatedStorage
+		expect(janitor:Get("Function")).toBe(NoOperation)
 
-		Part:Destroy()
+		part:Destroy()
 		task.wait(0.1)
 		expect(function()
-			NewJanitor:Destroy()
+			janitor:Destroy()
 		end).never.toThrow()
 	end)
 end)
