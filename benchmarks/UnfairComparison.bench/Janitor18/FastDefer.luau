@@ -14,16 +14,6 @@ local function Yield()
 	end
 end
 
---[=[
-	Defers a function call in a much more performant manner than `task.defer`.
-
-	@function FastDefer
-	@within ThreadUtilities
-
-	@param callback (Arguments...) -> () -- The function to spawn.
-	@param ... Arguments... -- The arguments to the function.
-	@return thread
-]=]
 local function FastDefer<Arguments...>(callback: (Arguments...) -> (), ...: Arguments...): thread
 	local thread: thread
 	local freeAmount = #FreeThreads

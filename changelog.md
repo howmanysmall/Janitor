@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added unique index support
+- Added unique index support to `Janitor:AddPromise`.
+- Literally doubled performance. This is not a joke, it is twice as fast and is also the fastest on every CPU architecture.
+
+### Changed
+
+- Changed how `Janitor:Cleanup`'s loop is handled. We are not using the `GetFenv` function anymore.
+- Changed the `Janitors` weak metatable slightly.
 
 ## [1.17.0] - 2024-08-12
 
