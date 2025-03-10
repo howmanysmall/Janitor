@@ -7,6 +7,7 @@ local Janitor17 = require(script.Janitor17)
 local Janitor18 = require(script.Janitor18)
 local Maid = require(script.Maid)
 local Trove = require(script.Trove)
+local Troveitor = require(script.Troveitor)
 
 type IProfiler = {
 	Begin: (label: string) -> (),
@@ -157,6 +158,29 @@ end, {
 		end
 
 		janitor:Destroy()
+	end;
+
+	["Troveitor"] = function()
+		local trove = Troveitor.new()
+
+		local functionsJanitor = trove:Add(Troveitor.new(), "Clean")
+		for _ = 1, functionsToAdd do
+			functionsJanitor:Add(NoOperation)
+		end
+		local threadsJanitor = trove:Add(Troveitor.new(), "Clean")
+		for _ = 1, threadsToAdd do
+			threadsJanitor:Add(task.delay(5, NoOperation))
+		end
+		local classesJanitor = trove:Add(Troveitor.new(), "Clean")
+		for _ = 1, classesToAdd do
+			classesJanitor:Add(BasicClass.new(), "Destroy")
+		end
+		local instancesJanitor = trove:Add(Troveitor.new(), "Clean")
+		for _ = 1, instancesToAdd do
+			instancesJanitor:Add(Instance.new("Folder"), "Destroy")
+		end
+
+		trove:Destroy()
 	end;
 
 	-- Lesser beings
