@@ -1,0 +1,17 @@
+{
+	"name": "janitor-benchmarks-place",
+	"servePort": 25565,
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"$path": "Packages",
+			"Janitor": {"$path": "./default.project.json"},
+			"DevPackages": {"$path": "DevPackages"}
+		},
+		"ServerStorage": {
+			"$className": "ServerStorage",
+			"Benchmarks": {"$path": "benchmarks"}
+		}
+	}
+}

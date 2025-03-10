@@ -9,7 +9,6 @@
 -- LinkToInstance fixed by Elttob.
 -- Cleanup edge cases fixed by codesenseAye.
 
-local FastDefer = require(script.FastDefer)
 local Promise = require(script.Promise)
 type Promise<T...> = Promise.TypedPromise<T...>
 
@@ -27,7 +26,6 @@ local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expe
 export type Janitor = typeof(setmetatable({} :: {
 	CurrentlyCleaning: boolean,
 	SuppressInstanceReDestroy: boolean,
-	UnsafeThreadCleanup: boolean,
 
 	Add: <T>(self: Janitor, object: T, methodName: BooleanOrString?, index: any?) -> T,
 	AddObject: <T, A...>(
@@ -37,7 +35,7 @@ export type Janitor = typeof(setmetatable({} :: {
 		index: any?,
 		A...
 	) -> T,
-	AddPromise: <T...>(self: Janitor, promiseObject: Promise<T...>, index: unknown?) -> Promise<T...>,
+	AddPromise: <T...>(self: Janitor, promiseObject: Promise<T...>) -> Promise<T...>,
 
 	Remove: (self: Janitor, index: any) -> Janitor,
 	RemoveNoClean: (self: Janitor, index: any) -> Janitor,
@@ -57,7 +55,6 @@ export type Janitor = typeof(setmetatable({} :: {
 type Private = typeof(setmetatable({} :: {
 	CurrentlyCleaning: boolean,
 	SuppressInstanceReDestroy: boolean,
-	UnsafeThreadCleanup: boolean,
 
 	-- Private
 	[any]: BooleanOrString,
@@ -70,7 +67,7 @@ type Private = typeof(setmetatable({} :: {
 		index: any?,
 		A...
 	) -> T,
-	AddPromise: <T...>(self: Private, promiseObject: Promise<T...>, index: unknown?) -> Promise<T...>,
+	AddPromise: <T...>(self: Private, promiseObject: Promise<T...>) -> Promise<T...>,
 
 	Remove: (self: Private, index: any) -> Private,
 	RemoveNoClean: (self: Private, index: any) -> Private,
@@ -91,7 +88,6 @@ type Static = {
 	ClassName: "Janitor",
 	CurrentlyCleaning: boolean,
 	SuppressInstanceReDestroy: boolean,
-	UnsafeThreadCleanup: boolean,
 
 	new: () -> Janitor,
 	Is: (object: any) -> boolean,
@@ -113,11 +109,10 @@ local Janitor = {} :: Janitor & Static
 local Private = Janitor :: Private & PrivateStatic
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
-Janitor.SuppressInstanceReDestroy = false
-Janitor.UnsafeThreadCleanup = false;
+Janitor.SuppressInstanceReDestroy = false;
 (Janitor :: any).__index = Janitor
 
-local Janitors = setmetatable({} :: {[Private]: {[any]: any}}, {__mode = "ks"})
+local Janitors = setmetatable({} :: {[Private]: {[any]: any}}, {__mode = "k"})
 
 --[=[
 	Whether or not the Janitor is currently cleaning up.
@@ -127,20 +122,12 @@ local Janitors = setmetatable({} :: {[Private]: {[any]: any}}, {__mode = "ks"})
 ]=]
 
 --[=[
-	Whether or not you want to suppress the re-destroying of instances. Default
-	is false, which is the original behavior.
+	Whether or not you want to suppress the re-destroying
+	of instances. Default is false, which is the original
+	behavior.
 
 	@since 1.15.4
 	@prop SuppressInstanceReDestroy boolean
-	@within Janitor
-]=]
---[=[
-	Whether or not to use the unsafe fast defer function for cleaning up
-	threads. This might be able to throw, so be careful. If you're getting any
-	thread related errors, chances are it is this.
-
-	@since 1.18.0
-	@prop UnsafeThreadCleanup boolean
 	@within Janitor
 ]=]
 
@@ -183,7 +170,7 @@ end
 Janitor.instanceof = Janitor.Is
 
 -- very cheeky optimization
-local function Remove(self: Private, index: any): Janitor
+local function Remove(self: Private, index: any)
 	local this = Janitors[self]
 
 	if this then
@@ -206,15 +193,10 @@ local function Remove(self: Private, index: any): Janitor
 					end
 
 					if not wasCancelled then
-						if self.UnsafeThreadCleanup then
-							FastDefer(function()
-								task.cancel(object)
-							end)
-						else
-							task.defer(function()
-								task.cancel(object)
-							end)
-						end
+						local toCleanup = object
+						task.defer(function()
+							task.cancel(toCleanup)
+						end)
 					end
 				end
 			else
@@ -396,42 +378,6 @@ function Janitor:AddObject<T, A...>(constructor: {new: (A...) -> T}, methodName:
 	return Add(self, constructor.new(...), methodName, index)
 end
 
-local function Get(self: Private, index: unknown): any?
-	local this = Janitors[self]
-	return if this then this[index] else nil
-end
-
---[=[
-	Gets whatever object is stored with the given index, if it exists. This was
-	added since Maid allows getting the task using `__index`.
-
-	### Luau:
-
-	```lua
-	local obliterator = Janitor.new()
-	obliterator:Add(Workspace.Baseplate, "Destroy", "Baseplate")
-	print(obliterator:Get("Baseplate")) -- Returns Baseplate.
-	```
-
-	### TypeScript:
-
-	```ts
-	import { Workspace } from "@rbxts/services";
-	import { Janitor } from "@rbxts/janitor";
-
-	const obliterator = new Janitor<{ Baseplate: Part }>();
-	obliterator.Add(Workspace.FindFirstChild("Baseplate") as Part, "Destroy", "Baseplate");
-	print(obliterator.Get("Baseplate")); // Returns Baseplate.
-	```
-
-	@method Get
-	@within Janitor
-
-	@param index unknown -- The index that the object is stored under.
-	@return unknown? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
-]=]
-Janitor.Get = Get
-
 --[=[
 	Adds a [Promise](https://github.com/evaera/roblox-lua-promise) to the
 	Janitor. If the Janitor is cleaned up and the Promise is not completed, the
@@ -460,10 +406,9 @@ Janitor.Get = Get
 	@error NotAPromiseError -- Thrown if the promise is not a Promise.
 
 	@param promiseObject Promise -- The promise you want to add to the Janitor.
-	@param index? unknown -- The index that can be used to clean up the object manually.
 	@return Promise
 ]=]
-function Janitor:AddPromise<T...>(promiseObject: Promise<T...>, index: unknown?): Promise<T...>
+function Janitor:AddPromise<T...>(promiseObject: Promise<T...>): Promise<T...>
 	if not Promise then
 		return promiseObject
 	end
@@ -472,32 +417,26 @@ function Janitor:AddPromise<T...>(promiseObject: Promise<T...>, index: unknown?)
 		error(string.format(NOT_A_PROMISE, typeof(promiseObject), tostring(promiseObject), debug.traceback(nil, 2)))
 	end
 
-	if promiseObject:getStatus() ~= Promise.Status.Started then
-		return promiseObject
-	end
+	if promiseObject:getStatus() == Promise.Status.Started then
+		local uniqueId = newproxy(false)
+		local newPromise = Add(self, Promise.new(function(resolve, _, onCancel)
+			if onCancel(function()
+				promiseObject:cancel()
+			end) then
+				return
+			end
 
-	local uniqueId = index
-	if uniqueId == nil then
-		uniqueId = newproxy(false)
-	end
+			resolve(promiseObject)
+		end), "cancel", uniqueId)
 
-	local newPromise = Add(self, Promise.new(function(resolve, _, onCancel)
-		if onCancel(function()
-			promiseObject:cancel()
-		end) then
-			return
-		end
-
-		resolve(promiseObject)
-	end), "cancel", uniqueId)
-
-	newPromise:finally(function()
-		if Get(self, uniqueId) == newPromise then
+		newPromise:finally(function()
 			Remove(self, uniqueId)
-		end
-	end)
+		end)
 
-	return newPromise :: never
+		return newPromise :: never
+	end
+
+	return promiseObject
 end
 
 --[=[
@@ -562,7 +501,7 @@ Private.Remove = Remove
 	@param index unknown -- The index you are removing.
 	@return Janitor
 ]=]
-function Private:RemoveNoClean(index: any): Janitor
+function Private:RemoveNoClean(index: any)
 	local this = Janitors[self]
 
 	if this then
@@ -617,7 +556,7 @@ end
 	@param ... unknown -- The indices you want to remove.
 	@return Janitor
 ]=]
-function Janitor:RemoveList(...: any): Janitor
+function Janitor:RemoveList(...: any)
 	local this = Janitors[self]
 	if this then
 		local length = select("#", ...)
@@ -688,7 +627,7 @@ end
 	@param ... unknown -- The indices you want to remove.
 	@return Janitor
 ]=]
-function Janitor:RemoveListNoClean(...: any): Janitor
+function Janitor:RemoveListNoClean(...: any)
 	local this = Janitors[self]
 	if this then
 		local length = select("#", ...)
@@ -750,6 +689,37 @@ function Janitor:RemoveListNoClean(...: any): Janitor
 end
 
 --[=[
+	Gets whatever object is stored with the given index, if it exists. This was
+	added since Maid allows getting the task using `__index`.
+
+	### Luau:
+
+	```lua
+	local obliterator = Janitor.new()
+	obliterator:Add(Workspace.Baseplate, "Destroy", "Baseplate")
+	print(obliterator:Get("Baseplate")) -- Returns Baseplate.
+	```
+
+	### TypeScript:
+
+	```ts
+	import { Workspace } from "@rbxts/services";
+	import { Janitor } from "@rbxts/janitor";
+
+	const obliterator = new Janitor<{ Baseplate: Part }>();
+	obliterator.Add(Workspace.FindFirstChild("Baseplate") as Part, "Destroy", "Baseplate");
+	print(obliterator.Get("Baseplate")); // Returns Baseplate.
+	```
+
+	@param index unknown -- The index that the object is stored under.
+	@return unknown? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
+]=]
+function Janitor:Get(index: any): any?
+	local this = Janitors[self]
+	return if this then this[index] else nil
+end
+
+--[=[
 	Returns a frozen copy of the Janitor's indices.
 
 	### Luau:
@@ -779,23 +749,29 @@ function Janitor:GetAll(): {[any]: any}
 	return if this then table.freeze(table.clone(this)) else {}
 end
 
-local function Cleanup(self: Private): ()
+local function GetFenv(self: Private): () -> (any, BooleanOrString)
+	return function(): ()
+		for object, methodName in next, self do
+			if object ~= "SuppressInstanceReDestroy" then
+				return object, methodName
+			end
+		end
+	end :: never
+end
+
+local function Cleanup(self: Private)
 	if not self.CurrentlyCleaning then
-		local suppressInstanceReDestroy = self.SuppressInstanceReDestroy
-		local unsafeThreadCleanup = self.UnsafeThreadCleanup
-
 		self.CurrentlyCleaning = nil :: never
-		self.SuppressInstanceReDestroy = nil :: never
-		self.UnsafeThreadCleanup = nil :: never
 
-		local object, methodName = next(self)
+		local get = GetFenv(self)
+		local object, methodName = get()
 
 		while object and methodName do -- changed to a while loop so that if you add to the janitor inside of a callback it doesn't get untracked (instead it will loop continuously which is a lot better than a hard to pindown edgecase)
 			if methodName == true then
 				if type(object) == "function" then
 					object()
 				elseif type(object) == "thread" then
-					local wasCancelled: boolean? = nil
+					local wasCancelled: boolean = nil
 					if coroutine.running() ~= object then
 						wasCancelled = pcall(function()
 							task.cancel(object)
@@ -804,21 +780,15 @@ local function Cleanup(self: Private): ()
 
 					if not wasCancelled then
 						local toCleanup = object
-						if unsafeThreadCleanup then
-							FastDefer(function()
-								task.cancel(toCleanup)
-							end)
-						else
-							task.defer(function()
-								task.cancel(toCleanup)
-							end)
-						end
+						task.defer(function()
+							task.cancel(toCleanup)
+						end)
 					end
 				end
 			else
 				local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
 				if objectMethod then
-					if suppressInstanceReDestroy and methodName == "Destroy" and typeof(object) == "Instance" then
+					if self.SuppressInstanceReDestroy and methodName == "Destroy" and typeof(object) == "Instance" then
 						pcall(objectMethod, object)
 					else
 						objectMethod(object)
@@ -827,7 +797,7 @@ local function Cleanup(self: Private): ()
 			end
 
 			self[object] = nil
-			object, methodName = next(self, object)
+			object, methodName = get()
 		end
 
 		local this = Janitors[self]
@@ -837,8 +807,6 @@ local function Cleanup(self: Private): ()
 		end
 
 		self.CurrentlyCleaning = false
-		self.SuppressInstanceReDestroy = suppressInstanceReDestroy
-		self.UnsafeThreadCleanup = unsafeThreadCleanup
 	end
 end
 
@@ -875,7 +843,7 @@ Private.Cleanup = Cleanup
 	error.
 	:::
 ]=]
-function Janitor:Destroy(): ()
+function Janitor:Destroy()
 	Cleanup(self)
 	table.clear(self :: never)
 	setmetatable(self :: any, nil)
@@ -949,7 +917,7 @@ Private.LinkToInstance = LinkToInstance;
 	@param ... Instance -- All the Instances you want linked.
 	@return Janitor -- A new Janitor that can be used to manually disconnect all LinkToInstances.
 ]=]
-function Janitor:LinkToInstances(...: Instance): Janitor
+function Janitor:LinkToInstances(...: Instance)
 	local manualCleanup = Janitor.new()
 	for index = 1, select("#", ...) do
 		local object = select(index, ...)
