@@ -11,9 +11,6 @@ local LinkToInstanceIndex = setmetatable({}, {
 	end;
 })
 
-local INVALID_METHOD_NAME =
-	"Object is a %* and as such expected `true?` for the method name and instead got %*. Traceback: %*"
-local METHOD_NOT_FOUND_ERROR = "Object %* doesn't have method %*, are you sure you want to add it? Traceback: %*"
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %* (%*)) Traceback: %*"
 
 export type Janitor = typeof(setmetatable({} :: {
@@ -191,27 +188,7 @@ local function Add<T>(self: Private, object: T, methodName: BooleanOrString?, in
 		this[index] = object
 	end
 
-	local typeOf = typeof(object)
-	local newMethodName = methodName or TYPE_DEFAULTS[typeOf] or "Destroy"
-
-	if typeOf == "function" or typeOf == "thread" then
-		if newMethodName ~= true then
-			warn(string.format(INVALID_METHOD_NAME, typeOf, tostring(newMethodName), debug.traceback(nil, 2)))
-		end
-	else
-		if not (object :: never)[newMethodName] then
-			warn(
-				string.format(
-					METHOD_NOT_FOUND_ERROR,
-					tostring(object),
-					tostring(newMethodName),
-					debug.traceback(nil, 2)
-				)
-			)
-		end
-	end
-
-	self[object] = newMethodName
+	self[object] = methodName or TYPE_DEFAULTS[typeof(object)] or "Destroy"
 	return object
 end
 

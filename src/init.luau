@@ -830,6 +830,53 @@ local function Cleanup(self: Private): ()
 			object, methodName = next(self, object)
 		end
 
+		while object and methodName do
+			local typeOf = typeof(object)
+			if methodName == true then
+				if typeOf == "function" then
+					object()
+				elseif typeOf == "thread" then
+					local wasCancelled: boolean? = nil
+					if coroutine.running() ~= object then
+						wasCancelled = pcall(function()
+							task.cancel(object)
+						end)
+					end
+
+					if not wasCancelled then
+						local toCleanup = object
+						if unsafeThreadCleanup then
+							FastDefer(function()
+								task.cancel(toCleanup)
+							end)
+						else
+							task.defer(function()
+								task.cancel(toCleanup)
+							end)
+						end
+					end
+				end
+			else
+				if methodName == "Destroy" then
+					if suppressInstanceReDestroy and typeOf == "Instance" then
+						pcall(Destroy, object)
+					else
+						object:Destroy()
+					end
+				elseif methodName == "Disconnect" then
+					object:Disconnect()
+				else
+					local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
+					if objectMethod then
+						objectMethod(object)
+					end
+				end
+			end
+
+			self[object] = nil
+			object, methodName = next(self, object)
+		end
+
 		local this = Janitors[self]
 		if this then
 			table.clear(this)

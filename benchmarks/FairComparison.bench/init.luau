@@ -1,10 +1,12 @@
 --!optimize 2
 --!strict
 
+local Duster = require(script.Duster)
 local Janitor17 = require(script.Janitor17)
 local Janitor18 = require(script.Janitor18)
 local Maid = require(script.Maid)
 local Trove = require(script.Trove)
+local UltraJanitor18 = require(script.UltraJanitor18)
 
 type IProfiler = {
 	Begin: (label: string) -> (),
@@ -79,10 +81,15 @@ end
 
 local function NoOperation(): () end
 
-local functionsToAdd = 1_000_000 // 500
-local threadsToAdd = 200_000 // 500
-local classesToAdd = 1_000_000 // 500
-local instancesToAdd = 100_000 // 500
+local DIVIDE_BY = 550
+
+local functionsToAdd = 1_000_000 // DIVIDE_BY
+local threadsToAdd = 200_000 // DIVIDE_BY
+local classesToAdd = 1_000_000 // DIVIDE_BY
+local instancesToAdd = 100_000 // DIVIDE_BY
+
+local Add = UltraJanitor18.new().Add
+local Cleanup = UltraJanitor18.new().Cleanup
 
 local Benchmark = CreateBenchmark(function()
 	return
@@ -110,7 +117,7 @@ end, {
 		janitor:Destroy()
 	end;
 
-	["Janitor 1.18.0"] = function()
+	["Janitor 1.18.1"] = function()
 		local janitor = Janitor18.new()
 
 		local functionsJanitor = janitor:Add(Janitor18.new(), "Cleanup")
@@ -130,31 +137,54 @@ end, {
 			instancesJanitor:Add(Instance.new("Folder"), "Destroy")
 		end
 
-		janitor:Destroy()
+		janitor:Cleanup()
+	end;
+
+	["Ultra Janitor 1.18.1"] = function()
+		local janitor = UltraJanitor18.new()
+
+		local functionsJanitor = Add(janitor, UltraJanitor18.new(), "Cleanup")
+		for _ = 1, functionsToAdd do
+			Add(functionsJanitor, NoOperation, true)
+		end
+		local threadsJanitor = Add(janitor, UltraJanitor18.new(), "Cleanup")
+		for _ = 1, threadsToAdd do
+			Add(threadsJanitor, task.delay(5, NoOperation), true)
+		end
+		local classesJanitor = Add(janitor, UltraJanitor18.new(), "Cleanup")
+		for _ = 1, classesToAdd do
+			Add(classesJanitor, BasicClass.new(), "Destroy")
+		end
+		local instancesJanitor = Add(janitor, UltraJanitor18.new(), "Cleanup")
+		for _ = 1, instancesToAdd do
+			Add(instancesJanitor, Instance.new("Folder"), "Destroy")
+		end
+
+		Cleanup(janitor)
 	end;
 
 	["Janitor 1.18.0 Unsafe"] = function()
 		local janitor = Janitor18.new()
 		janitor.UnsafeThreadCleanup = true
 
-		local functionsJanitor = janitor:Add(Janitor18.new(), "Cleanup", "Functions")
-		for index = 1, functionsToAdd do
-			functionsJanitor:Add(NoOperation, true, index)
+		local functionsJanitor = janitor:Add(Janitor18.new(), "Cleanup")
+		for _ = 1, functionsToAdd do
+			functionsJanitor:Add(NoOperation, true)
 		end
-		local threadsJanitor = janitor:Add(Janitor18.new(), "Cleanup", "Threads")
-		for index = 1, threadsToAdd do
-			threadsJanitor:Add(task.delay(5, NoOperation), true, index)
+		local threadsJanitor = janitor:Add(Janitor18.new(), "Cleanup")
+		for _ = 1, threadsToAdd do
+			threadsJanitor:Add(task.delay(5, NoOperation), true)
 		end
-		local classesJanitor = janitor:Add(Janitor18.new(), "Cleanup", "Classes")
-		for index = 1, classesToAdd do
-			classesJanitor:Add(BasicClass.new(), "Destroy", index)
+		local classesJanitor = janitor:Add(Janitor18.new(), "Cleanup")
+		for _ = 1, classesToAdd do
+			classesJanitor:Add(BasicClass.new(), "Destroy")
 		end
-		local instancesJanitor = janitor:Add(Janitor18.new(), "Cleanup", "Instances")
-		for index = 1, instancesToAdd do
-			instancesJanitor:Add(Instance.new("Folder"), "Destroy", index)
+		local instancesJanitor = janitor:Add(Janitor18.new(), "Cleanup")
+		for _ = 1, instancesToAdd do
+			instancesJanitor:Add(Instance.new("Folder"), "Destroy")
 		end
 
-		janitor:Destroy()
+		janitor:Cleanup()
 	end;
 
 	-- Lesser beings
@@ -202,6 +232,43 @@ end, {
 		end
 
 		maid:Destroy()
+	end;
+
+	["Duster"] = function()
+		local duster: {Duster.Cleanable} = {}
+
+		local functionsJanitor: {Duster.Cleanable} = {}
+		Duster.insert(duster, function()
+			Duster.clear(functionsJanitor)
+		end)
+		for _ = 1, functionsToAdd do
+			Duster.insert(functionsJanitor, NoOperation)
+		end
+
+		local threadsJanitor: {Duster.Cleanable} = {}
+		Duster.insert(duster, function()
+			Duster.clear(threadsJanitor)
+		end)
+		for _ = 1, threadsToAdd do
+			Duster.insert(threadsJanitor, task.delay(5, NoOperation))
+		end
+
+		local classesJanitor: {Duster.Cleanable} = {}
+		Duster.insert(duster, function()
+			Duster.clear(classesJanitor)
+		end)
+		for _ = 1, classesToAdd do
+			Duster.insert(classesJanitor, BasicClass.new() :: never)
+		end
+		local instancesJanitor: {Duster.Cleanable} = {}
+		Duster.insert(duster, function()
+			Duster.clear(instancesJanitor)
+		end)
+		for _ = 1, instancesToAdd do
+			Duster.insert(instancesJanitor, Instance.new("Folder"))
+		end
+
+		Duster.clear(duster)
 	end;
 })
 

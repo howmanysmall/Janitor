@@ -1,14 +1,15 @@
-classOrder = ["Janitor"]
 changelog = true
+classOrder = ["Janitor"]
 gitSourceBranch = "main"
 
 [docusaurus]
 tagline = "Garbage collector object implementation for Roblox"
 
 [[navbar.items]]
+className = "discord-logo-link"
 href = "https://discord.gg/nhDpg96Srt"
-label = "Discord"
 position = "right"
+title = "Discord"
 
 [[navbar.items]]
 href = "https://twitter.com/howmanysmaII"
@@ -20,16 +21,16 @@ enabled = true
 includeReadme = false
 
 [[home.features]]
-title = "Custom cleanup methods"
 description = "Other garbage collection implementations such as Maid don't give you a choice with how you clean up objects. You can either give a function, a connection, an Instance, or a table with a Destroy method. Janitor allows you to specify how you clean up objects, so you can cancel a Tween when the Janitor is cleaned up."
+title = "Custom cleanup methods"
 
 [[home.features]]
-title = "Promise Support"
 description = "Janitor supports adding Promises to it natively, which will then cancel if the Janitor is cleaned up. This makes Janitor the only library of its kind with support for this implementation of Promises."
+title = "Promise Support"
 
 [[home.features]]
-title = "Instances linking"
 description = "Janitor's LinkToInstance method allows you to cleanup the Janitor when a linked Instance is destroyed. This allows you to execute behavior on destruction as well as cleanup objects quickly."
+title = "Instances linking"
 
 # [[home.features]]
 # title = "Made with Luau in mind"
