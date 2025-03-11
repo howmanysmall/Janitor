@@ -375,7 +375,6 @@ local function Cleanup(self: Private): ()
 		self.UnsafeThreadCleanup = nil :: never
 
 		local object, methodName = next(self)
-
 		while object and methodName do
 			if methodName == true then
 				if type(object) == "function" then
