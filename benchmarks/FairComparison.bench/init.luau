@@ -117,7 +117,7 @@ end, {
 		janitor:Destroy()
 	end;
 
-	["Janitor 1.18.1"] = function()
+	["Janitor 1.18.2"] = function()
 		local janitor = Janitor18.new()
 
 		local functionsJanitor = janitor:Add(Janitor18.new(), "Cleanup")
@@ -140,7 +140,7 @@ end, {
 		janitor:Cleanup()
 	end;
 
-	["Ultra Janitor 1.18.1"] = function()
+	["Ultra Janitor 1.18.2"] = function()
 		local janitor = UltraJanitor18.new()
 
 		local functionsJanitor = Add(janitor, UltraJanitor18.new(), "Cleanup")
@@ -163,7 +163,7 @@ end, {
 		Cleanup(janitor)
 	end;
 
-	["Janitor 1.18.0 Unsafe"] = function()
+	["Janitor 1.18.2 Unsafe"] = function()
 		local janitor = Janitor18.new()
 		janitor.UnsafeThreadCleanup = true
 

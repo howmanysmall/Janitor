@@ -187,14 +187,10 @@ end
 ]=]
 Janitor.instanceof = Janitor.Is
 
-local function Destroy(self: Instance): ()
-	self:Destroy()
-end
+local Destroy = game.Destroy
 local Disconnect = (function()
 	local connection = script:GetPropertyChangedSignal("Parent"):Once(function() end)
-	local function disconnect(self: RBXScriptConnection): ()
-		self:Disconnect()
-	end
+	local disconnect = connection.Disconnect
 	connection:Disconnect()
 	return disconnect
 end)()
@@ -240,7 +236,10 @@ local function Remove(self: Private, index: any): Janitor
 					if self.SuppressInstanceReDestroy and typeof(object) == "Instance" then
 						pcall(Destroy, object)
 					else
-						Destroy(object)
+						local destroy = object.Destroy
+						if destroy then
+							destroy(object)
+						end
 					end
 				elseif methodName == "Disconnect" then
 					Disconnect(object)
@@ -862,10 +861,13 @@ local function Cleanup(self: Private): ()
 				end
 			else
 				if methodName == "Destroy" then
-					if suppressInstanceReDestroy and typeof(object) == "Instance" then
+					if self.SuppressInstanceReDestroy and typeof(object) == "Instance" then
 						pcall(Destroy, object)
 					else
-						Destroy(object)
+						local destroy = object.Destroy
+						if destroy then
+							destroy(object)
+						end
 					end
 				elseif methodName == "Disconnect" then
 					Disconnect(object)
