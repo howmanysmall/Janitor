@@ -122,6 +122,18 @@ end
 
 Janitor.instanceof = Janitor.Is
 
+local function Destroy(self: Instance): ()
+	self:Destroy()
+end
+local Disconnect = (function()
+	local connection = script:GetPropertyChangedSignal("Parent"):Once(function() end)
+	local function disconnect(self: RBXScriptConnection): ()
+		self:Disconnect()
+	end
+	connection:Disconnect()
+	return disconnect
+end)()
+
 local function Remove(self: Private, index: any): Janitor
 	local this = Janitors[self]
 
@@ -137,7 +149,7 @@ local function Remove(self: Private, index: any): Janitor
 				if type(object) == "function" then
 					object()
 				else
-					local wasCancelled: boolean = nil
+					local wasCancelled: boolean? = nil
 					if coroutine.running() ~= object then
 						wasCancelled = pcall(function()
 							task.cancel(object)
@@ -145,23 +157,30 @@ local function Remove(self: Private, index: any): Janitor
 					end
 
 					if not wasCancelled then
+						local toCleanup = object
 						if self.UnsafeThreadCleanup then
 							FastDefer(function()
-								task.cancel(object)
+								task.cancel(toCleanup)
 							end)
 						else
 							task.defer(function()
-								task.cancel(object)
+								task.cancel(toCleanup)
 							end)
 						end
 					end
 				end
 			else
-				local objectMethod = object[methodName]
-				if objectMethod then
-					if self.SuppressInstanceReDestroy and methodName == "Destroy" and typeof(object) == "Instance" then
-						pcall(objectMethod, object)
+				if methodName == "Destroy" then
+					if self.SuppressInstanceReDestroy and typeof(object) == "Instance" then
+						pcall(Destroy, object)
 					else
+						Destroy(object)
+					end
+				elseif methodName == "Disconnect" then
+					Disconnect(object)
+				else
+					local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
+					if objectMethod then
 						objectMethod(object)
 					end
 				end
@@ -376,18 +395,6 @@ function Janitor:GetAll(): {[any]: any}
 	return if this then table.freeze(table.clone(this)) else {}
 end
 
-local function Destroy(self: Instance): ()
-	self:Destroy()
-end
-local Disconnect = (function()
-	local connection = script:GetPropertyChangedSignal("Parent"):Once(function() end)
-	local function disconnect(self: RBXScriptConnection): ()
-		self:Disconnect()
-	end
-	connection:Disconnect()
-	return disconnect
-end)()
-
 local function Cleanup(self: Private): ()
 	if not self.CurrentlyCleaning then
 		local suppressInstanceReDestroy = self.SuppressInstanceReDestroy
@@ -398,7 +405,6 @@ local function Cleanup(self: Private): ()
 		self.UnsafeThreadCleanup = nil :: never
 
 		local object, methodName = next(self)
-
 		while object and methodName do
 			if methodName == true then
 				if type(object) == "function" then
