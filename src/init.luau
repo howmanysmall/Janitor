@@ -188,12 +188,6 @@ end
 Janitor.instanceof = Janitor.Is
 
 local Destroy = game.Destroy
-local Disconnect = (function()
-	local connection = script:GetPropertyChangedSignal("Parent"):Once(function() end)
-	local disconnect = connection.Disconnect
-	connection:Disconnect()
-	return disconnect
-end)()
 
 -- very cheeky optimization
 local function Remove(self: Private, index: any): Janitor
@@ -242,7 +236,10 @@ local function Remove(self: Private, index: any): Janitor
 						end
 					end
 				elseif methodName == "Disconnect" then
-					Disconnect(object)
+					local disconnect = object.Disconnect
+					if disconnect then
+						disconnect(object)
+					end
 				else
 					local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
 					if objectMethod then
@@ -870,7 +867,10 @@ local function Cleanup(self: Private): ()
 						end
 					end
 				elseif methodName == "Disconnect" then
-					Disconnect(object)
+					local disconnect = object.Disconnect
+					if disconnect then
+						disconnect(object)
+					end
 				else
 					local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
 					if objectMethod then
