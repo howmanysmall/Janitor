@@ -1,3 +1,6 @@
+--!optimize 2
+--!strict
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Jest = require(ReplicatedStorage.DevPackages.Jest)
 

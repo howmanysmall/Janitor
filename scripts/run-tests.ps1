@@ -3,7 +3,7 @@ if (-Not (Test-Path "test-place.rbxl" -PathType Leaf)) {
 }
 
 try {
-	run-in-roblox --place test-place.rbxl --script lua/run-package-tests.lua
+	run-in-roblox --place test-place.rbxl --script luau/run-package-tests.luau
 }
 catch {
 	Write-Output "An error occurred: $_"

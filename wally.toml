@@ -13,5 +13,5 @@ version = "1.18.3"
 Promise = "howmanysmall/typed-promise@4.0.3"
 
 [dev-dependencies]
-Jest = "jsdotlua/jest@3.6.1-rc.2"
-JestGlobals = "jsdotlua/jest-globals@3.6.1-rc.2"
+Jest = "jsdotlua/jest@3.10.0"
+JestGlobals = "jsdotlua/jest-globals@3.10.0"

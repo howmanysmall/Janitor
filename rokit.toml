@@ -1,8 +1,7 @@
 [tools]
-luau-lsp = "JohnnyMorganz/luau-lsp@1.53.2"
-lune = "filiptibell/lune@0.10.2"
-rojo = "rojo-rbx/rojo@7.5.1"
+luau-lsp = "JohnnyMorganz/luau-lsp@1.54.0"
+rojo = "rojo-rbx/rojo@7.6.0"
 run-in-roblox = "howmanysmall/run-in-roblox@0.4.2"
 selene = "howmanysmall/selene@0.29.0"
 wally = "UpliftGames/wally@0.3.2"
-wally-package-types = "JohnnyMorganz/wally-package-types@1.5.1"
+wally-package-types = "JohnnyMorganz/wally-package-types@1.6.2"

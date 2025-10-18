@@ -2,20 +2,20 @@
 
 # Remove old packages folder
 if [ -d "Packages" ]; then
-    rm -rf ./Packages
+	rm -rf ./Packages
 fi
 if [ -d "DevPackages" ]; then
-    rm -rf ./DevPackages
+	rm -rf ./DevPackages
 fi
 
 # Install packages
 wally install
 
 if [ ! -d "Packages" ]; then
-    mkdir "Packages"
+	mkdir "Packages"
 fi
 if [ ! -d "DevPackages" ]; then
-    mkdir "DevPackages"
+	mkdir "DevPackages"
 fi
 
 # Sourcemap generation
