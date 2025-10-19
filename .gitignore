@@ -3,8 +3,6 @@
 **/*.rbx[lm]*
 dist/
 
-.vscode/settings.json
-
 Janitor.rbxm
 Janitor.rbxmx
 
