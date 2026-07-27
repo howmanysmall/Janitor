@@ -96,9 +96,10 @@ hooks {
       }
       ["betterleaks"] = Builtins.betterleaks
       ["sherif"] {
-        glob = List("package.json", "pnpm-workspace.yaml")
-        check = "sherif -r root-package-private-field -r root-package-dependencies"
-        fix = "sherif --fix --no-install -r root-package-private-field -r root-package-dependencies"
+        glob = List("**/package.json", "**/pnpm-workspace.yaml")
+        check = "node --run sherif -- -r root-package-private-field -r root-package-dependencies"
+        fix =
+          "node --run sherif -- --fix --no-install -r root-package-private-field -r root-package-dependencies"
       }
 
       // Luau linter — selene
@@ -162,8 +163,21 @@ hooks {
         fix = "shfmt -bn -ci -sr -w {{files}}"
         check_first = true
       }
+      ["shfmt-detected-shell"] {
+        types = List("shell")
+        exclude = List("**/*.sh", "**/*.bash", "**/*.ksh")
+        check = "shfmt -bn -ci -sr -d {{files}}"
+        fix = "shfmt -bn -ci -sr -w {{files}}"
+        check_first = true
+      }
       ["shellcheck"] = (Builtins.shellcheck) {
         glob = List("**/*.sh", "**/*.bash", "**/*.ksh", "**/*.dash", "**/*.zsh")
+      }
+      ["shellcheck-detected-shell"] {
+        types = List("shell")
+        exclude = List("**/*.sh", "**/*.bash", "**/*.ksh", "**/*.dash", "**/*.zsh")
+        check = "shellcheck {{files}}"
+        batch = true
       }
 
       // GitHub Actions workflows
@@ -253,7 +267,7 @@ hooks {
       }
       ["betterleaks"] = Builtins.betterleaks
       ["sherif"] {
-        glob = List("package.json", "pnpm-workspace.yaml")
+        glob = List("**/package.json", "**/pnpm-workspace.yaml")
         check = "node --run sherif -- -r root-package-private-field -r root-package-dependencies"
       }
       ["selene"] {
@@ -302,8 +316,19 @@ hooks {
         glob = List("**/*.sh", "**/*.bash", "**/*.ksh")
         check = "shfmt -bn -ci -sr -d {{files}}"
       }
+      ["shfmt-detected-shell"] {
+        types = List("shell")
+        exclude = List("**/*.sh", "**/*.bash", "**/*.ksh")
+        check = "shfmt -bn -ci -sr -d {{files}}"
+      }
       ["shellcheck"] = (Builtins.shellcheck) {
         glob = List("**/*.sh", "**/*.bash", "**/*.ksh", "**/*.dash", "**/*.zsh")
+      }
+      ["shellcheck-detected-shell"] {
+        types = List("shell")
+        exclude = List("**/*.sh", "**/*.bash", "**/*.ksh", "**/*.dash", "**/*.zsh")
+        check = "shellcheck {{files}}"
+        batch = true
       }
       ["actionlint"] = (Builtins.actionlint) {
         glob = workflow_files
@@ -352,7 +377,7 @@ hooks {
       }
       ["betterleaks"] = Builtins.betterleaks
       ["sherif"] {
-        glob = List("package.json", "pnpm-workspace.yaml")
+        glob = List("**/package.json", "**/pnpm-workspace.yaml")
         check = "node --run sherif -- -r root-package-private-field -r root-package-dependencies"
         fix =
           "node --run sherif -- --fix --no-install -r root-package-private-field -r root-package-dependencies"
@@ -407,8 +432,19 @@ hooks {
         glob = List("**/*.sh", "**/*.bash", "**/*.ksh")
         fix = "shfmt -bn -ci -sr -w {{files}}"
       }
+      ["shfmt-detected-shell"] {
+        types = List("shell")
+        exclude = List("**/*.sh", "**/*.bash", "**/*.ksh")
+        fix = "shfmt -bn -ci -sr -w {{files}}"
+      }
       ["shellcheck"] = (Builtins.shellcheck) {
         glob = List("**/*.sh", "**/*.bash", "**/*.ksh", "**/*.dash", "**/*.zsh")
+      }
+      ["shellcheck-detected-shell"] {
+        types = List("shell")
+        exclude = List("**/*.sh", "**/*.bash", "**/*.ksh", "**/*.dash", "**/*.zsh")
+        check = "shellcheck {{files}}"
+        batch = true
       }
       ["actionlint"] = (Builtins.actionlint) {
         glob = workflow_files
