@@ -1,0 +1,386 @@
+{
+	"always_treat_brackets_as_autoclosed": true,
+	"auto_indent": "syntax_aware",
+	"code_actions_on_format": {
+		"source.fixAll": true,
+		"source.organizeImports": false
+	},
+	"colorize_brackets": true,
+	"edit_predictions": {
+		"codestral": {},
+		"copilot": { "enable_next_edit_suggestions": true },
+		"mode": "eager"
+	},
+	"ensure_final_newline_on_save": true,
+	"extend_comment_on_newline": false,
+	"file_types": {
+		"JSONC": [
+			"tsconfig.json",
+			"jsconfig.json",
+			".vscode/*.json",
+			".oxfmtrc.json",
+			".oxlintrc.json",
+			"*.code-workspace",
+			"tsconfig*.json",
+			"*.code-snippets"
+		],
+		"Shell Script": [
+			"zsh",
+			"zshrc",
+			"zprofile",
+			"zshenv",
+			"bashrc",
+			"bash_profile"
+		]
+	},
+	"format_on_save": "on",
+	"hard_tabs": true,
+	"indent_guides": {
+		"active_line_width": 1,
+		"background_coloring": "disabled",
+		"coloring": "indent_aware",
+		"enabled": true,
+		"line_width": 1
+	},
+	"inlay_hints": {
+		"edit_debounce_ms": 700,
+		"enabled": true,
+		"scroll_debounce_ms": 50,
+		"show_other_hints": true,
+		"show_parameter_hints": true,
+		"show_type_hints": true
+	},
+	"jsx_tag_auto_close": { "enabled": true },
+	"languages": {
+		"CSS": {
+			"code_actions_on_format": {
+				"source.fixAll.biome": true,
+				"source.organizeImports.biome": false
+			},
+			"format_on_save": "on",
+			"formatter": [
+				{
+					"language_server": { "name": "biome" }
+				},
+				{
+					"language_server": { "name": "oxfmt" }
+				}
+			],
+			"hard_tabs": true,
+			"language_servers": ["!eslint", "biome", "oxfmt", "..."],
+			"prettier": { "allowed": false },
+			"tab_size": 4
+		},
+		"GraphQL": {
+			"format_on_save": "on",
+			"formatter": [
+				{
+					"language_server": { "name": "biome" }
+				},
+				{
+					"language_server": { "name": "oxfmt" }
+				}
+			],
+			"hard_tabs": true,
+			"language_servers": ["!eslint", "!biome", "oxfmt", "..."],
+			"prettier": { "allowed": false },
+			"tab_size": 4
+		},
+		"JSON": {
+			"code_actions_on_format": {
+				"source.fixAll.biome": true,
+				"source.organizeImports.biome": false
+			},
+			"format_on_save": "on",
+			"formatter": [
+				{
+					"language_server": { "name": "biome" }
+				},
+				{
+					"language_server": { "name": "oxfmt" }
+				}
+			],
+			"hard_tabs": true,
+			"language_servers": [
+				"biome",
+				"codebook",
+				"dependi",
+				"deputy",
+				"oxfmt",
+				"oxlint",
+				"harper-ls",
+				"json-language-server",
+				"package-version-server",
+				"wakatime"
+			],
+			"prettier": { "allowed": false },
+			"tab_size": 4
+		},
+		"JSON5": {
+			"code_actions_on_format": {
+				"source.fixAll.biome": true,
+				"source.organizeImports.biome": false
+			},
+			"format_on_save": "on",
+			"formatter": {
+				"language_server": { "name": "oxfmt" }
+			},
+			"hard_tabs": true,
+			"language_servers": [
+				"oxfmt",
+				"codebook",
+				"harper-ls",
+				"wakatime",
+				"json-language-server"
+			],
+			"prettier": { "allowed": false },
+			"tab_size": 4
+		},
+		"JSONC": {
+			"code_actions_on_format": {
+				"source.fixAll.biome": true,
+				"source.organizeImports.biome": false
+			},
+			"format_on_save": "on",
+			"formatter": [
+				{
+					"language_server": { "name": "biome" }
+				},
+				{
+					"language_server": { "name": "oxfmt" }
+				}
+			],
+			"hard_tabs": true,
+			"language_servers": [
+				"biome",
+				"dependi",
+				"deputy",
+				"json-language-server",
+				"package-version-server",
+				"wakatime",
+				"harper-ls",
+				"codebook"
+			],
+			"prettier": { "allowed": false },
+			"tab_size": 4
+		},
+		"JavaScript": {
+			"code_actions_on_format": {
+				"source.fixAll.biome": true,
+				"source.fixAll.oxc": true,
+				"source.organizeImports.biome": false
+			},
+			"format_on_save": "on",
+			"formatter": [
+				{
+					"language_server": { "name": "biome" }
+				},
+				{
+					"language_server": { "name": "oxfmt" }
+				}
+			],
+			"hard_tabs": true,
+			"language_servers": [
+				"biome",
+				"oxfmt",
+				"oxlint",
+				"!tsgo",
+				"vtsls",
+				"harper-ls",
+				"codebook",
+				"wakatime"
+			],
+			"prettier": { "allowed": false },
+			"tab_size": 4
+		},
+		"LESS": {
+			"format_on_save": "on",
+			"formatter": {
+				"language_server": { "name": "oxfmt" }
+			},
+			"prettier": { "allowed": false }
+		},
+		"MDX": {
+			"format_on_save": "on",
+			"formatter": {
+				"language_server": { "name": "oxfmt" }
+			},
+			"language_servers": [
+				"codebook",
+				"harper-ls",
+				"oxfmt",
+				"rumdl",
+				"wakatime"
+			],
+			"prettier": { "allowed": false }
+		},
+		"Markdown": {
+			"format_on_save": "on",
+			"formatter": {
+				"language_server": { "name": "rumdl" }
+			},
+			"hard_tabs": true,
+			"language_servers": ["codebook", "harper-ls", "rumdl", "wakatime"],
+			"prettier": { "allowed": false },
+			"show_whitespaces": "none",
+			"soft_wrap": "editor_width",
+			"tab_size": 4
+		},
+		"Pkl": {
+			"format_on_save": "on",
+			"formatter": {
+				"external": {
+					"arguments": [
+						"-c",
+						"temp=$(mktemp -t pkl.XXXXXX.pkl) && cat > $temp && pkl format -w $temp > /dev/null && cat $temp && rm -f $temp"
+					],
+					"command": "bash"
+				}
+			},
+			"hard_tabs": true,
+			"language_servers": ["pkl-lsp", "wakatime"],
+			"tab_size": 4
+		},
+		"SCSS": {
+			"format_on_save": "on",
+			"formatter": {
+				"language_server": { "name": "oxfmt" }
+			},
+			"language_servers": ["!graphql", "oxfmt", "..."],
+			"prettier": { "allowed": false }
+		},
+		"Shell Script": {
+			"format_on_save": "on",
+			"formatter": {
+				"external": {
+					"arguments": ["--filename", "{buffer_path}", "-bn", "-ci", "-sr"],
+					"command": "shfmt"
+				}
+			},
+			"hard_tabs": true,
+			"language_servers": [
+				"bash-language-server",
+				"wakatime",
+				"harper-ls",
+				"codebook"
+			],
+			"tab_size": 4
+		},
+		"TOML": {
+			"format_on_save": "on",
+			"formatter": "language_server",
+			"hard_tabs": true,
+			"language_servers": [
+				"dependi",
+				"deputy",
+				"tombi",
+				"wakatime",
+				"harper-ls",
+				"codebook",
+				"json-language-server"
+			],
+			"tab_size": 4
+		},
+		"Vue.js": {
+			"format_on_save": "on",
+			"formatter": {
+				"language_server": { "name": "oxfmt" }
+			},
+			"prettier": { "allowed": false }
+		},
+		"YAML": {
+			"format_on_save": "on",
+			"formatter": {
+				"language_server": { "name": "oxfmt" }
+			},
+			"hard_tabs": false,
+			"language_servers": [
+				"oxlint",
+				"oxfmt",
+				"dependi",
+				"yaml-language-server",
+				"wakatime",
+				"harper-ls",
+				"codebook",
+				"json-language-server"
+			],
+			"prettier": { "allowed": false },
+			"tab_size": 2
+		}
+	},
+	"linked_edits": true,
+	"load_direnv": "direct",
+	"lsp": {
+		"bash-language-server": {
+			"settings": {
+				"bashIde": {
+					"globPattern": "**/*@(.sh|.inc|.bash|.command|.zsh)"
+				}
+			}
+		},
+		"biome": {
+			"settings": {
+				"biome": {
+					"configurationPath": "./biome.jsonc",
+					"rename": true,
+					"requireConfiguration": true
+				}
+			}
+		},
+		"dependi": {
+			"initialization_options": {
+				"cache": { "ttl_secs": 3600 },
+				"diagnostics": { "enabled": true },
+				"ignore": ["internal-*", "test-pkg"],
+				"inlay_hints": {
+					"enabled": true,
+					"show_up_to_date": true
+				},
+				"security": {
+					"enabled": true,
+					"min_severity": "low",
+					"show_diagnostics": true,
+					"show_in_hints": true
+				}
+			}
+		},
+		"yaml-language-server": {
+			"settings": {
+				"yaml": {
+					"format": { "singleQuote": true },
+					"keyOrdering": false,
+					"schemas": {
+						"./schemas/kubernetes.yaml": "k8s/**/*.yaml",
+						"https://json.schemastore.org/dependabot-v2.json": ".github/dependabot.*",
+						"https://json.schemastore.org/github-workflow.json": ".github/workflows/*",
+						// "~/global-schemas/docker-compose.yaml": "docker-compose*.yml",
+						"https://raw.githubusercontent.com/compose-spec/compose-go/master/schema/compose-spec.json": "docker-compose*.yml",
+						"https://raw.githubusercontent.com/evilmartians/lefthook/master/schema.json": [
+							"lefthook.yml",
+							".lefthook.yml",
+							"lefthook.yaml",
+							".lefthook.yaml",
+							"lefthook.json",
+							".lefthook.json"
+						]
+					}
+				}
+			}
+		}
+	},
+	"prettier": { "allowed": false },
+	"remove_trailing_whitespace_on_save": true,
+	"show_completion_documentation": true,
+	"show_completions_on_input": true,
+	"show_edit_predictions": true,
+	"soft_wrap": "prefer_line",
+	"tab_size": 4,
+	"terminal": {
+		"shell": "system",
+		"working_directory": "current_project_directory"
+	},
+	"use_auto_surround": true,
+	"use_autoclose": true,
+	"use_on_type_format": true,
+	"word_diff_enabled": true
+}

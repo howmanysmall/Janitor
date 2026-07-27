@@ -52,7 +52,7 @@ type Static = {
 	new: () -> BasicClass,
 }
 local BasicClass = {} :: BasicClass & Static
-BasicClass.ClassName = "BasicClass";
+BasicClass.ClassName = "BasicClass"
 (BasicClass :: any).__index = BasicClass
 function BasicClass.new(): BasicClass
 	return setmetatable({

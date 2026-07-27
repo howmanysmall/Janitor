@@ -120,7 +120,7 @@ local Private = Janitor :: Private & PrivateStatic
 Janitor.ClassName = "Janitor"
 Janitor.CurrentlyCleaning = true
 Janitor.SuppressInstanceReDestroy = false
-Janitor.UnsafeThreadCleanup = false;
+Janitor.UnsafeThreadCleanup = false
 (Janitor :: any).__index = Janitor
 
 local Janitors = setmetatable({} :: {[Private]: {[any]: any}}, {__mode = "ks"})
