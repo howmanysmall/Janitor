@@ -6,13 +6,14 @@ _.path = ["{{config_root}}/node_modules/.bin", "{{cwd}}/node_modules/.bin"]
 auto_install = false
 experimental = true
 lockfile = true
+cargo.binstall = true
 
 [tools]
+"cargo:selene" = "latest"
+"cargo:run-in-roblox" = "latest"
 "github:JohnnyMorganz/wally-package-types" = "latest"
 "github:UpliftGames/wally" = "latest"
 "github:johnnymorganz/luau-lsp" = "latest"
-"github:kampfkarren/selene" = "latest"
 "github:lune-org/lune" = "latest"
 "github:rojo-rbx/rojo" = "latest"
-"github:rojo-rbx/run-in-roblox" = "latest"
 luau = "latest"

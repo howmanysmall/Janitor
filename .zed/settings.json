@@ -366,6 +366,29 @@
 					}
 				}
 			}
+		},
+		"luau-lsp": {
+			"settings": {
+				"roblox": {
+					"enabled": true,
+					"security_level": "plugin",
+					"download_api_documentation": true,
+					"download_definitions": true
+				},
+				"fflags": {
+					"enable_new_solver": false
+				},
+				"luau-lsp": {
+					"ignoreGlobs": ["**/_Index/**", "Vendor/Icon/Packages/**"],
+					"sourcemap": {
+						"enabled": true,
+						"autogenerate": true,
+						"rojoProjectFile": "test-place.project.json",
+						"sourcemapFile": "sourcemap.json",
+						"includeNonScripts": true
+					}
+				}
+			}
 		}
 	},
 	"prettier": { "allowed": false },
