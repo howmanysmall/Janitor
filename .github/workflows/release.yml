@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install tools
+        uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
+        with:
+          cache: false
+
+      - name: Verify tag matches wally.toml version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          WALLY_VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' wally.toml)"
+          if [ "$TAG_VERSION" != "$WALLY_VERSION" ]; then
+            echo "::error::Tag v$TAG_VERSION does not match wally.toml version $WALLY_VERSION"
+            exit 1
+          fi
+          echo "Releasing v$WALLY_VERSION"
+
+      - name: Build release models
+        run: lune run BuildRelease --ci
+
+      - name: Publish to Wally
+        run: |
+          wally login --token "$WALLY_AUTH_TOKEN"
+          wally publish
+        env:
+          WALLY_AUTH_TOKEN: ${{ secrets.WALLY_AUTH_TOKEN }}
+
+      - name: Create GitHub release
+        run: gh release create "$GITHUB_REF_NAME" Janitor.rbxm Janitor.rbxmx --title "Janitor $GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

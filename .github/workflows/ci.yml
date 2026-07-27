@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint (selene)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install tools
+        uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
+
+      - name: Run selene
+        run: selene src luau
+
+  typecheck:
+    name: Typecheck (luau-lsp)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install tools
+        uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
+
+      - name: Install wally packages
+        run: wally install
+
+      - name: Generate sourcemap and package types
+        run: |
+          rojo sourcemap --output sourcemap.json test-place.project.json
+          wally-package-types --sourcemap sourcemap.json Packages/
+          wally-package-types --sourcemap sourcemap.json DevPackages/
+
+      - name: Download Roblox type definitions
+        run: curl -fsSL -o globalTypes.d.luau https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.luau
+
+      - name: Run luau-lsp analyze
+        run: luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau src
+
+  test:
+    name: Test (run-in-roblox)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install tools
+        uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
+
+      - name: Install wally packages
+        run: wally install
+
+      - name: Build test place
+        run: rojo build --output test-place.rbxl test-place.project.json
+
+      - name: Run tests
+        run: run-in-roblox --place test-place.rbxl --script luau/run-package-tests.luau
