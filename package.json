@@ -14,7 +14,8 @@
 		"lint": "bash -c 'a=$(bash scripts/get-defaults.sh \"$@\"); node --run oxlint -- --no-error-on-unmatched-pattern $a && node --run biome -- check --no-errors-on-unmatched $a' _",
 		"oxfmt": "oxfmt",
 		"oxlint": "oxlint",
-		"release": "bumpp"
+		"release": "bumpp",
+		"tsgo": "tsgo"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.5",
@@ -22,6 +23,7 @@
 		"@commitlint/config-conventional": "21.2.0",
 		"@commitlint/types": "21.2.0",
 		"@pobammer-ts/small-rules": "2.9.0",
+		"@typescript/native-preview": "7.0.0-dev.20260707.2",
 		"bumpp": "12.0.0",
 		"eslint-plugin-antfu": "3.2.3",
 		"eslint-plugin-regexp": "3.1.1",
