@@ -36,3 +36,6 @@ zizmor = "latest"
 
 [tasks]
 harper-lint = "harper-cli lint --ignore PhrasalVerbAsCompoundNoun --format compact --user-dict-path .harper-dictionary.txt"
+
+[tasks.ci]
+run = "bash scripts/run-tests.sh"

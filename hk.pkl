@@ -190,21 +190,9 @@ hooks {
   ["pre-push"] {
     steps {
       ["ci"] {
-        check = "scripts/quiet-on-success.sh mise run ci"
+        check = "mise run ci"
       }
     }
-  }
-
-  ["post-merge"] {
-    steps {}
-  }
-
-  ["post-checkout"] {
-    steps {}
-  }
-
-  ["post-rewrite"] {
-    steps {}
   }
 
   // Manual check/fix hooks for CI or local use

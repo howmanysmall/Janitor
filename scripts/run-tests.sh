@@ -2,14 +2,14 @@
 
 set -euo pipefail
 
-PROJECT_FILE="test-place.project.json"
-OUTPUT_FILE="test-place.rbxl"
-TEST_SCRIPT="luau/run-package-tests.luau"
+readonly PROJECT_FILE="test-place.project.json"
+readonly OUTPUT_FILE="test-place.rbxl"
+readonly TEST_SCRIPT="luau/run-package-tests.luau"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly NC='\033[0m'
 
 function print-status() {
 	echo -e "${GREEN}[INFO]${NC} $1"
