@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Changed how `Janitor:Cleanup`'s loop is handled. We are not using the `GetFenv` function anymore.
+- Changed how the `Janitor:Cleanup` loop is handled. We are not using the `GetFenv` function anymore.
 - Changed the `Janitors` weak metatable slightly.
 
 ## [1.17.0] - 2024-08-12
@@ -75,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Made the Promise dependency "optional". It's still required in the Wally file, but it's not actually required if it can't detect it.
-- Updated the dependencies in the aftman file.
+- Updated the dependencies in the `aftman.toml` file.
 - Changed one of the tests to use itSKIP.
 
 ## [1.15.6] - 2023-08-09
@@ -137,11 +137,11 @@ called exactly `Promise`. Thanks colbert2677!
 ### Fixed
 
 - Fixed incorrect type in the Janitor exported type.
-- Fixed out of date documentation in `Installation.md`.
+- Fixed out-of-date documentation in `Installation.md`.
 
 ### Removed
 
-- Removed the old toml files for Selene.
+- Removed the old TOML files for Selene.
 - Removed `foreman.toml`.
 
 ## [1.15.0] - 2022-11-30
@@ -157,11 +157,11 @@ called exactly `Promise`. Thanks colbert2677!
 
 ## [1.14.2] - 2022-11-09
 
-### Added 
+### Added
 
 ### Fixed
 
-- Fixed Janitor error when attempting call task.cancel on a running thread
+- Fixed Janitor error when attempting to call `task.cancel` on a running thread
 
 ## 1.14.1 - 2022-03-17
 
@@ -198,7 +198,7 @@ called exactly `Promise`. Thanks colbert2677!
 
 ### Changed
 
-- `Janitor:Cleanup` now uses a while loop instead of a for loop when cleaning up. Fixed by @codesenseAye.
+- `Janitor:Cleanup` now uses a `while` loop instead of a for loop when cleaning up. Fixed by @codesenseAye.
 
 ## 1.13.14 - 2021-11-05
 
@@ -230,7 +230,7 @@ called exactly `Promise`. Thanks colbert2677!
 
 - Urgent fix for the cleanup loop. I had forgotten the `continue` so it would've likely broken.
 
-## 1.13.11 - 
+## 1.13.11 -
 
 - This version has been scrubbed from GitHub releases for a reason.
 
@@ -273,8 +273,8 @@ called exactly `Promise`. Thanks colbert2677!
 
 ### Fixed
 
-- `Janitor:LinkToInstance` now works on deferred event mode. Shoutout to @Elttob for fixing it.
+- `Janitor:LinkToInstance` now works on deferred event mode. Shout out to @Elttob for fixing it.
 
-## 1.0.0 - 
+## 1.0.0 -
 
 - Initial release.

@@ -4,16 +4,16 @@ sidebar_position: 2
 
 # Installation
 
-### Method #1 - RepoToRoblox
+## Method #1 - RepoToRoblox
 
-Using Boatbomber's [RepoToRoblox](https://devforum.roblox.com/t/repotoroblox-simple-and-quick-github-cloning-into-your-explorer/1000272) plugin is the easiest way to install in Studio.
+Using Boatbomber's [RepoToRoblox](https://devforum.roblox.com/t/repotoroblox-simple-and-quick-github-cloning-into-your-explorer/1000272) plugin is the easiest way to install in Roblox Studio.
 
 1. In the RepoToRoblox widget, enter `howmanysmall` as the Owner and `Janitor` as the Repo.
 2. Click the Clone Repo button.
 
 ![Widget](https://i.imgur.com/mOYl9T1.png)
 
-### Method #2 - HttpService
+## Method #2 - HttpService
 
 This method uses `HttpService` to install Janitor.
 
@@ -87,14 +87,14 @@ Initify(Janitor)
 HttpService.HttpEnabled = HttpEnabled`}
 </textarea>
 
-### Method 3 - Manual
+## Method 3 - Manual
 
 1. Visit the [latest release](https://github.com/howmanysmall/Janitor/releases)
 2. Under *Assets*, click `Janitor.rbxm`
 3. - Using [Rojo](https://rojo.space/)? Put the file into your game directly.
    - Using Roblox Studio? Drag the file onto the viewport. It should insert under Workspace.
 
-### Method 4 - Wally
+## Method 4 - Wally
 
 1. Setup [Wally](https://wally.run/) by using `wally init`.
 2. Add `howmanysmall/Janitor` as a dependency.

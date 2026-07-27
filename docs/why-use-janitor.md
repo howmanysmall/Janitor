@@ -2,27 +2,28 @@
 sidebar_position: 3
 ---
 
-# Why use Janitor?
+# Why Use Janitor?
 
-Most of what I can say about why use something similar to Janitor has already been said by Quenty in his [RDC 2020 talk](https://www.youtube.com/watch?v=MOjiKS6F59s), so this page will only cover the reasons to use Janitor itself.
+Most of what I can say about why use something similar to Janitor has already been said by Quenty in his
+[RDC 2020 talk](https://www.youtube.com/watch?v=MOjiKS6F59s), so this page will only cover the reasons to use Janitor itself.
 
-### Ease of use
+## Ease of Use
 
 Janitor makes dealing with garbage collection much less annoying and stressful because it manages them all in a nice interface.
 
-### High Performance
+## High Performance
 
 While I don't really *recommend* using Janitor if you're gonna be cleaning up every frame, it is significantly faster than any other library with a similar API design.
 
-### Returning
+## Returning
 
 `Janitor:Add()` returns the first object passed, which Maid does not.
 
-### Custom Cleanup Methods
+## Custom Cleanup Methods
 
 With Maid, you can't tell it to do anything other than `:Destroy()`, `:Disconnect()`, or call something. Janitor allows any method you choose to be called for cleanup. This includes `Tween:Stop()`, `Humanoid:BreakJoints()`, or `Tool:Deactivate()`. You can see this being used in the `Janitor:AddPromise()` method.
 
-### API Consistency
+## API Consistency
 
 `Janitor:Add()` also accepts a custom reference to store under, which keeps the API more consistent.
 
@@ -34,14 +35,14 @@ With Maid, you can't tell it to do anything other than `:Destroy()`, `:Disconnec
 | Removing an Instance                     | `Janitor:Remove("Index")`               | `Maid.Index = nil`        | **CAN NOT DO THIS**          |
 | Removing without cleanup                 | `Janitor:RemoveNoClean("Index")`        | **CAN NOT DO THIS**       | **CAN NOT DO THIS**          |
 
-### LinkToInstance
+## `LinkToInstance`
 
-Janitor also allows linking to an Instance via the `Janitor:LinkToInstance()` method. This allows the Janitor to cleanup everything added to it when an Instance has its `Instance:Destroy()` method invoked.
+Janitor also allows linking to an Instance via the `Janitor:LinkToInstance()` method. This allows the Janitor to clean up everything added to it when an Instance has its `Instance:Destroy()` method invoked.
 
-### Native support for Promises
+## Native Support for Promises
 
-Janitor is the only library of its kind that supports cancelling Promises.
+Janitor is the only library of its kind that supports canceling Promises.
 
-### TypeScript Support
+## TypeScript Support
 
-Janitor has the best TypeScript support of any library like it. You have full intellisense with the objects stored in it, as well as the methods you can use to cleanup with.
+Janitor has the best TypeScript support of any library like it. You have full IntelliSense with the objects stored in it, as well as the methods you can use to clean up with.

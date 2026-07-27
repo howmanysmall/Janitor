@@ -10,25 +10,29 @@ lockfile = true
 cargo.binstall = true
 
 [tools]
-"cargo:selene" = "latest"
 "cargo:run-in-roblox" = "latest"
+"cargo:selene" = "latest"
 "github:JohnnyMorganz/wally-package-types" = "latest"
 "github:UpliftGames/wally" = "latest"
 "github:johnnymorganz/luau-lsp" = "latest"
 "github:lune-org/lune" = "latest"
 "github:rojo-rbx/rojo" = "latest"
-luau = "latest"
-ni = "latest"
-pnpm = "11.17.0"
 actionlint = "latest"
 betterleaks = "latest"
+harper-cli = "latest"
 hk = "1.50.0"
+luau = "latest"
+ni = "latest"
 node = "26"
 pinact = "latest"
 pkl = "latest"
+pnpm = "11.17.0"
 rumdl = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 tombi = "latest"
 vale = "latest"
 zizmor = "latest"
+
+[tasks]
+harper-lint = "harper-cli lint --ignore PhrasalVerbAsCompoundNoun --format compact --user-dict-path .harper-dictionary.txt"

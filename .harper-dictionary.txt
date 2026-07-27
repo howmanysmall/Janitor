@@ -1,3 +1,4 @@
+AlreadyPro
 Armtastic
 Benchmarker
 Bloopville
@@ -32,7 +33,9 @@ codesenseAye
 colbert2677
 itSKIP
 metatable
+metatable'd
 movsb
+plugin
 rbxts
 roblox
 roblox-ts

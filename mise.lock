@@ -455,6 +455,65 @@ url = "https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-wind
 url_api = "https://api.github.com/repos/rojo-rbx/rojo/releases/assets/463806838"
 provenance = "github-attestations"
 
+[[tools.harper-cli]]
+version = "2.2.1"
+backend = "aqua:Automattic/harper/harper-cli"
+
+[tools.harper-cli."platforms.linux-arm64"]
+checksum = "sha256:565c81973693f4c210599d0db2574afe6834bdadb17ba2b6b130381341fc077c"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427618818"
+
+[tools.harper-cli."platforms.linux-arm64-musl"]
+checksum = "sha256:65c2f638437a14e38e1ede2674cdce586fee5e76adb1419ce82fce2c3fc1b1cc"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427618484"
+
+[tools.harper-cli."platforms.linux-x64"]
+checksum = "sha256:1c824da17734e3ba6176531beff67ad64b1f7d2f81d3873401e589f721cb0d21"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427618419"
+
+[tools.harper-cli."platforms.linux-x64-baseline"]
+checksum = "sha256:1c824da17734e3ba6176531beff67ad64b1f7d2f81d3873401e589f721cb0d21"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427618419"
+
+[tools.harper-cli."platforms.linux-x64-musl"]
+checksum = "sha256:3e84cd6a292937d33b6ca657a297ea235319f5c3897116e2b4096007197cd8a4"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427617818"
+
+[tools.harper-cli."platforms.linux-x64-musl-baseline"]
+checksum = "sha256:3e84cd6a292937d33b6ca657a297ea235319f5c3897116e2b4096007197cd8a4"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427617818"
+
+[tools.harper-cli."platforms.macos-arm64"]
+checksum = "sha256:239939d315346e3d88ffdfd83780789eec1e6bca19f443f08b6d8ecdb55beac4"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427617197"
+
+[tools.harper-cli."platforms.macos-x64"]
+checksum = "sha256:9cf699782accae430c187a091b5d9ee11e787d095e836b509ac486a694f5fd20"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427617261"
+
+[tools.harper-cli."platforms.macos-x64-baseline"]
+checksum = "sha256:9cf699782accae430c187a091b5d9ee11e787d095e836b509ac486a694f5fd20"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427617261"
+
+[tools.harper-cli."platforms.windows-x64"]
+checksum = "sha256:54df8070ecb379fceb4877e889c2bae72e25e2ff6557dfce1b72a2f3eba5b1f1"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427620156"
+
+[tools.harper-cli."platforms.windows-x64-baseline"]
+checksum = "sha256:54df8070ecb379fceb4877e889c2bae72e25e2ff6557dfce1b72a2f3eba5b1f1"
+url = "https://github.com/Automattic/harper/releases/download/v2.2.1/harper-cli-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/427620156"
+
 [[tools.hk]]
 version = "1.50.0"
 backend = "aqua:jdx/hk"

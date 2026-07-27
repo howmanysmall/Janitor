@@ -141,8 +141,15 @@ hooks {
         check_first = true
       }
 
-      // Markdown — vale + rumdl
+      // Markdown — vale + harper + rumdl
       ["vale"] = Builtins.vale
+      ["harper"] {
+        glob = markdown_files
+        exclude = List(".agents/skills/**/SKILL.md")
+        check = "mise run harper-lint {{files}}"
+        check_first = true
+        batch = true
+      }
       ["rumdl"] = (Builtins.rumdl) {
         glob = markdown_files
         exclude = List(".agents/skills/**/SKILL.md")
@@ -260,6 +267,11 @@ hooks {
         check = "PINACT_GITHUB_TOKEN=\"$(gh auth token)\" pinact run --verify {{files}}"
       }
       ["vale"] = Builtins.vale
+      ["harper"] {
+        glob = markdown_files
+        exclude = List(".agents/skills/**/SKILL.md")
+        check = "mise run harper-lint {{files}}"
+      }
       ["rumdl"] = (Builtins.rumdl) {
         glob = markdown_files
         exclude = List(".agents/skills/**/SKILL.md")
@@ -335,6 +347,12 @@ hooks {
         fix = "PINACT_GITHUB_TOKEN=\"$(gh auth token)\" pinact run {{files}}"
       }
       ["vale"] = Builtins.vale
+      ["harper"] {
+        glob = markdown_files
+        exclude = List(".agents/skills/**/SKILL.md")
+        check =
+          "harper-cli lint --format compact --only SpellCheck --user-dict-path .harper-dictionary.txt {{files}}"
+      }
       ["rumdl"] = (Builtins.rumdl) {
         glob = markdown_files
         exclude = List(".agents/skills/**/SKILL.md")
