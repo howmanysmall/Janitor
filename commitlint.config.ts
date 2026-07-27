@@ -8,7 +8,11 @@ const configuration: UserConfig = {
 		"subject-empty": [2, "never"],
 		"subject-full-stop": [2, "never", "."],
 		"type-case": [2, "always", "lower-case"],
-		"type-enum": [2, "always", ["feat", "fix", "refactor", "docs", "style", "test", "chore", "perf", "ci"]],
+		"type-enum": [
+			2,
+			"always",
+			["feat", "fix", "refactor", "docs", "style", "test", "chore", "perf", "ci", "build"],
+		],
 	},
 };
 

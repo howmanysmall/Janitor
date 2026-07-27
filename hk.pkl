@@ -61,6 +61,19 @@ local zizmor_files =
 local markdown_files = List("**/*.md", "**/*.markdown", "**/*.mdx")
 local toml_files = List("**/*.toml")
 local luau_files = List("*.lua", "*.luau", "**/*.lua", "**/*.luau")
+local js_ts_files =
+  List(
+    "*.js",
+    "*.jsx",
+    "*.ts",
+    "*.tsx",
+    "*.mjs",
+    "*.cjs",
+    "*.mts",
+    "*.cts",
+    "*.astro",
+    "*.mdx",
+  )
 
 hooks {
   ["pre-commit"] {
@@ -82,6 +95,11 @@ hooks {
         exclude = binary_excludes
       }
       ["betterleaks"] = Builtins.betterleaks
+      ["sherif"] {
+        glob = List("package.json", "pnpm-workspace.yaml")
+        check = "sherif -r root-package-private-field -r root-package-dependencies"
+        fix = "sherif --fix --no-install -r root-package-private-field -r root-package-dependencies"
+      }
 
       // Luau linter — selene
       ["selene"] {
@@ -89,6 +107,28 @@ hooks {
         check = "selene {{files}}"
         check_first = true
         batch = true
+      }
+
+      // JS/TS pipeline — oxlint + biome + oxfmt
+      ["oxlint"] = (Builtins.ox_lint) {
+        glob = js_ts_files
+        check = "node --run oxlint -- --no-error-on-unmatched-pattern {{files}}"
+        fix = "node --run oxlint -- --no-error-on-unmatched-pattern --fix {{files}}"
+        check_first = true
+        batch = false
+      }
+      ["biome-js"] = (Builtins.biome) {
+        glob = js_ts_files
+        check = "node --run biome -- check --no-errors-on-unmatched {{files}}"
+        fix = "node --run biome -- check --write --no-errors-on-unmatched {{files}}"
+        check_first = true
+        batch = false
+      }
+      ["oxfmt-js"] = (Builtins.oxfmt) {
+        glob = List("*.ts", "*.tsx", "*.mts", "*.cts")
+        check = "node --run oxfmt -- --no-error-on-unmatched-pattern --check {{files}}"
+        fix = "node --run oxfmt -- --no-error-on-unmatched-pattern {{files}}"
+        check_first = true
       }
 
       // Biome non-JS — css, html, grit
@@ -212,9 +252,23 @@ hooks {
         exclude = binary_excludes
       }
       ["betterleaks"] = Builtins.betterleaks
+      ["sherif"] {
+        glob = List("package.json", "pnpm-workspace.yaml")
+        check = "node --run sherif -- -r root-package-private-field -r root-package-dependencies"
+      }
       ["selene"] {
         glob = luau_files
         check = "selene {{files}}"
+        batch = true
+      }
+      ["oxlint"] = (Builtins.ox_lint) {
+        glob = js_ts_files
+        check = "node --run oxlint -- --no-error-on-unmatched-pattern {{files}}"
+        batch = true
+      }
+      ["biome-js"] = (Builtins.biome) {
+        glob = js_ts_files
+        check = "node --run biome -- lint --no-errors-on-unmatched {{files}}"
         batch = true
       }
       ["biome-non-js"] = (Builtins.biome) {
@@ -225,6 +279,14 @@ hooks {
       ["oxfmt"] = (Builtins.oxfmt) {
         glob =
           List(
+            "*.js",
+            "*.jsx",
+            "*.ts",
+            "*.tsx",
+            "*.mjs",
+            "*.cjs",
+            "*.mts",
+            "*.cts",
             "*.json",
             "*.jsonc",
             "*.json5",
@@ -289,9 +351,27 @@ hooks {
         exclude = binary_excludes
       }
       ["betterleaks"] = Builtins.betterleaks
+      ["sherif"] {
+        glob = List("package.json", "pnpm-workspace.yaml")
+        check = "node --run sherif -- -r root-package-private-field -r root-package-dependencies"
+        fix =
+          "node --run sherif -- --fix --no-install -r root-package-private-field -r root-package-dependencies"
+      }
       ["selene"] {
         glob = luau_files
         check = "selene {{files}}"
+        batch = true
+      }
+      ["oxlint"] = (Builtins.ox_lint) {
+        glob = js_ts_files
+        check = "node --run oxlint -- --no-error-on-unmatched-pattern {{files}}"
+        fix = "node --run oxlint -- --no-error-on-unmatched-pattern --fix {{files}}"
+        batch = true
+      }
+      ["biome-js"] = (Builtins.biome) {
+        glob = js_ts_files
+        check = "node --run biome -- lint --no-errors-on-unmatched {{files}}"
+        fix = "node --run biome -- lint --write --no-errors-on-unmatched {{files}}"
         batch = true
       }
       ["biome-non-js"] = (Builtins.biome) {
@@ -303,6 +383,14 @@ hooks {
       ["oxfmt"] = (Builtins.oxfmt) {
         glob =
           List(
+            "*.js",
+            "*.jsx",
+            "*.ts",
+            "*.tsx",
+            "*.mjs",
+            "*.cjs",
+            "*.mts",
+            "*.cts",
             "*.json",
             "*.jsonc",
             "*.json5",
