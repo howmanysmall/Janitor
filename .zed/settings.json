@@ -24,14 +24,7 @@
 			"tsconfig*.json",
 			"*.code-snippets"
 		],
-		"Shell Script": [
-			"zsh",
-			"zshrc",
-			"zprofile",
-			"zshenv",
-			"bashrc",
-			"bash_profile"
-		]
+		"Shell Script": ["zsh", "zshrc", "zprofile", "zshenv", "bashrc", "bash_profile"]
 	},
 	"format_on_save": "on",
 	"hard_tabs": true,
@@ -126,13 +119,7 @@
 				"language_server": { "name": "oxfmt" }
 			},
 			"hard_tabs": true,
-			"language_servers": [
-				"oxfmt",
-				"codebook",
-				"harper-ls",
-				"wakatime",
-				"json-language-server"
-			],
+			"language_servers": ["oxfmt", "codebook", "harper-ls", "wakatime", "json-language-server"],
 			"prettier": { "allowed": false },
 			"tab_size": 4
 		},
@@ -180,16 +167,7 @@
 				}
 			],
 			"hard_tabs": true,
-			"language_servers": [
-				"biome",
-				"oxfmt",
-				"oxlint",
-				"!tsgo",
-				"vtsls",
-				"harper-ls",
-				"codebook",
-				"wakatime"
-			],
+			"language_servers": ["biome", "oxfmt", "oxlint", "!tsgo", "vtsls", "harper-ls", "codebook", "wakatime"],
 			"prettier": { "allowed": false },
 			"tab_size": 4
 		},
@@ -205,13 +183,7 @@
 			"formatter": {
 				"language_server": { "name": "oxfmt" }
 			},
-			"language_servers": [
-				"codebook",
-				"harper-ls",
-				"oxfmt",
-				"rumdl",
-				"wakatime"
-			],
+			"language_servers": ["codebook", "harper-ls", "oxfmt", "rumdl", "wakatime"],
 			"prettier": { "allowed": false }
 		},
 		"Markdown": {
@@ -238,7 +210,6 @@
 				}
 			},
 			"hard_tabs": true,
-			"language_servers": ["pkl-lsp", "wakatime"],
 			"tab_size": 4
 		},
 		"SCSS": {
@@ -258,12 +229,7 @@
 				}
 			},
 			"hard_tabs": true,
-			"language_servers": [
-				"bash-language-server",
-				"wakatime",
-				"harper-ls",
-				"codebook"
-			],
+			"language_servers": ["bash-language-server", "wakatime", "harper-ls", "codebook"],
 			"tab_size": 4
 		},
 		"TOML": {
@@ -344,6 +310,29 @@
 				}
 			}
 		},
+		"luau-lsp": {
+			"settings": {
+				"fflags": {
+					"enable_new_solver": false
+				},
+				"luau-lsp": {
+					"ignoreGlobs": ["**/_Index/**", "Vendor/Icon/Packages/**", "**/.lune/**"],
+					"sourcemap": {
+						"autogenerate": true,
+						"enabled": true,
+						"includeNonScripts": true,
+						"rojoProjectFile": "test-place.project.json",
+						"sourcemapFile": "sourcemap.json"
+					}
+				},
+				"roblox": {
+					"download_api_documentation": true,
+					"download_definitions": true,
+					"enabled": true,
+					"security_level": "plugin"
+				}
+			}
+		},
 		"yaml-language-server": {
 			"settings": {
 				"yaml": {
@@ -363,33 +352,6 @@
 							"lefthook.json",
 							".lefthook.json"
 						]
-					}
-				}
-			}
-		},
-		"luau-lsp": {
-			"settings": {
-				"roblox": {
-					"enabled": true,
-					"security_level": "plugin",
-					"download_api_documentation": true,
-					"download_definitions": true
-				},
-				"fflags": {
-					"enable_new_solver": false
-				},
-				"luau-lsp": {
-					"ignoreGlobs": [
-						"**/_Index/**",
-						"Vendor/Icon/Packages/**",
-						"**/.lune/**"
-					],
-					"sourcemap": {
-						"enabled": true,
-						"autogenerate": true,
-						"rojoProjectFile": "test-place.project.json",
-						"sourcemapFile": "sourcemap.json",
-						"includeNonScripts": true
 					}
 				}
 			}
