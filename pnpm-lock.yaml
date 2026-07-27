@@ -6,33 +6,37 @@ settings:
 
 catalogs:
   dev:
-    '@biomejs/biome':
-      specifier: 2.5.5
-      version: 2.5.5
-    '@commitlint/cli':
-      specifier: 21.2.1
-      version: 21.2.1
     '@commitlint/config-conventional':
       specifier: 21.2.0
       version: 21.2.0
     '@commitlint/types':
       specifier: 21.2.0
       version: 21.2.0
-    '@pobammer-ts/small-rules':
-      specifier: 2.9.0
-      version: 2.9.0
-    '@total-typescript/ts-reset':
-      specifier: 0.6.1
-      version: 0.6.1
-    '@types/node':
-      specifier: 26.1.1
-      version: 26.1.1
     '@typescript/native-preview':
       specifier: 7.0.0-dev.20260707.2
       version: 7.0.0-dev.20260707.2
     bumpp:
       specifier: 12.0.0
       version: 12.0.0
+    moonwave:
+      specifier: 1.4.2
+      version: 1.4.2
+    pncat:
+      specifier: 0.13.0
+      version: 0.13.0
+    typescript:
+      specifier: 7.0.2
+      version: 7.0.2
+  lint:
+    '@biomejs/biome':
+      specifier: 2.5.5
+      version: 2.5.5
+    '@commitlint/cli':
+      specifier: 21.2.1
+      version: 21.2.1
+    '@pobammer-ts/small-rules':
+      specifier: 2.9.0
+      version: 2.9.0
     eslint-plugin-antfu:
       specifier: 3.2.3
       version: 3.2.3
@@ -45,9 +49,6 @@ catalogs:
     eslint-plugin-unused-imports:
       specifier: 4.4.1
       version: 4.4.1
-    moonwave:
-      specifier: 1.4.2
-      version: 1.4.2
     oxfmt:
       specifier: 0.61.0
       version: 0.61.0
@@ -60,25 +61,19 @@ catalogs:
     oxlint-tsgolint:
       specifier: 7.0.2001
       version: 7.0.2001
-    pncat:
-      specifier: 0.13.0
-      version: 0.13.0
     sherif:
       specifier: 1.13.0
       version: 1.13.0
-    typescript:
-      specifier: 7.0.2
-      version: 7.0.2
 
 importers:
 
   .:
     devDependencies:
       '@biomejs/biome':
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 2.5.5
       '@commitlint/cli':
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 21.2.1(@types/node@26.1.1)(conventional-commits-parser@7.1.1)(typescript@7.0.2)
       '@commitlint/config-conventional':
         specifier: catalog:dev
@@ -87,14 +82,8 @@ importers:
         specifier: catalog:dev
         version: 21.2.0
       '@pobammer-ts/small-rules':
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 2.9.0(typescript@7.0.2)
-      '@total-typescript/ts-reset':
-        specifier: catalog:dev
-        version: 0.6.1
-      '@types/node':
-        specifier: catalog:dev
-        version: 26.1.1
       '@typescript/native-preview':
         specifier: catalog:dev
         version: 7.0.0-dev.20260707.2
@@ -102,37 +91,37 @@ importers:
         specifier: catalog:dev
         version: 12.0.0
       eslint-plugin-antfu:
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 3.2.3(eslint@10.8.0(jiti@2.7.0))
       eslint-plugin-regexp:
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 3.1.1(eslint@10.8.0(jiti@2.7.0))
       eslint-plugin-sonarjs:
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 4.2.0(eslint@10.8.0(jiti@2.7.0))
       eslint-plugin-unused-imports:
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 4.4.1(eslint@10.8.0(jiti@2.7.0))
       moonwave:
         specifier: catalog:dev
         version: 1.4.2
       oxfmt:
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 0.61.0
       oxlint:
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 1.76.0(oxlint-tsgolint@7.0.2001)
       oxlint-plugin-react-doctor:
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 0.9.1
       oxlint-tsgolint:
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 7.0.2001
       pncat:
         specifier: catalog:dev
         version: 0.13.0
       sherif:
-        specifier: catalog:dev
+        specifier: catalog:lint
         version: 1.13.0
       typescript:
         specifier: catalog:dev
@@ -896,9 +885,6 @@ packages:
   '@simple-libs/stream-utils@2.0.0':
     resolution: {integrity: sha512-fCTuZK4QBa+39Oz9l4OGfJfz+GpwCp3AqO7Zch3to99xHPgstVsRFpeQ8LNd2o1Gv8raL2mCFwiaHh7bFSp5DQ==}
     engines: {node: '>=22'}
-
-  '@total-typescript/ts-reset@0.6.1':
-    resolution: {integrity: sha512-cka47fVSo6lfQDIATYqb/vO1nvFfbPw7uWLayIXIhGETj0wcOOlrlkobOMDNQOFr9QOafegUPq13V2+6vtD7yg==}
 
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
@@ -2708,8 +2694,6 @@ snapshots:
 
   '@simple-libs/stream-utils@2.0.0': {}
 
-  '@total-typescript/ts-reset@0.6.1': {}
-
   '@tybys/wasm-util@0.10.3':
     dependencies:
       tslib: 2.8.1
@@ -3939,8 +3923,6 @@ time:
   '@commitlint/config-conventional@21.2.0': '2026-06-30T09:53:56.373Z'
   '@commitlint/types@21.2.0': '2026-06-30T09:53:50.232Z'
   '@pobammer-ts/small-rules@2.9.0': '2026-07-27T03:02:30.010Z'
-  '@total-typescript/ts-reset@0.6.1': '2024-09-02T18:55:44.698Z'
-  '@types/node@26.1.1': '2026-07-08T06:47:46.733Z'
   '@typescript/native-preview@7.0.0-dev.20260707.2': '2026-07-07T08:20:24.277Z'
   bumpp@12.0.0: '2026-07-21T04:58:34.489Z'
   eslint-plugin-antfu@3.2.3: '2026-05-11T02:24:38.348Z'

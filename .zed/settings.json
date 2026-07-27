@@ -247,6 +247,64 @@
 			],
 			"tab_size": 4
 		},
+		"TSX": {
+			"code_actions_on_format": {
+				"source.fixAll.biome": true,
+				"source.fixAll.oxc": true,
+				"source.organizeImports.biome": false
+			},
+			"format_on_save": "on",
+			"formatter": [
+				{
+					"language_server": { "name": "biome" }
+				},
+				{
+					"language_server": { "name": "oxfmt" }
+				}
+			],
+			"hard_tabs": true,
+			"language_servers": [
+				"biome",
+				"oxfmt",
+				"oxlint",
+				"typescript-ls",
+				"harper-ls",
+				"codebook",
+				"wakatime",
+				"knip"
+			],
+			"prettier": { "allowed": false },
+			"tab_size": 4
+		},
+		"TypeScript": {
+			"code_actions_on_format": {
+				"source.fixAll.biome": true,
+				"source.fixAll.oxc": true,
+				"source.organizeImports.biome": false
+			},
+			"format_on_save": "on",
+			"formatter": [
+				{
+					"language_server": { "name": "biome" }
+				},
+				{
+					"language_server": { "name": "oxfmt" }
+				}
+			],
+			"hard_tabs": true,
+			"language_servers": [
+				"biome",
+				"oxfmt",
+				"oxlint",
+				"typescript-ls",
+				"harper-ls",
+				"codebook",
+				"wakatime",
+				"knip"
+			],
+			"prettier": { "allowed": false },
+			"tab_size": 4
+		},
 		"Vue.js": {
 			"format_on_save": "on",
 			"formatter": {
