@@ -379,7 +379,11 @@
 					"enable_new_solver": false
 				},
 				"luau-lsp": {
-					"ignoreGlobs": ["**/_Index/**", "Vendor/Icon/Packages/**"],
+					"ignoreGlobs": [
+						"**/_Index/**",
+						"Vendor/Icon/Packages/**",
+						"**/.lune/**"
+					],
 					"sourcemap": {
 						"enabled": true,
 						"autogenerate": true,

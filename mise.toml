@@ -17,3 +17,6 @@ cargo.binstall = true
 "github:lune-org/lune" = "latest"
 "github:rojo-rbx/rojo" = "latest"
 luau = "latest"
+"npm:bumpp" = "latest"
+ni = "latest"
+pnpm = "11.17.0"

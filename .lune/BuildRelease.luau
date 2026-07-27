@@ -65,7 +65,7 @@ local function CreateBuildProject(): Cleanup
 		Destroy("Packages")
 	end
 
-	local installResult = process.spawn("wally", {"install"})
+	local installResult = process.exec("wally", {"install"}, {})
 	if not installResult.ok then
 		warn(`wally install failed: {installResult.stderr} ({installResult.code})`)
 		return function()
@@ -119,7 +119,7 @@ local function CreateBuildProject(): Cleanup
 		fs.writeFile(PROJECT_NAME, json)
 	end
 
-	local sourcemapResult = process.spawn("rojo", {"sourcemap", "--output", SOURCEMAP_NAME, PROJECT_NAME})
+	local sourcemapResult = process.exec("rojo", {"sourcemap", "--output", SOURCEMAP_NAME, PROJECT_NAME})
 	if not sourcemapResult.ok then
 		warn(`rojo sourcemap failed: {sourcemapResult.stderr} ({sourcemapResult.code})`)
 		return function()
@@ -128,7 +128,7 @@ local function CreateBuildProject(): Cleanup
 		end
 	end
 
-	local packageTypesResult = process.spawn("wally-package-types", {"--sourcemap", SOURCEMAP_NAME, "Packages/"})
+	local packageTypesResult = process.exec("wally-package-types", {"--sourcemap", SOURCEMAP_NAME, "Packages/"})
 	if not packageTypesResult.ok then
 		warn(`wally-package-types failed: {packageTypesResult.stderr} ({packageTypesResult.code})`)
 		return function()
@@ -231,7 +231,7 @@ local function CreateBuildProject(): Cleanup
 end
 
 local function Install(lastCleanup: Cleanup?): Cleanup
-	local rbxmResult = process.spawn("rojo", {"build", "--output", "Janitor.rbxm", PROJECT_NAME})
+	local rbxmResult = process.exec("rojo", {"build", "--output", "Janitor.rbxm", PROJECT_NAME})
 	if not rbxmResult.ok then
 		warn(`rojo build rbxm failed: {rbxmResult.stderr} ({rbxmResult.code})`)
 		return function()
@@ -241,7 +241,7 @@ local function Install(lastCleanup: Cleanup?): Cleanup
 		end
 	end
 
-	local rbxmxResult = process.spawn("rojo", {"build", "--output", "Janitor.rbxmx", PROJECT_NAME})
+	local rbxmxResult = process.exec("rojo", {"build", "--output", "Janitor.rbxmx", PROJECT_NAME})
 	if not rbxmxResult.ok then
 		warn(`rojo build rbxmx failed: {rbxmxResult.stderr} ({rbxmxResult.code})`)
 		return function()
@@ -263,19 +263,19 @@ stdio.prompt("confirm", "Press enter to continue and cleanup", true)
 
 cleanup()
 
-local sourcemapResult = process.spawn("rojo", {"sourcemap", "--output", "sourcemap.json", "place.project.json"})
+local sourcemapResult = process.exec("rojo", {"sourcemap", "--output", "sourcemap.json", "place.project.json"})
 if not sourcemapResult.ok then
 	warn(`rojo sourcemap failed: {sourcemapResult.stderr} ({sourcemapResult.code})`)
 	process.exit(1)
 end
 
-local packageTypesResult = process.spawn("wally-package-types", {"--sourcemap", "sourcemap.json", "Packages/"})
+local packageTypesResult = process.exec("wally-package-types", {"--sourcemap", "sourcemap.json", "Packages/"})
 if not packageTypesResult.ok then
 	warn(`wally-package-types failed: {packageTypesResult.stderr} ({packageTypesResult.code})`)
 	process.exit(1)
 end
 
-local devPackageTypesResult = process.spawn("wally-package-types", {"--sourcemap", "sourcemap.json", "DevPackages/"})
+local devPackageTypesResult = process.exec("wally-package-types", {"--sourcemap", "sourcemap.json", "DevPackages/"})
 if not devPackageTypesResult.ok then
 	warn(`wally-package-types failed: {devPackageTypesResult.stderr} ({devPackageTypesResult.code})`)
 	process.exit(1)

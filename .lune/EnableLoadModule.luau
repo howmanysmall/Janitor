@@ -41,7 +41,7 @@ if process.env.windir ~= nil then
 
 		local metadata = fs.metadata(clientAppSettingsPath)
 		if metadata.permissions and metadata.permissions.readOnly then
-			local result = process.spawn("attrib", {"-r", clientAppSettingsPath})
+			local result = process.exec("attrib", {"-r", clientAppSettingsPath})
 			assert(result.ok, `Failed to remove read-only attribute:\n{result.stderr}`)
 		end
 	else
@@ -52,7 +52,7 @@ if process.env.windir ~= nil then
 
 	fs.writeFile(clientAppSettingsPath, serde.encode("json", clientAppSettings))
 
-	local result = process.spawn("attrib", {"+r", clientAppSettingsPath})
+	local result = process.exec("attrib", {"+r", clientAppSettingsPath})
 	assert(result.ok, `Failed to add read-only attribute:\n{result.stderr}`)
 
 	print(`Wrote FFlagEnableLoadModule to ClientAppSettings.json at {clientAppSettingsPath}`)
