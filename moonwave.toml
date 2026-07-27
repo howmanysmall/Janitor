@@ -4,12 +4,8 @@ gitSourceBranch = "main"
 
 [docusaurus]
 tagline = "Garbage collector object implementation for Roblox"
-
-[[navbar.items]]
-className = "discord-logo-link"
-href = "https://discord.gg/nhDpg96Srt"
-position = "right"
-title = "Discord"
+url = "https://docs.howmanysmall.com"
+baseUrl = "/Janitor/"
 
 [[navbar.items]]
 href = "https://twitter.com/howmanysmaII"

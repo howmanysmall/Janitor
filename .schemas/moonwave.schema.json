@@ -1,0 +1,277 @@
+{
+	"$id": "https://raw.githubusercontent.com/evaera/moonwave/main/cli/moonwave.schema.json",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"additionalProperties": true,
+	"definitions": {
+		"classOrderItem": {
+			"description": "Either a bare class name or a section object. Section objects may declare a section name, an explicit list of classes, and/or a tag that pulls in classes annotated with @tag.",
+			"oneOf": [
+				{ "type": "string" },
+				{
+					"properties": {
+						"classes": {
+							"description": "Class names belonging to this section, in the order they should appear.",
+							"items": { "type": "string" },
+							"type": "array"
+						},
+						"collapsed": {
+							"default": true,
+							"description": "Whether the section is collapsed on page load. Defaults to true.",
+							"type": "boolean"
+						},
+						"items": {
+							"description": "Nested subsections or classes. Same shape as the top-level classOrder array.",
+							"items": { "$ref": "#/definitions/classOrderItem" },
+							"type": "array"
+						},
+						"section": {
+							"description": "Display name of the section. Omit to keep classes at the root level of the sidebar.",
+							"type": "string"
+						},
+						"tag": {
+							"description": "Name of an @tag. All classes annotated with this tag are added to the section.",
+							"type": "string"
+						}
+					},
+					"type": "object"
+				}
+			]
+		}
+	},
+	"description": "Configuration file for the Moonwave documentation generator. Every property is optional.",
+	"properties": {
+		"apiCategories": {
+			"description": "Ordered list of @tag names that define categories in each API page's Table of Contents.",
+			"items": {
+				"type": "string"
+			},
+			"type": "array"
+		},
+		"autoSectionPath": {
+			"description": "Path to a directory (relative to the project root) whose subfolders will automatically be turned into API sidebar sections. Folder names in kebab-case, snake_case, PascalCase, camelCase, or sentence case are converted to Title Case.",
+			"type": "string"
+		},
+		"changelog": {
+			"default": true,
+			"description": "Whether to render a Changelog page from a CHANGELOG.md file in the project root. Defaults to true.",
+			"type": "boolean"
+		},
+		"classOrder": {
+			"description": "Controls the order of classes in the API sidebar. Classes not listed here are alphabetized and appended to the end. Listing a class that does not exist is an error.",
+			"items": {
+				"$ref": "#/definitions/classOrderItem"
+			},
+			"type": "array"
+		},
+		"docusaurus": {
+			"additionalProperties": true,
+			"description": "Options forwarded directly to Docusaurus. See https://docusaurus.io/docs/api/docusaurus-config for the full list of supported fields.",
+			"properties": {
+				"baseUrl": {
+					"description": "Base URL the site is served from. Defaults to /{projectName}/.",
+					"type": "string"
+				},
+				"favicon": {
+					"description": "Path or URL to the favicon image.",
+					"type": "string"
+				},
+				"onBrokenLinks": {
+					"description": "How to handle broken documentation links. Defaults to \"throw\".",
+					"enum": ["throw", "warn", "ignore"],
+					"type": "string"
+				},
+				"onBrokenMarkdownLinks": {
+					"description": "How to handle broken Markdown links. Defaults to \"warn\".",
+					"enum": ["throw", "warn", "ignore"],
+					"type": "string"
+				},
+				"organizationName": {
+					"description": "GitHub user or organization that owns the project. Automatically filled in from Git when omitted.",
+					"type": "string"
+				},
+				"projectName": {
+					"description": "GitHub project name. Automatically filled in from Git when omitted.",
+					"type": "string"
+				},
+				"tagline": {
+					"description": "Tagline shown under the site title.",
+					"type": "string"
+				},
+				"title": {
+					"description": "Document title used for the site.",
+					"type": "string"
+				},
+				"url": {
+					"description": "Site URL. Defaults to https://{organizationName}.github.io.",
+					"format": "uri",
+					"type": "string"
+				}
+			},
+			"type": "object"
+		},
+		"footer": {
+			"additionalProperties": true,
+			"description": "Customization for the footer.",
+			"properties": {
+				"copyright": {
+					"description": "Copyright text shown in the footer. Defaults to a generated string built from organizationName.",
+					"type": "string"
+				},
+				"links": {
+					"description": "Footer link columns.",
+					"items": {
+						"properties": {
+							"items": {
+								"description": "Links within this column.",
+								"items": {
+									"properties": {
+										"href": {
+											"description": "External URL the link points to.",
+											"format": "uri",
+											"type": "string"
+										},
+										"label": {
+											"description": "Display text for the footer link.",
+											"type": "string"
+										},
+										"to": {
+											"description": "Internal route the link points to.",
+											"type": "string"
+										}
+									},
+									"required": ["label"],
+									"type": "object"
+								},
+								"type": "array"
+							},
+							"title": {
+								"description": "Heading for the link column.",
+								"type": "string"
+							}
+						},
+						"required": ["title", "items"],
+						"type": "object"
+					},
+					"type": "array"
+				},
+				"style": {
+					"description": "Footer color style. Defaults to \"dark\".",
+					"enum": ["dark", "light"],
+					"type": "string"
+				}
+			},
+			"type": "object"
+		},
+		"gitRepoUrl": {
+			"description": "URL to the Git repository. Automatically filled in from Git when omitted.",
+			"format": "uri",
+			"type": "string"
+		},
+		"gitSourceBranch": {
+			"default": "master",
+			"description": "The main branch name used for 'Edit this page' links. Defaults to \"master\".",
+			"type": "string"
+		},
+		"home": {
+			"additionalProperties": true,
+			"description": "Customization for the home page.",
+			"properties": {
+				"bannerImage": {
+					"description": "URL or path to a banner image displayed at the top of the home page.",
+					"type": "string"
+				},
+				"enabled": {
+					"description": "When true, renders a Docusaurus home page instead of falling back to README.md.",
+					"type": "boolean"
+				},
+				"features": {
+					"description": "Feature cards shown on the home page.",
+					"items": {
+						"properties": {
+							"description": {
+								"description": "Body text of the feature card.",
+								"type": "string"
+							},
+							"image": {
+								"description": "URL or path to the feature card image. Paths starting with \"/\" are resolved relative to baseUrl.",
+								"type": "string"
+							},
+							"title": {
+								"description": "Headline of the feature card.",
+								"type": "string"
+							}
+						},
+						"required": ["title", "description"],
+						"type": "object"
+					},
+					"type": "array"
+				},
+				"includeReadme": {
+					"description": "When true, the project's README.md is appended to the home page. When set to a string, that string is used as the path to the README file instead.",
+					"oneOf": [{ "type": "boolean" }, { "type": "string" }]
+				}
+			},
+			"type": "object"
+		},
+		"navbar": {
+			"additionalProperties": true,
+			"description": "Customization for the top navigation bar.",
+			"properties": {
+				"items": {
+					"description": "Extra navbar items appended after the auto-generated Docs, Blog, API, and Changelog entries.",
+					"items": {
+						"properties": {
+							"href": {
+								"description": "External URL the item links to. Use this for links outside the site.",
+								"format": "uri",
+								"type": "string"
+							},
+							"label": {
+								"description": "Display text for the navbar item.",
+								"type": "string"
+							},
+							"position": {
+								"description": "Which side of the navbar the item appears on.",
+								"enum": ["left", "right"],
+								"type": "string"
+							},
+							"to": {
+								"description": "Internal route the item links to. Use this for links within the site.",
+								"type": "string"
+							}
+						},
+						"required": ["label", "position"],
+						"type": "object"
+					},
+					"type": "array"
+				},
+				"logo": {
+					"description": "Logo image shown in the navbar.",
+					"properties": {
+						"alt": {
+							"description": "Alt text for the logo image.",
+							"type": "string"
+						},
+						"src": {
+							"description": "URL or path to the logo image.",
+							"type": "string"
+						}
+					},
+					"required": ["alt", "src"],
+					"type": "object"
+				},
+				"title": {
+					"description": "Title shown in the navbar. Defaults to the project title.",
+					"type": "string"
+				}
+			},
+			"type": "object"
+		},
+		"title": {
+			"description": "The site's title. Automatically filled in from the Git repository name when omitted.",
+			"type": "string"
+		}
+	},
+	"title": "moonwave.toml",
+	"type": "object"
+}
