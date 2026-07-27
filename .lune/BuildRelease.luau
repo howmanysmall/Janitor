@@ -259,9 +259,18 @@ local function Install(lastCleanup: Cleanup?): Cleanup
 end
 
 local cleanup = Install(CreateBuildProject())
-stdio.prompt("confirm", "Press enter to continue and cleanup", true)
+local isCi = table.find(process.args, "--ci") ~= nil
+if not isCi then
+	stdio.prompt("confirm", "Press enter to continue and cleanup", true)
+end
 
 cleanup()
+
+-- The steps below regenerate the local development environment (sourcemap +
+-- package types) and are skipped in CI, where only the release artifacts matter.
+if isCi then
+	return
+end
 
 local sourcemapResult = process.exec("rojo", {"sourcemap", "--output", "sourcemap.json", "place.project.json"})
 if not sourcemapResult.ok then
