@@ -1,5 +1,5 @@
 --!native
---!optimize 2
+--!strict
 
 local process = require("@lune/process")
 
@@ -25,7 +25,7 @@ function PathUtilities.OsPath(path: string)
 			index += 1
 		end
 
-		newPath = string.gsub(newPath, "\\+", "\\")
+		newPath = (string.gsub(newPath, "\\+", "\\"))
 	else
 		local index = 1
 		while index <= #path do
@@ -38,7 +38,7 @@ function PathUtilities.OsPath(path: string)
 			index += 1
 		end
 
-		newPath = string.gsub(newPath, "/+", "/")
+		newPath = (string.gsub(newPath, "/+", "/"))
 	end
 
 	return newPath
@@ -54,7 +54,7 @@ end
 --- @param path The path to get the extension of
 --- @return The path extension or nil
 function PathUtilities.ExtensionName(path: string): string?
-	return string.match(path, ".(%.[A-z0-9_-]+)$")
+	return (string.match(path, ".(%.[A-z0-9_-]+)$"))
 end
 
 --- Gets the full directory path of the given path
@@ -67,13 +67,13 @@ function PathUtilities.DirectoryName(value: string): string
 end
 
 function PathUtilities.FileName(value: string)
-	return string.match(value, `[^{PathUtilities.Separator}]+$`)
+	return (string.match(value, `[^{PathUtilities.Separator}]+$`))
 end
 function PathUtilities.FileNameNoExtension(value: string)
 	local extension = PathUtilities.ExtensionName(value)
-	local fileName = string.match(value, `[^{PathUtilities.Separator}]+$`)
+	local fileName = (string.match(value, `[^{PathUtilities.Separator}]+$`))
 	if extension then
-		return if fileName then string.gsub(fileName, `{extension}$`, "") else nil
+		return if fileName then (string.gsub(fileName, `{extension}$`, "")) else nil
 	end
 
 	return fileName

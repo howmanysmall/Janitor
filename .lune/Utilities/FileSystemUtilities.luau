@@ -1,5 +1,4 @@
 --!native
---!optimize 2
 --!strict
 
 local fs = require("@lune/fs")
@@ -7,18 +6,18 @@ local fs = require("@lune/fs")
 local FileSystemUtilities = {}
 
 function FileSystemUtilities.JustFileName(path: string)
-	return string.match(string.match(path, "^(.+)%..+$") or path, "([^\\/]+)$") or path
+	return (string.match((string.match(path, "^(.+)%..+$")) or path, "([^\\/]+)$")) or path
 end
 function FileSystemUtilities.JustFileNameWithExtension(path: string)
-	return string.match(path, "([^\\/]+)$") or path
+	return (string.match(path, "([^\\/]+)$")) or path
 end
 
 function FileSystemUtilities.WithoutExtension(path: string): string
-	return string.match(path, "^(.+)%..+$") or path
+	return (string.match(path, "^(.+)%..+$")) or path
 end
 
-function FileSystemUtilities.GetExtension(path: string)
-	return string.match(path, "%.([^%.]+)$")
+function FileSystemUtilities.GetExtension(path: string): string?
+	return (string.match(path, "%.([^%.]+)$"))
 end
 
 type CreatorFunction = (path: string, contents: string?) -> ()

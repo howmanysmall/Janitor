@@ -5,8 +5,8 @@
 local function ParsePrereleaseAndBuildWithSign(value: string): (string, string)
 	local prereleaseWithSign, buildWithSign = string.match(value, "^(-[^+]+)(+.+)$")
 	if prereleaseWithSign == nil or buildWithSign == nil then
-		prereleaseWithSign = string.match(value, "^(-.+)$")
-		buildWithSign = string.match(value, "^(+.+)$")
+		prereleaseWithSign = (string.match(value, "^(-.+)$"))
+		buildWithSign = (string.match(value, "^(+.+)$"))
 	end
 
 	if prereleaseWithSign == nil and buildWithSign == nil then
@@ -21,7 +21,7 @@ local function ParsePrerelease(prereleaseWithSign: string?): string?
 		return nil
 	end
 
-	local prerelease = string.match(prereleaseWithSign, "^-(%w[%.%w-]*)$" :: string)
+	local prerelease = (string.match(prereleaseWithSign, "^-(%w[%.%w-]*)$" :: string))
 	if prerelease == nil then
 		error(
 			string.format(
@@ -39,7 +39,7 @@ local function ParseBuild(buildWithSign: string?): string?
 		return nil
 	end
 
-	local build = string.match(buildWithSign, "^%+(%w[%.%w-]*)$" :: string)
+	local build = (string.match(buildWithSign, "^%+(%w[%.%w-]*)$" :: string))
 	if build == nil then
 		error(string.format("The build %q is not a + sign followed by alphanumerics, dots and slashes", buildWithSign))
 	end
@@ -141,25 +141,22 @@ local function SmallerPrerelease(mine: string?, other: string?)
 	return SmallerIdList(string.split(mine, "."), string.split(other, "."))
 end
 
-export type SemanticVersion = typeof(setmetatable(
-	{} :: {
-		Major: number,
-		Minor: number,
-		Patch: number,
-		Prerelease: string?,
-		Build: string?,
+export type SemanticVersion = typeof(setmetatable({} :: {
+	Major: number,
+	Minor: number,
+	Patch: number,
+	Prerelease: string?,
+	Build: string?,
 
-		NextMajor: (self: SemanticVersion) -> SemanticVersion,
-		NextMinor: (self: SemanticVersion) -> SemanticVersion,
-		NextPatch: (self: SemanticVersion) -> SemanticVersion,
-	},
-	{} :: {
-		__eq: (self: SemanticVersion, other: SemanticVersion) -> boolean,
-		__lt: (self: SemanticVersion, other: SemanticVersion) -> boolean,
-		__pow: (self: SemanticVersion, other: SemanticVersion) -> boolean,
-		__tostring: (self: SemanticVersion) -> string,
-	}
-))
+	NextMajor: (self: SemanticVersion) -> SemanticVersion,
+	NextMinor: (self: SemanticVersion) -> SemanticVersion,
+	NextPatch: (self: SemanticVersion) -> SemanticVersion,
+}, {} :: {
+	__eq: (self: SemanticVersion, other: SemanticVersion) -> boolean,
+	__lt: (self: SemanticVersion, other: SemanticVersion) -> boolean,
+	__pow: (self: SemanticVersion, other: SemanticVersion) -> boolean,
+	__tostring: (self: SemanticVersion) -> string,
+}))
 
 type BaseStatics = {
 	ClassName: "SemanticVersion",
@@ -179,7 +176,7 @@ type SemanticVersionStatics = BaseStatics & {
 }
 
 local SemanticVersion = {} :: SemanticVersion & SemanticVersionStatics
-SemanticVersion.ClassName = "SemanticVersion";
+SemanticVersion.ClassName = "SemanticVersion"
 (SemanticVersion :: any).__index = SemanticVersion
 
 function SemanticVersion.new(

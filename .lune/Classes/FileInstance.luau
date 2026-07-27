@@ -1,5 +1,4 @@
 --!native
---!optimize 2
 --!strict
 
 local Destroy = require("../Utilities/Destroy")
@@ -57,7 +56,7 @@ type PrivateStatic = Static & {
 
 local FileInstance = {} :: FileInstance & Static
 local Private = FileInstance :: Private & PrivateStatic
-FileInstance.ClassName = "FileInstance";
+FileInstance.ClassName = "FileInstance"
 (FileInstance :: any).__index = FileInstance
 
 function FileInstance.Mark(filePath, fileName, parent): FileInstance

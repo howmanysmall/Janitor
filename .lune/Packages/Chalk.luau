@@ -15,7 +15,7 @@ local function stringReplaceAll(value: string, substring: string, replacer: stri
 	repeat
 		returnValue ..= string.sub(value, endIndex, index - 1) .. substring .. replacer
 		endIndex = index + substringLength
-		index = string.find(value, substring, endIndex, true)
+		index = (string.find(value, substring, endIndex, true))
 	until index == nil
 	returnValue ..= string.sub(value, endIndex)
 	return returnValue
@@ -31,7 +31,7 @@ local function stringEncaseCRLFWithFirstIndex(value: string, prefix: string, pos
 			then "\r\n"
 			else "\n") .. postfix
 		endIndex = index + 1
-		index = string.find(value, "\n", endIndex) :: number
+		index = (string.find(value, "\n", endIndex)) :: number
 	until index == nil
 
 	returnValue ..= string.sub(value, endIndex)
@@ -142,13 +142,10 @@ setmetatable(Chalk, {
 	end;
 })
 
-type Styler = typeof(setmetatable(
-	{} :: BaseStyle,
-	{} :: {
-		__call: (self: Styler, value: string) -> string,
-		__concat: (self: Styler, other: Styler) -> Styler,
-	}
-))
+type Styler = typeof(setmetatable({} :: BaseStyle, {} :: {
+	__call: (self: Styler, value: string) -> string,
+	__concat: (self: Styler, other: Styler) -> Styler,
+}))
 
 local StylerMetatable = {}
 function StylerMetatable:__call(value: string)
@@ -179,7 +176,7 @@ function applyStyle(self: BaseStyle, value)
 
 	-- insane
 	-- selene: allow(bad_string_escape)
-	if string.match(value, "\u{001B}") then
+	if (string.match(value, "\u{001B}")) ~= nil then
 		-- ROBLOX deviation START: no parent styles support yet
 		-- Replace any instances already present with a re-opening code
 		-- otherwise only the part of the string until said closing code
@@ -191,7 +188,7 @@ function applyStyle(self: BaseStyle, value)
 	-- We can move both next actions out of loop, because remaining actions in loop won't have
 	-- any/visible effect on parts we add here. Close the styling before a linebreak and reopen
 	-- after next line to fix a bleed issue on macOS: https://github.com/chalk/chalk/pull/92
-	local lfIndex = string.find(value, "\n")
+	local lfIndex = (string.find(value, "\n"))
 	if lfIndex ~= nil then
 		value = stringEncaseCRLFWithFirstIndex(value, closeAll, openAll, lfIndex)
 	end
@@ -277,7 +274,7 @@ local function hexToRgb(hex)
 end
 
 function Chalk.Hex(hex: string)
-	if type(hex) ~= "string" or string.find(hex, "#%X") ~= nil or #hex ~= 7 then
+	if type(hex) ~= "string" or (string.find(hex, "#%X")) ~= nil or #hex ~= 7 then
 		return noStyle()
 	end
 
@@ -286,7 +283,7 @@ function Chalk.Hex(hex: string)
 end
 
 function Chalk.BgHex(hex: string)
-	if type(hex) ~= "string" or string.find(hex, "#%X") ~= nil or #hex ~= 7 then
+	if type(hex) ~= "string" or (string.find(hex, "#%X")) ~= nil or #hex ~= 7 then
 		return noStyle()
 	end
 
@@ -330,63 +327,60 @@ function Chalk.BgAnsi256(ansi: number)
 	return createStyler(open, bgClose)
 end
 
-type Chalk = typeof(setmetatable(
-	{} :: {
-		Ansi: (ansi: number) -> Styler,
-		Ansi256: (ansi: number) -> Styler,
-		BgAnsi: (ansi: number) -> Styler,
-		BgAnsi256: (ansi: number) -> Styler,
-		BgBlack: Styler,
-		BgBlackBright: Styler,
-		BgBlue: Styler,
-		BgBlueBright: Styler,
-		BgCyan: Styler,
-		BgCyanBright: Styler,
-		BgGray: Styler,
-		BgGreen: Styler,
-		BgGreenBright: Styler,
-		BgGrey: Styler,
-		BgHex: (hex: string) -> Styler,
-		BgMagenta: Styler,
-		BgMagentaBright: Styler,
-		BgRed: Styler,
-		BgRedBright: Styler,
-		BgRgb: (red: number, green: number, blue: number) -> Styler,
-		BgWhite: Styler,
-		BgWhiteBright: Styler,
-		BgYellow: Styler,
-		BgYellowBright: Styler,
-		Black: Styler,
-		BlackBright: Styler,
-		Blue: Styler,
-		BlueBright: Styler,
-		Bold: Styler,
-		Cyan: Styler,
-		CyanBright: Styler,
-		Dim: Styler,
-		Gray: Styler,
-		Green: Styler,
-		GreenBright: Styler,
-		Grey: Styler,
-		Hex: (hex: string) -> Styler,
-		Hidden: Styler,
-		Inverse: Styler,
-		Italic: Styler,
-		Magenta: Styler,
-		MagentaBright: Styler,
-		Overline: Styler,
-		Red: Styler,
-		RedBright: Styler,
-		Reset: Styler,
-		Rgb: (red: number, green: number, blue: number) -> Styler,
-		Strikethrough: Styler,
-		Underline: Styler,
-		White: Styler,
-		WhiteBright: Styler,
-		Yellow: Styler,
-		YellowBright: Styler,
-	},
-	{} :: {__call: (self: Chalk, value: unknown?) -> string}
-))
+type Chalk = typeof(setmetatable({} :: {
+	Ansi: (ansi: number) -> Styler,
+	Ansi256: (ansi: number) -> Styler,
+	BgAnsi: (ansi: number) -> Styler,
+	BgAnsi256: (ansi: number) -> Styler,
+	BgBlack: Styler,
+	BgBlackBright: Styler,
+	BgBlue: Styler,
+	BgBlueBright: Styler,
+	BgCyan: Styler,
+	BgCyanBright: Styler,
+	BgGray: Styler,
+	BgGreen: Styler,
+	BgGreenBright: Styler,
+	BgGrey: Styler,
+	BgHex: (hex: string) -> Styler,
+	BgMagenta: Styler,
+	BgMagentaBright: Styler,
+	BgRed: Styler,
+	BgRedBright: Styler,
+	BgRgb: (red: number, green: number, blue: number) -> Styler,
+	BgWhite: Styler,
+	BgWhiteBright: Styler,
+	BgYellow: Styler,
+	BgYellowBright: Styler,
+	Black: Styler,
+	BlackBright: Styler,
+	Blue: Styler,
+	BlueBright: Styler,
+	Bold: Styler,
+	Cyan: Styler,
+	CyanBright: Styler,
+	Dim: Styler,
+	Gray: Styler,
+	Green: Styler,
+	GreenBright: Styler,
+	Grey: Styler,
+	Hex: (hex: string) -> Styler,
+	Hidden: Styler,
+	Inverse: Styler,
+	Italic: Styler,
+	Magenta: Styler,
+	MagentaBright: Styler,
+	Overline: Styler,
+	Red: Styler,
+	RedBright: Styler,
+	Reset: Styler,
+	Rgb: (red: number, green: number, blue: number) -> Styler,
+	Strikethrough: Styler,
+	Underline: Styler,
+	White: Styler,
+	WhiteBright: Styler,
+	Yellow: Styler,
+	YellowBright: Styler,
+}, {} :: {__call: (self: Chalk, value: unknown?) -> string}))
 
 return Chalk :: Chalk

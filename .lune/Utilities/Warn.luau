@@ -1,5 +1,4 @@
 --!native
---!optimize 2
 --!strict
 
 local Chalk = require("../Packages/Chalk")
