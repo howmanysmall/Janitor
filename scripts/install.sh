@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Remove old packages folder
 if [ -d "Packages" ]; then

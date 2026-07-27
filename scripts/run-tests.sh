@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -46,18 +46,17 @@ trap cleanup EXIT
 function check-dependencies() {
 	local missingDependencies=()
 
-	if ! command -v rojo &>/dev/null; then
+	if ! command -v rojo &> /dev/null; then
 		missingDependencies+=("rojo")
 	fi
 
-	if ! command -v run-in-roblox &>/dev/null; then
+	if ! command -v run-in-roblox &> /dev/null; then
 		missingDependencies+=("run-in-roblox")
 	fi
 
 	if [ ${#missingDependencies[@]} -ne 0 ]; then
 		print-error "Missing required dependencies: ${missingDependencies[*]}"
-		print-error "Please ensure Rokit is installed and tools are available."
-		print-error "Run 'rokit install' to install dependencies."
+		print-error "Please ensure the required tools are installed and available in your PATH."
 		exit 1
 	fi
 }

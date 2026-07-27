@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-contents="{ \"FFlagEnableLoadModule\": true }"
+set -euo pipefail
 
+contents='{ "FFlagEnableLoadModule": true }'
 path="/Applications/RobloxStudio.app/Contents/MacOS/ClientSettings/ClientAppSettings.json"
 
-mkdir -p $(dirname $path)
-touch $path
-echo $contents >$path
+mkdir -p "$(dirname "$path")"
+touch "$path"
+printf '%s\n' "$contents" > "$path"
