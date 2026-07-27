@@ -56,6 +56,9 @@ importers:
       oxlint-tsgolint:
         specifier: 7.0.2001
         version: 7.0.2001
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
 
 packages:
 
@@ -3657,3 +3660,4 @@ time:
   oxlint-plugin-react-doctor@0.9.1: '2026-07-23T10:45:35.014Z'
   oxlint-tsgolint@7.0.2001: '2026-07-21T14:33:13.210Z'
   oxlint@1.76.0: '2026-07-27T15:58:10.918Z'
+  typescript@7.0.2: '2026-07-08T15:55:18.431Z'
