@@ -1,6 +1,7 @@
 [env]
 _.file = { path = ".env" }
 _.path = ["{{config_root}}/node_modules/.bin", "{{cwd}}/node_modules/.bin"]
+HK_MISE = 1
 
 [settings]
 auto_install = false
@@ -17,6 +18,17 @@ cargo.binstall = true
 "github:lune-org/lune" = "latest"
 "github:rojo-rbx/rojo" = "latest"
 luau = "latest"
-"npm:bumpp" = "latest"
 ni = "latest"
 pnpm = "11.17.0"
+actionlint = "latest"
+betterleaks = "latest"
+hk = "1.50.0"
+node = "26"
+pinact = "latest"
+pkl = "latest"
+rumdl = "latest"
+shellcheck = "latest"
+shfmt = "latest"
+tombi = "latest"
+vale = "latest"
+zizmor = "latest"

@@ -1,0 +1,532 @@
+{
+	"$schema": "https://biomejs.dev/schemas/latest/schema.json",
+	"assist": {
+		"actions": {
+			"source": {
+				"noDuplicateClasses": "on",
+				"organizeImports": "off",
+				"preset": "recommended",
+				"useSortedAttributes": "on",
+				"useSortedEnumMembers": "on",
+				"useSortedInterfaceMembers": "on",
+				"useSortedKeys": {
+					"level": "on",
+					"options": {
+						"groupByNesting": false,
+						"sortOrder": "lexicographic"
+					}
+				},
+				"useSortedPackageJson": "off",
+				"useSortedProperties": "on",
+				"useSortedSelectionSet": "on",
+				"useSortedTypeFields": "on"
+			}
+		},
+		"enabled": true,
+		"includes": ["**", "!**/*.js", "!**/*-lock.{json,yaml}"]
+	},
+
+	"css": {
+		"assist": { "enabled": true },
+		"formatter": {
+			"enabled": true,
+			"indentStyle": "tab",
+			"indentWidth": 4,
+			"lineWidth": 120,
+			"quoteStyle": "double"
+		},
+		"globals": [],
+		"linter": { "enabled": true }
+	},
+
+	"files": {
+		"includes": ["**", "!**/package.json", "!**/*.js", "!**/*-lock.{json,yaml}"]
+	},
+
+	"formatter": {
+		"attributePosition": "auto",
+		"bracketSameLine": false,
+		"bracketSpacing": true,
+		"enabled": true,
+		"expand": "auto",
+		"formatWithErrors": true,
+		"includes": ["**", "!**/*.js", "!**/{dist,do-not-sync-ever,garbage,node_modules}/**"],
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineEnding": "lf",
+		"lineWidth": 120,
+		"useEditorconfig": false
+	},
+
+	"graphql": {
+		"assist": { "enabled": true },
+		"formatter": {
+			"bracketSpacing": true,
+			"enabled": true,
+			"indentStyle": "tab",
+			"indentWidth": 4,
+			"lineWidth": 120,
+			"quoteStyle": "double"
+		},
+		"linter": { "enabled": true }
+	},
+
+	"grit": {
+		"assist": { "enabled": true },
+		"formatter": {
+			"enabled": true,
+			"indentStyle": "tab",
+			"indentWidth": 4,
+			"lineWidth": 120
+		},
+		"linter": { "enabled": true }
+	},
+
+	"html": {
+		"assist": { "enabled": true },
+		"experimentalFullSupportEnabled": true,
+		"formatter": {
+			"attributePosition": "auto",
+			"bracketSameLine": true,
+			"enabled": true,
+			"indentScriptAndStyle": true,
+			"indentStyle": "tab",
+			"indentWidth": 4,
+			"lineEnding": "lf",
+			"lineWidth": 120,
+			"selfCloseVoidElements": "always",
+			"whitespaceSensitivity": "strict"
+		},
+		"linter": { "enabled": true },
+		"parser": {
+			"interpolation": true,
+			"vue": false
+		}
+	},
+
+	"javascript": {
+		"formatter": {
+			"arrowParentheses": "always",
+			"attributePosition": "auto",
+			"bracketSameLine": false,
+			"bracketSpacing": true,
+			"enabled": true,
+			"expand": "auto",
+			"indentStyle": "tab",
+			"indentWidth": 4,
+			"jsxQuoteStyle": "double",
+			"lineEnding": "lf",
+			"lineWidth": 120,
+			"quoteProperties": "asNeeded",
+			"quoteStyle": "double",
+			"semicolons": "always",
+			"trailingCommas": "all"
+		},
+		"globals": ["Bun"],
+		"linter": { "enabled": true }
+	},
+
+	"json": {
+		"assist": { "enabled": true },
+		"formatter": {
+			"bracketSpacing": true,
+			"enabled": true,
+			"expand": "auto",
+			"indentStyle": "tab",
+			"indentWidth": 4,
+			"lineWidth": 120,
+			"trailingCommas": "none"
+		},
+		"linter": { "enabled": true },
+		"parser": {}
+	},
+
+	"linter": {
+		"domains": {
+			"project": "all",
+			"react": "all",
+			"types": "all"
+		},
+		"enabled": true,
+		"includes": ["**", "!**/{dist,do-not-sync-ever,garbage,node_modules}/**"],
+		"rules": {
+			"a11y": { "preset": "none" },
+
+			"complexity": {
+				"noDivRegex": "error",
+				"noExcessiveNestedTestSuites": "error",
+				"noForEach": "error",
+				"noImplicitCoercions": "error",
+				"noRedundantDefaultExport": "error",
+				"noUselessCatchBinding": "error",
+				"noUselessReturn": "error",
+				"noUselessStringConcat": "error",
+				"noUselessSwitchCase": "off",
+				"preset": "none",
+				"useArrayFind": "error",
+				"useArrowFunction": "off",
+				"useDateNow": "error",
+				"useFlatMap": "error",
+				"useLiteralKeys": "error",
+				"useMaxParams": {
+					"level": "error",
+					"options": { "max": 7 }
+				},
+				"useOptionalChain": "error",
+				"useSimpleNumberKeys": "error",
+				"useSimplifiedLogicExpression": "error",
+				"useWhile": "error"
+			},
+
+			"correctness": {
+				"noGlobalDirnameFilename": "error",
+				"noNodejsModules": "off",
+				"noUndeclaredDependencies": {
+					"level": "error",
+					"options": {}
+				},
+				"noUndeclaredVariables": {
+					"level": "error",
+					"options": { "checkTypes": true }
+				},
+				"noUnresolvedImports": "off",
+				"noUnusedImports": "error",
+				"noUnusedInstantiation": "error",
+				"noUnusedPrivateClassMembers": "error",
+				"noUnusedVariables": "error",
+				"preset": "recommended",
+				"useImportExtensions": "off",
+				"useInlineScriptId": "error",
+				"useJsonImportAttributes": "off",
+				"useSingleJsDocAsterisk": "error"
+			},
+
+			"nursery": {
+				"noBaseToString": "error",
+				"noConditionalExpect": "error",
+				"noExcessiveNestedCallbacks": {
+					// temporarily disabled
+					"level": "off",
+					"options": { "max": 5 }
+				},
+				"noFloatingPromises": "error",
+				"noIdenticalTestTitle": "error",
+				"noImpliedEval": "error",
+				"noLoopFunc": "error",
+				"noMisleadingReturnType": "off",
+				"noMisusedPromises": "error",
+				"noUnsafePlusOperands": "error",
+				"noUselessTypeConversion": "off",
+				"preset": "recommended",
+				"useArraySome": "error",
+				"useAwaitThenable": "error",
+				"useConsistentTestIt": "error",
+				"useDisposables": "error",
+				"useDomNodeTextContent": "error",
+				"useDomQuerySelector": "error",
+				"useExhaustiveSwitchCases": "error",
+				"useExpect": "error",
+				"useExplicitReturnType": "error",
+				"useExplicitType": "off",
+				"useIframeSandbox": "error",
+				"useImportsFirst": "error",
+				"useMathMinMax": "error",
+				"useNamedCaptureGroup": "error",
+				"useNullishCoalescing": "error",
+				"useReduceTypeParameter": "error",
+				"useRegexpExec": "error",
+				"useRegexpTest": "error",
+				"useSortedClasses": "error",
+				"useStringStartsEndsWith": "error",
+				"useTestHooksInOrder": "error",
+				"useTestHooksOnTop": "error",
+				"useThisInClassMethods": "error",
+				"useUnicodeRegex": "error",
+				"useVarsOnTop": "error"
+			},
+
+			"performance": {
+				"noAccumulatingSpread": "error",
+				"noAwaitInLoops": "off",
+				"noDelete": "error",
+				"noJsxPropsBind": "off",
+				"noSyncScripts": "error",
+				"preset": "recommended",
+				"useSolidForComponent": "error",
+				"useTopLevelRegex": "error"
+			},
+
+			"security": {
+				"noDangerouslySetInnerHtml": "off",
+				"noScriptUrl": "error",
+				"preset": "recommended"
+			},
+
+			"style": {
+				"noCommonJs": "error",
+				"noDefaultExport": "off",
+				"noDescendingSpecificity": "error",
+				"noDoneCallback": "error",
+				"noEnum": "off",
+				"noExcessiveClassesPerFile": {
+					"level": "error",
+					"options": { "maxClasses": 3 }
+				},
+				"noExcessiveLinesPerFile": {
+					"level": "off",
+					"options": {
+						"maxLines": 200,
+						"skipBlankLines": true
+					}
+				},
+				"noExportedImports": "error",
+				"noHeadElement": "error",
+				"noImplicitBoolean": "error",
+				"noInferrableTypes": "error",
+				"noJsxLiterals": "error",
+				"noMagicNumbers": "off",
+				"noMultiAssign": "error",
+				"noMultilineString": "error",
+				"noNamespace": "error",
+				"noNegationElse": "error",
+				"noNestedTernary": "error",
+				"noNonNullAssertion": "off",
+				"noParameterAssign": "error",
+				"noParameterProperties": "error",
+				"noProcessEnv": "error",
+				"noRestrictedGlobals": "error",
+				"noRestrictedImports": "error",
+				"noRestrictedTypes": {
+					"level": "error",
+					"options": {
+						"types": {
+							"Omit": {
+								"message": "Use Except from type-fest instead.",
+								"use": "Except"
+							}
+						}
+					}
+				},
+				"preset": "recommended",
+				"useArrayLiterals": "off",
+				"useBlockStatements": "off",
+				"useConsistentEnumValueType": "error",
+				"useConsistentMemberAccessibility": "off",
+				"useConsistentMethodSignatures": "off",
+				"useConst": {
+					"fix": "safe",
+					"level": "error"
+				},
+				"useDefaultParameterLast": "error",
+				"useDestructuring": "off",
+				"useErrorCause": "error",
+				"useFilenamingConvention": {
+					"level": "error",
+					"options": {
+						"filenameCases": ["kebab-case"],
+						"requireAscii": true
+					}
+				},
+				"useGlobalThis": "error",
+				"useSpreadOverApply": "error"
+			},
+
+			"suspicious": {
+				"noAlert": "error",
+				"noApproximativeNumericConstant": "error",
+				"noArrayIndexKey": "error",
+				"noConfusingVoidType": "off",
+				"noConstEnum": "off",
+				"noControlCharactersInRegex": "off",
+				"noDuplicateEnumValues": "error",
+				"noEmptyBlockStatements": "error",
+				"noEqualsToNull": "error",
+				"noForIn": "error",
+				"noNestedPromises": "error",
+				"noParametersOnlyUsedInRecursion": "error",
+				"noProto": "error",
+				"noReturnAssign": "error",
+				"noShadow": {
+					"level": "off",
+					"options": {
+						"ignoreFunctionTypeParameterNameValueShadow": false,
+						"ignoreTypeValueShadow": false
+					}
+				},
+				"noTemplateCurlyInString": "off",
+				"noUndeclaredEnvVars": "error",
+				"noUnnecessaryConditions": "off",
+				"preset": "recommended",
+				"useArraySortCompare": "error"
+			}
+		}
+	},
+
+	"overrides": [
+		// JSONC Files
+		{
+			"includes": ["**/*.jsonc", "!**/biome.jsonc"],
+			"json": {
+				"formatter": {
+					"enabled": true,
+					"indentStyle": "tab",
+					"indentWidth": 4,
+					"lineWidth": 120,
+					"trailingCommas": "all"
+				},
+				"linter": { "enabled": true },
+				"parser": {
+					"allowComments": true,
+					"allowTrailingCommas": true
+				}
+			}
+		},
+
+		// JSON Files
+		{
+			"includes": [],
+			"json": {
+				"formatter": {
+					"enabled": true,
+					"indentStyle": "tab",
+					"indentWidth": 4,
+					"lineWidth": 120,
+					"trailingCommas": "none"
+				},
+				"linter": { "enabled": true },
+				"parser": {
+					"allowComments": false,
+					"allowTrailingCommas": false
+				}
+			}
+		},
+
+		{
+			"includes": ["tests/**/*.test.ts"],
+			"linter": {
+				"rules": {
+					"nursery": {},
+					"performance": {
+						"useTopLevelRegex": "off"
+					},
+					"style": {
+						"noExcessiveLinesPerFile": "off"
+					}
+				}
+			}
+		},
+
+		{
+			"includes": ["tests/fixtures/**/*"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUndeclaredDependencies": "off"
+					},
+					"style": {
+						"useImportType": "off"
+					}
+				}
+			}
+		},
+
+		{
+			"includes": ["*.config.{ts,mjs}"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noProcessEnv": "off"
+					}
+				}
+			}
+		},
+
+		{
+			"assist": {
+				"actions": {
+					"source": {
+						"useSortedAttributes": "off"
+					}
+				}
+			},
+			"includes": [
+				"documentation/src/components/badge.astro",
+				"documentation/src/components/icon.astro",
+				"documentation/src/components/rule-example.astro"
+			]
+		},
+
+		{
+			"includes": [
+				"documentation/src/components/related-rules.astro",
+				"documentation/src/components/release-history.astro",
+				"documentation/src/components/rule-diagnostics.astro",
+				"documentation/src/components/rule-examples.astro",
+				"documentation/src/components/rule-options.astro",
+				"documentation/src/components/rule-options-table.tsx"
+			],
+			"linter": {
+				"rules": {
+					"performance": {
+						"useSolidForComponent": "off"
+					},
+					"style": {
+						"noJsxLiterals": "off"
+					}
+				}
+			}
+		},
+
+		{
+			"assist": {
+				"actions": {
+					"source": {
+						"useSortedAttributes": "off"
+					}
+				}
+			},
+			"includes": ["documentation/src/components/rule-page.astro"]
+		},
+
+		{
+			"includes": ["documentation/src/**/*.astro", "tests/fixtures/**/*.tsx"],
+			"linter": {
+				"domains": {
+					"react": "none"
+				}
+			}
+		},
+
+		{
+			"includes": ["documentation/src/types/satteri-optional-peers.d.ts"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUndeclaredDependencies": "off"
+					}
+				}
+			}
+		}
+
+		// package.json exception
+		// {
+		// 	"assist": {
+		// 		"actions": {
+		// 			"source": {
+		// 				"useSortedKeys": "off",
+		// 				"useSortedPackageJson": "on"
+		// 			}
+		// 		}
+		// 	},
+		// 	"formatter": { "enabled": false },
+		// 	"includes": ["package.json"]
+		// }
+	],
+
+	"vcs": {
+		"clientKind": "git",
+		"defaultBranch": "main",
+		"enabled": true,
+		"useIgnoreFile": true
+	}
+}

@@ -1,0 +1,369 @@
+// hk configuration - https://hk.jdx.dev/
+amends "package://github.com/jdx/hk/releases/download/v1.50.0/hk@1.50.0#/Config.pkl"
+
+import "package://github.com/jdx/hk/releases/download/v1.50.0/hk@1.50.0#/Builtins.pkl"
+
+exclude =
+  List(
+    "node_modules",
+    "dist",
+    "coverage",
+    "report",
+    ".git",
+    ".repos",
+    ".stryker-tmp",
+    "do-not-sync-ever",
+    ".lune/Packages",
+  )
+display_skip_reasons = List()
+terminal_progress = false
+
+local binary_excludes =
+  List(
+    "*.png",
+    "*.jpg",
+    "*.jpeg",
+    "*.gif",
+    "*.webp",
+    "*.ico",
+    "*.woff",
+    "*.woff2",
+    "*.ttf",
+    "*.eot",
+    "*.pdf",
+    "*.zip",
+    "*.tar",
+    "*.gz",
+    "*.mp4",
+    "*.mov",
+  )
+
+local workflow_files =
+  List(
+    ".github/workflows/**/*.yml",
+    ".github/workflows/**/*.yaml",
+  )
+local workflow_action_files =
+  List(
+    ".github/workflows/**/*.yml",
+    ".github/workflows/**/*.yaml",
+    ".github/actions/**/action.yml",
+    ".github/actions/**/action.yaml",
+  )
+local zizmor_files =
+  List(
+    ".github/workflows/**/*.yml",
+    ".github/workflows/**/*.yaml",
+    ".github/actions/**/action.yml",
+    ".github/actions/**/action.yaml",
+    ".github/dependabot.yml",
+  )
+local markdown_files = List("**/*.md", "**/*.markdown", "**/*.mdx")
+local toml_files = List("**/*.toml")
+local luau_files = List("*.lua", "*.luau", "**/*.lua", "**/*.luau")
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps {
+      // Tier 1 — Universal checks
+      ["trailing-whitespace"] = (Builtins.trailing_whitespace) {
+        exclude = binary_excludes
+      }
+      ["newlines"] = (Builtins.newlines) {
+        exclude = binary_excludes
+      }
+      ["check-merge-conflict"] = (Builtins.check_merge_conflict) {}
+      ["check-case-conflict"] = (Builtins.check_case_conflict) {}
+      ["check-symlinks"] = (Builtins.check_symlinks) {}
+      ["mixed-line-ending"] = (Builtins.mixed_line_ending) {}
+      ["detect-private-key"] = (Builtins.detect_private_key) {
+        exclude = binary_excludes
+      }
+      ["betterleaks"] = Builtins.betterleaks
+
+      // Luau linter — selene
+      ["selene"] {
+        glob = luau_files
+        check = "selene {{files}}"
+        check_first = true
+        batch = true
+      }
+
+      // Biome non-JS — css, html, grit
+      ["biome-non-js"] = (Builtins.biome) {
+        glob = List("*.css", "*.html", "*.grit")
+        check = "node --run biome -- check --no-errors-on-unmatched {{files}}"
+        fix = "node --run biome -- check --write --no-errors-on-unmatched {{files}}"
+        check_first = true
+        batch = false
+      }
+
+      // oxfmt for json, jsonc, json5, code-workspace, and mdx
+      ["oxfmt-json-mdx"] = (Builtins.oxfmt) {
+        glob = List("*.json", "*.jsonc", "*.json5", "*.code-workspace", "*.mdx")
+        exclude = List("skills-lock.json")
+        check = "node --run oxfmt -- --no-error-on-unmatched-pattern --check {{files}}"
+        fix = "node --run oxfmt -- --no-error-on-unmatched-pattern {{files}}"
+        check_first = true
+      }
+
+      // Pkl — hk and other typed config files
+      ["pkl-format"] = (Builtins.pkl_format) {
+        glob = List("*.pkl")
+        check_first = true
+      }
+
+      // Shell scripts
+      ["shfmt"] {
+        glob = List("**/*.sh", "**/*.bash", "**/*.ksh")
+        check = "shfmt -bn -ci -sr -d {{files}}"
+        fix = "shfmt -bn -ci -sr -w {{files}}"
+        check_first = true
+      }
+      ["shellcheck"] = (Builtins.shellcheck) {
+        glob = List("**/*.sh", "**/*.bash", "**/*.ksh", "**/*.dash", "**/*.zsh")
+      }
+
+      // GitHub Actions workflows
+      ["actionlint"] = (Builtins.actionlint) {
+        glob = workflow_files
+      }
+      ["zizmor"] = (Builtins.zizmor) {
+        glob = zizmor_files
+        prefix = "GH_TOKEN=\"$(gh auth token)\""
+      }
+      ["pinact"] {
+        glob = workflow_action_files
+        check = "PINACT_GITHUB_TOKEN=\"$(gh auth token)\" pinact run --verify {{files}}"
+        fix = "PINACT_GITHUB_TOKEN=\"$(gh auth token)\" pinact run {{files}}"
+        check_first = true
+      }
+
+      // Markdown — vale + rumdl
+      ["vale"] = Builtins.vale
+      ["rumdl"] = (Builtins.rumdl) {
+        glob = markdown_files
+        exclude = List(".agents/skills/**/SKILL.md")
+        check = "rumdl check {{files}}"
+        fix =
+          """
+          rumdl check --fix {{files}}
+          rumdl fmt {{files}}
+          """
+        check_first = true
+        batch = true
+      }
+
+      // TOML — tombi lint + format
+      ["tombi"] = (Builtins.tombi) {
+        glob = toml_files
+        check = "tombi lint {{files}} && tombi format --check {{files}}"
+        fix =
+          """
+          tombi lint {{files}}
+          tombi format {{files}}
+          """
+        check_first = true
+        batch = true
+      }
+    }
+  }
+
+  ["commit-msg"] {
+    steps {
+      ["commitlint"] {
+        check =
+          "node --run commitlint -- --strict --config commitlint.config.ts --edit {{commit_msg_file}}"
+      }
+    }
+  }
+
+  ["pre-push"] {
+    steps {
+      ["ci"] {
+        check = "scripts/quiet-on-success.sh mise run ci"
+      }
+    }
+  }
+
+  ["post-merge"] {
+    steps {
+      ["pullhook"] {
+        check = "pullhook run"
+      }
+    }
+  }
+
+  ["post-checkout"] {
+    steps {
+      ["pullhook"] {
+        check = "pullhook run"
+      }
+    }
+  }
+
+  ["post-rewrite"] {
+    steps {
+      ["pullhook"] {
+        check = "pullhook run"
+      }
+    }
+  }
+
+  // Manual check/fix hooks for CI or local use
+  ["check"] {
+    steps {
+      ["trailing-whitespace"] = (Builtins.trailing_whitespace) {
+        exclude = binary_excludes
+      }
+      ["newlines"] = (Builtins.newlines) {
+        exclude = binary_excludes
+      }
+      ["check-merge-conflict"] = (Builtins.check_merge_conflict) {}
+      ["check-case-conflict"] = (Builtins.check_case_conflict) {}
+      ["check-symlinks"] = (Builtins.check_symlinks) {}
+      ["mixed-line-ending"] = (Builtins.mixed_line_ending) {}
+      ["detect-private-key"] = (Builtins.detect_private_key) {
+        exclude = binary_excludes
+      }
+      ["betterleaks"] = Builtins.betterleaks
+      ["selene"] {
+        glob = luau_files
+        check = "selene {{files}}"
+        batch = true
+      }
+      ["biome-non-js"] = (Builtins.biome) {
+        glob = List("*.css", "*.html", "*.grit")
+        check = "node --run biome -- check --no-errors-on-unmatched {{files}}"
+        batch = true
+      }
+      ["oxfmt"] = (Builtins.oxfmt) {
+        glob =
+          List(
+            "*.json",
+            "*.jsonc",
+            "*.json5",
+            "*.code-workspace",
+            "*.mdx",
+          )
+        check = "node --run oxfmt -- --no-error-on-unmatched-pattern --check {{files}}"
+      }
+      ["pkl-format"] = (Builtins.pkl_format) {
+        glob = List("*.pkl")
+      }
+      ["shfmt"] {
+        glob = List("**/*.sh", "**/*.bash", "**/*.ksh")
+        check = "shfmt -bn -ci -sr -d {{files}}"
+      }
+      ["shellcheck"] = (Builtins.shellcheck) {
+        glob = List("**/*.sh", "**/*.bash", "**/*.ksh", "**/*.dash", "**/*.zsh")
+      }
+      ["actionlint"] = (Builtins.actionlint) {
+        glob = workflow_files
+      }
+      ["zizmor"] = (Builtins.zizmor) {
+        glob = zizmor_files
+        prefix = "GH_TOKEN=\"$(gh auth token)\""
+      }
+      ["pinact"] {
+        glob = workflow_action_files
+        check = "PINACT_GITHUB_TOKEN=\"$(gh auth token)\" pinact run --verify {{files}}"
+      }
+      ["vale"] = Builtins.vale
+      ["rumdl"] = (Builtins.rumdl) {
+        glob = markdown_files
+        exclude = List(".agents/skills/**/SKILL.md")
+        check = "rumdl check {{files}}"
+      }
+      ["tombi"] = (Builtins.tombi) {
+        glob = toml_files
+        check = "tombi lint {{files}} && tombi format --check {{files}}"
+      }
+    }
+  }
+
+  ["fix"] {
+    fix = true
+    stash = "git"
+    steps {
+      ["trailing-whitespace"] = (Builtins.trailing_whitespace) {
+        exclude = binary_excludes
+      }
+      ["newlines"] = (Builtins.newlines) {
+        exclude = binary_excludes
+      }
+      ["check-case-conflict"] = (Builtins.check_case_conflict) {}
+      ["check-symlinks"] = (Builtins.check_symlinks) {}
+      ["mixed-line-ending"] = (Builtins.mixed_line_ending) {}
+      ["detect-private-key"] = (Builtins.detect_private_key) {
+        exclude = binary_excludes
+      }
+      ["betterleaks"] = Builtins.betterleaks
+      ["selene"] {
+        glob = luau_files
+        check = "selene {{files}}"
+        batch = true
+      }
+      ["biome-non-js"] = (Builtins.biome) {
+        glob = List("*.css", "*.html", "*.grit")
+        check = "node --run biome -- check --no-errors-on-unmatched {{files}}"
+        fix = "node --run biome -- check --write --no-errors-on-unmatched {{files}}"
+        batch = true
+      }
+      ["oxfmt"] = (Builtins.oxfmt) {
+        glob =
+          List(
+            "*.json",
+            "*.jsonc",
+            "*.json5",
+            "*.code-workspace",
+            "*.mdx",
+          )
+        check = "node --run oxfmt -- --no-error-on-unmatched-pattern --check {{files}}"
+        fix = "node --run oxfmt -- --no-error-on-unmatched-pattern {{files}}"
+      }
+      ["pkl-format"] = (Builtins.pkl_format) {
+        glob = List("*.pkl")
+      }
+      ["shfmt"] {
+        glob = List("**/*.sh", "**/*.bash", "**/*.ksh")
+        fix = "shfmt -bn -ci -sr -w {{files}}"
+      }
+      ["shellcheck"] = (Builtins.shellcheck) {
+        glob = List("**/*.sh", "**/*.bash", "**/*.ksh", "**/*.dash", "**/*.zsh")
+      }
+      ["actionlint"] = (Builtins.actionlint) {
+        glob = workflow_files
+      }
+      ["zizmor"] = (Builtins.zizmor) {
+        glob = zizmor_files
+        check_diff = "GH_TOKEN=\"$(gh auth token)\" zizmor --no-progress {{files}}"
+        fix = "GH_TOKEN=\"$(gh auth token)\" zizmor --no-progress --fix {{files}}"
+      }
+      ["pinact"] {
+        glob = workflow_action_files
+        fix = "PINACT_GITHUB_TOKEN=\"$(gh auth token)\" pinact run {{files}}"
+      }
+      ["vale"] = Builtins.vale
+      ["rumdl"] = (Builtins.rumdl) {
+        glob = markdown_files
+        exclude = List(".agents/skills/**/SKILL.md")
+        fix =
+          """
+          rumdl check --fix {{files}}
+          rumdl fmt {{files}}
+          """
+      }
+      ["tombi"] = (Builtins.tombi) {
+        glob = toml_files
+        fix =
+          """
+          tombi lint {{files}}
+          tombi format {{files}}
+          """
+      }
+    }
+  }
+}
