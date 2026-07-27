@@ -189,27 +189,15 @@ hooks {
   }
 
   ["post-merge"] {
-    steps {
-      ["pullhook"] {
-        check = "pullhook run"
-      }
-    }
+    steps {}
   }
 
   ["post-checkout"] {
-    steps {
-      ["pullhook"] {
-        check = "pullhook run"
-      }
-    }
+    steps {}
   }
 
   ["post-rewrite"] {
-    steps {
-      ["pullhook"] {
-        check = "pullhook run"
-      }
-    }
+    steps {}
   }
 
   // Manual check/fix hooks for CI or local use
