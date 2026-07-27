@@ -9,8 +9,11 @@
 	"type": "module",
 	"scripts": {
 		"biome": "biome",
+		"changelogithub": "changelogithub",
 		"commitlint": "commitlint",
+		"lint": "bash -c 'a=$(bash scripts/get-defaults.sh \"$@\"); node --run oxlint -- --no-error-on-unmatched-pattern $a && node --run biome -- check --no-errors-on-unmatched $a' _",
 		"oxfmt": "oxfmt",
+		"oxlint": "oxlint",
 		"release": "bumpp"
 	},
 	"devDependencies": {
@@ -18,9 +21,17 @@
 		"@commitlint/cli": "21.2.1",
 		"@commitlint/config-conventional": "21.2.0",
 		"@commitlint/types": "21.2.0",
+		"@pobammer-ts/small-rules": "2.9.0",
 		"bumpp": "12.0.0",
+		"eslint-plugin-antfu": "3.2.3",
+		"eslint-plugin-regexp": "3.1.1",
+		"eslint-plugin-sonarjs": "4.2.0",
+		"eslint-plugin-unused-imports": "4.4.1",
 		"moonwave": "1.4.2",
-		"oxfmt": "0.61.0"
+		"oxfmt": "0.61.0",
+		"oxlint": "1.76.0",
+		"oxlint-plugin-react-doctor": "0.9.1",
+		"oxlint-tsgolint": "7.0.2001"
 	},
 	"packageManager": "pnpm@11.17.0"
 }

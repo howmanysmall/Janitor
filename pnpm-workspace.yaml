@@ -1,4 +1,33 @@
+packages: []
+
+# Block exotic sub-dependencies (e.g. git, file: deps)
+blockExoticSubdeps: true
+strictSsl: true
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 10080
+trustPolicyExclude: []
+
+# Only allow specific packages to run install scripts
+allowBuilds: {}
+
+strictDepBuilds: true
+strictPeerDependencies: true
+
+# Global virtual store (pnpm's node_modules/.pnpm equivalent)
+enableGlobalVirtualStore: true
+
+minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
+  - "@biomejs/biome"
+  - "@biomejs/cli-darwin-arm64"
+  - "@biomejs/cli-darwin-x64"
+  - "@biomejs/cli-linux-arm"
+  - "@biomejs/cli-linux-arm64"
+  - "@biomejs/cli-linux-arm64-musl"
+  - "@biomejs/cli-linux-x64"
+  - "@biomejs/cli-linux-x64-musl"
+  - "@biomejs/cli-win32-arm64"
+  - "@biomejs/cli-win32-x64"
   - "@oxfmt/binding-android-arm-eabi"
   - "@oxfmt/binding-android-arm64"
   - "@oxfmt/binding-darwin-arm64"
@@ -18,6 +47,43 @@ minimumReleaseAgeExclude:
   - "@oxfmt/binding-win32-arm64-msvc"
   - "@oxfmt/binding-win32-ia32-msvc"
   - "@oxfmt/binding-win32-x64-msvc"
+  - "@oxlint/binding-android-arm-eabi"
+  - "@oxlint/binding-android-arm64"
+  - "@oxlint/binding-darwin-arm64"
+  - "@oxlint/binding-darwin-x64"
+  - "@oxlint/binding-freebsd-x64"
+  - "@oxlint/binding-linux-arm-gnueabihf"
+  - "@oxlint/binding-linux-arm-musleabihf"
+  - "@oxlint/binding-linux-arm64-gnu"
+  - "@oxlint/binding-linux-arm64-musl"
+  - "@oxlint/binding-linux-ppc64-gnu"
+  - "@oxlint/binding-linux-riscv64-gnu"
+  - "@oxlint/binding-linux-riscv64-musl"
+  - "@oxlint/binding-linux-s390x-gnu"
+  - "@oxlint/binding-linux-x64-gnu"
+  - "@oxlint/binding-linux-x64-musl"
+  - "@oxlint/binding-openharmony-arm64"
+  - "@oxlint/binding-win32-arm64-msvc"
+  - "@oxlint/binding-win32-ia32-msvc"
+  - "@oxlint/binding-win32-x64-msvc"
+  - "@pobammer-ts/small-rules"
+  - "@typescript/native-preview"
+  - "@typescript/native-preview-darwin-arm64"
+  - "@typescript/native-preview-darwin-x64"
+  - "@typescript/native-preview-linux-arm"
+  - "@typescript/native-preview-linux-arm64"
+  - "@typescript/native-preview-linux-x64"
+  - "@typescript/native-preview-win32-arm64"
+  - "@typescript/native-preview-win32-x64"
   - oxfmt
+  - oxlint
 
-enableGlobalVirtualStore: true
+minimumReleaseAgeStrict: true
+resolutionMode: time-based
+fetchRetries: 5
+fetchRetryMintimeout: 1000
+fetchRetryMaxtimeout: 30000
+fetchTimeout: 60000
+
+strictStorePkgContentCheck: true
+verifyStoreIntegrity: true
