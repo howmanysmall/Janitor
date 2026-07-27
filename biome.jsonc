@@ -402,107 +402,11 @@
 		},
 
 		{
-			"includes": ["tests/**/*.test.ts"],
-			"linter": {
-				"rules": {
-					"nursery": {},
-					"performance": {
-						"useTopLevelRegex": "off"
-					},
-					"style": {
-						"noExcessiveLinesPerFile": "off"
-					}
-				}
-			}
-		},
-
-		{
-			"includes": ["tests/fixtures/**/*"],
-			"linter": {
-				"rules": {
-					"correctness": {
-						"noUndeclaredDependencies": "off"
-					},
-					"style": {
-						"useImportType": "off"
-					}
-				}
-			}
-		},
-
-		{
 			"includes": ["*.config.{ts,mjs}"],
 			"linter": {
 				"rules": {
 					"style": {
 						"noProcessEnv": "off"
-					}
-				}
-			}
-		},
-
-		{
-			"assist": {
-				"actions": {
-					"source": {
-						"useSortedAttributes": "off"
-					}
-				}
-			},
-			"includes": [
-				"documentation/src/components/badge.astro",
-				"documentation/src/components/icon.astro",
-				"documentation/src/components/rule-example.astro"
-			]
-		},
-
-		{
-			"includes": [
-				"documentation/src/components/related-rules.astro",
-				"documentation/src/components/release-history.astro",
-				"documentation/src/components/rule-diagnostics.astro",
-				"documentation/src/components/rule-examples.astro",
-				"documentation/src/components/rule-options.astro",
-				"documentation/src/components/rule-options-table.tsx"
-			],
-			"linter": {
-				"rules": {
-					"performance": {
-						"useSolidForComponent": "off"
-					},
-					"style": {
-						"noJsxLiterals": "off"
-					}
-				}
-			}
-		},
-
-		{
-			"assist": {
-				"actions": {
-					"source": {
-						"useSortedAttributes": "off"
-					}
-				}
-			},
-			"includes": ["documentation/src/components/rule-page.astro"]
-		},
-
-		{
-			"includes": ["documentation/src/**/*.astro", "tests/fixtures/**/*.tsx"],
-			"linter": {
-				"domains": {
-					"react": "none"
-				}
-			}
-		},
-
-		{
-			"includes": ["documentation/src/types/satteri-optional-peers.d.ts"],
-			"linter": {
-				"rules": {
-					"correctness": {
-						"noUndeclaredDependencies": "off"
 					}
 				}
 			}

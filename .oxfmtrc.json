@@ -42,7 +42,7 @@
 			"options": { "trailingComma": "all" }
 		},
 		{
-			"files": ["biome.jsonc", ".oxlintrc.json", "knip.jsonc"],
+			"files": ["biome.jsonc", ".oxlintrc.json", "knip.jsonc", "**/*.code-snippets"],
 			"options": { "trailingComma": "none" }
 		},
 		{

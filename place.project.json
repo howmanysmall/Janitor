@@ -5,11 +5,11 @@
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
 			"Packages": {
-				"$path": "Packages",
 				"$ignoreUnknownInstances": true,
+				"$path": "Packages",
 				"Janitor": {
-					"$path": "default.project.json",
-					"$ignoreUnknownInstances": true
+					"$ignoreUnknownInstances": true,
+					"$path": "default.project.json"
 				}
 			}
 		}

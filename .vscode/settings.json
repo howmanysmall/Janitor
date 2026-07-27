@@ -4,14 +4,14 @@
 			"comments": "on",
 			"strings": true
 		},
-		"editor.suggest.insertMode": "replace",
+		"editor.suggest.insertMode": "replace"
 	},
 
 	"luau-lsp.completion.addParentheses": true,
 	"luau-lsp.completion.addTabstopAfterParentheses": true,
 	"luau-lsp.completion.autocompleteEnd": true,
-	"luau-lsp.completion.enabled": true,
 	"luau-lsp.completion.enableFragmentAutocomplete": true,
+	"luau-lsp.completion.enabled": true,
 	"luau-lsp.completion.imports.enabled": true,
 	"luau-lsp.completion.imports.ignoreGlobs": [
 		"**/_Index/**",
@@ -39,5 +39,5 @@
 	"luau-lsp.sourcemap.enabled": true,
 	"luau-lsp.sourcemap.rojoProjectFile": "test-place.project.json",
 	"luau-lsp.sourcemap.useVSCodeWatcher": true,
-	"luau.trace.server": "off",
+	"luau.trace.server": "off"
 }

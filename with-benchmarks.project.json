@@ -6,12 +6,12 @@
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
 			"$path": "Packages",
-			"Janitor": {"$path": "./default.project.json"},
-			"DevPackages": {"$path": "DevPackages"}
+			"DevPackages": { "$path": "DevPackages" },
+			"Janitor": { "$path": "./default.project.json" }
 		},
 		"ServerStorage": {
 			"$className": "ServerStorage",
-			"Benchmarks": {"$path": "benchmarks"}
+			"Benchmarks": { "$path": "benchmarks" }
 		}
 	}
 }
