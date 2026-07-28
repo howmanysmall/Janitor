@@ -10,7 +10,6 @@ lockfile = true
 cargo.binstall = true
 
 [tools]
-"cargo:run-in-roblox" = "latest"
 "cargo:selene" = "latest"
 "github:JohnnyMorganz/wally-package-types" = "latest"
 "github:UpliftGames/wally" = "latest"
@@ -33,6 +32,7 @@ shfmt = "latest"
 tombi = "latest"
 vale = "latest"
 zizmor = "latest"
+"github:howmanysmall/run-in-roblox" = "latest"
 
 [tasks]
 harper-lint = "harper-cli lint --ignore PhrasalVerbAsCompoundNoun --format compact --user-dict-path .harper-dictionary.txt"

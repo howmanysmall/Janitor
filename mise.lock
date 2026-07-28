@@ -140,10 +140,6 @@ url = "https://github.com/betterleaks/betterleaks/releases/download/v1.7.0/bette
 url_api = "https://api.github.com/repos/betterleaks/betterleaks/releases/assets/487433608"
 provenance = "cosign"
 
-[[tools."cargo:run-in-roblox"]]
-version = "0.3.0"
-backend = "cargo:run-in-roblox"
-
 [[tools."cargo:selene"]]
 version = "0.31.0"
 backend = "cargo:selene"
@@ -255,6 +251,65 @@ url_api = "https://api.github.com/repos/UpliftGames/wally/releases/assets/111401
 [tools."github:UpliftGames/wally"."platforms.windows-x64-baseline"]
 url = "https://github.com/UpliftGames/wally/releases/download/v0.3.2/wally-v0.3.2-win64.zip"
 url_api = "https://api.github.com/repos/UpliftGames/wally/releases/assets/111401578"
+
+[[tools."github:howmanysmall/run-in-roblox"]]
+version = "0.4.2"
+backend = "github:howmanysmall/run-in-roblox"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.linux-arm64"]
+checksum = "sha256:748fa7598e8351c3896a28b8f7d9d4881ba50fe55db571a820008cbc1dc11694"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-linux-aarch64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076846"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.linux-arm64-musl"]
+checksum = "sha256:748fa7598e8351c3896a28b8f7d9d4881ba50fe55db571a820008cbc1dc11694"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-linux-aarch64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076846"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.linux-x64"]
+checksum = "sha256:5f8356157a7083efe0ae4bc7347d9f32da9e414e0768decb1176d85ca3e1d830"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-linux-x86_64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076845"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.linux-x64-baseline"]
+checksum = "sha256:5f8356157a7083efe0ae4bc7347d9f32da9e414e0768decb1176d85ca3e1d830"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-linux-x86_64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076845"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.linux-x64-musl"]
+checksum = "sha256:5f8356157a7083efe0ae4bc7347d9f32da9e414e0768decb1176d85ca3e1d830"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-linux-x86_64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076845"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.linux-x64-musl-baseline"]
+checksum = "sha256:5f8356157a7083efe0ae4bc7347d9f32da9e414e0768decb1176d85ca3e1d830"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-linux-x86_64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076845"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.macos-arm64"]
+checksum = "sha256:48068c1b66bb568615007113bbde5f1660d8264c391f613aa30d23db12bfd8ea"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-macos-aarch64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076847"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.macos-x64"]
+checksum = "sha256:59c9418ff5adc026ee0d75e27bffb87fb6a0487dde1c90a9748515d8d2a22968"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-macos-x86_64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076843"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.macos-x64-baseline"]
+checksum = "sha256:59c9418ff5adc026ee0d75e27bffb87fb6a0487dde1c90a9748515d8d2a22968"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-macos-x86_64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076843"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.windows-x64"]
+checksum = "sha256:9519d4d26dc983047c56ec56a52d3599f86682f92c5e497bee8e4f235a1dd2c4"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-windows-x86_64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076844"
+
+[tools."github:howmanysmall/run-in-roblox"."platforms.windows-x64-baseline"]
+checksum = "sha256:9519d4d26dc983047c56ec56a52d3599f86682f92c5e497bee8e4f235a1dd2c4"
+url = "https://github.com/howmanysmall/run-in-roblox/releases/download/v0.4.2/run-in-roblox-0.4.2-windows-x86_64.zip"
+url_api = "https://api.github.com/repos/howmanysmall/run-in-roblox/releases/assets/283076844"
 
 [[tools."github:johnnymorganz/luau-lsp"]]
 version = "1.69.0"
