@@ -241,14 +241,6 @@ hooks {
     }
   }
 
-  ["pre-push"] {
-    steps {
-      ["ci"] {
-        check = "mise run ci"
-      }
-    }
-  }
-
   // Manual check/fix hooks for CI or local use
   ["check"] {
     steps {
