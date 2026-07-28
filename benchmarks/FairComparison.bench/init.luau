@@ -4,9 +4,10 @@
 local Duster = require(script.Duster)
 local Janitor17 = require(script.Janitor17)
 local Janitor18 = require(script.Janitor18)
+local Janitor19 = require(script.Janitor19)
 local Maid = require(script.Maid)
+local Scythe = require(script.Scythe)
 local Trove = require(script.Trove)
-local UltraJanitor18 = require(script.UltraJanitor18)
 
 type IProfiler = {
 	Begin: (label: string) -> (),
@@ -59,7 +60,7 @@ type Static = {
 	new: () -> BasicClass,
 }
 local BasicClass = {} :: BasicClass & Static
-BasicClass.ClassName = "BasicClass";
+BasicClass.ClassName = "BasicClass"
 (BasicClass :: any).__index = BasicClass
 function BasicClass.new(): BasicClass
 	return setmetatable({
@@ -88,8 +89,8 @@ local threadsToAdd = 200_000 // DIVIDE_BY
 local classesToAdd = 1_000_000 // DIVIDE_BY
 local instancesToAdd = 100_000 // DIVIDE_BY
 
-local Add = UltraJanitor18.new().Add
-local Cleanup = UltraJanitor18.new().Cleanup
+local Add = Janitor19.new().Add
+local Cleanup = Janitor19.new().Cleanup
 
 local Benchmark = CreateBenchmark(function()
 	return
@@ -140,22 +141,45 @@ end, {
 		janitor:Cleanup()
 	end;
 
-	["Ultra Janitor 1.18.2"] = function()
-		local janitor = UltraJanitor18.new()
+	["Janitor 1.19.0"] = function(): ()
+		local janitor = Janitor19.new()
 
-		local functionsJanitor = Add(janitor, UltraJanitor18.new(), "Cleanup")
+		local functionsJanitor = janitor:Add(Janitor19.new(), "Cleanup")
+		for _ = 1, functionsToAdd do
+			functionsJanitor:Add(NoOperation, true)
+		end
+		local threadsJanitor = janitor:Add(Janitor19.new(), "Cleanup")
+		for _ = 1, threadsToAdd do
+			threadsJanitor:Add(task.delay(5, NoOperation), true)
+		end
+		local classesJanitor = janitor:Add(Janitor19.new(), "Cleanup")
+		for _ = 1, classesToAdd do
+			classesJanitor:Add(BasicClass.new(), "Destroy")
+		end
+		local instancesJanitor = janitor:Add(Janitor19.new(), "Cleanup")
+		for _ = 1, instancesToAdd do
+			instancesJanitor:Add(Instance.new("Folder"), "Destroy")
+		end
+
+		janitor:Cleanup()
+	end;
+
+	["Janitor 1.19.0 (funny)"] = function(): ()
+		local janitor = Janitor19.new()
+
+		local functionsJanitor = Add(janitor, Janitor19.new(), "Cleanup")
 		for _ = 1, functionsToAdd do
 			Add(functionsJanitor, NoOperation, true)
 		end
-		local threadsJanitor = Add(janitor, UltraJanitor18.new(), "Cleanup")
+		local threadsJanitor = Add(janitor, Janitor19.new(), "Cleanup")
 		for _ = 1, threadsToAdd do
 			Add(threadsJanitor, task.delay(5, NoOperation), true)
 		end
-		local classesJanitor = Add(janitor, UltraJanitor18.new(), "Cleanup")
+		local classesJanitor = Add(janitor, Janitor19.new(), "Cleanup")
 		for _ = 1, classesToAdd do
 			Add(classesJanitor, BasicClass.new(), "Destroy")
 		end
-		local instancesJanitor = Add(janitor, UltraJanitor18.new(), "Cleanup")
+		local instancesJanitor = Add(janitor, Janitor19.new(), "Cleanup")
 		for _ = 1, instancesToAdd do
 			Add(instancesJanitor, Instance.new("Folder"), "Destroy")
 		end
@@ -187,8 +211,46 @@ end, {
 		janitor:Cleanup()
 	end;
 
+	["Scythe"] = function()
+		local scope = Scythe.scope()
+
+		local functionsScope = Scythe.scope()
+		Scythe.add(scope, function()
+			Scythe.destroy(functionsScope)
+		end)
+		for _ = 1, functionsToAdd do
+			Scythe.add(functionsScope, NoOperation)
+		end
+
+		local threadsScope = Scythe.scope()
+		Scythe.add(scope, function()
+			Scythe.destroy(threadsScope)
+		end)
+		for _ = 1, threadsToAdd do
+			Scythe.add(threadsScope, task.delay(5, NoOperation))
+		end
+
+		local classesScope = Scythe.scope()
+		Scythe.add(scope, function()
+			Scythe.destroy(classesScope)
+		end)
+		for _ = 1, classesToAdd do
+			Scythe.add(classesScope, BasicClass.new())
+		end
+
+		local instancesScope = Scythe.scope()
+		Scythe.add(scope, function()
+			Scythe.destroy(instancesScope)
+		end)
+		for _ = 1, instancesToAdd do
+			Scythe.add(instancesScope, Instance.new("Folder"))
+		end
+
+		Scythe.destroy(scope)
+	end;
+
 	-- Lesser beings
-	["Trove 1.5.0"] = function()
+	["Trove 1.8.0"] = function()
 		local trove = Trove.new()
 
 		local functionsJanitor = trove:Add(Trove.new(), "Clean")

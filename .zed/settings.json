@@ -371,7 +371,9 @@
 		"luau-lsp": {
 			"settings": {
 				"fflags": {
-					"enable_new_solver": false
+					"DebugLuauUserDefinedClasses": "True",
+					"DebugLuauUserDefinedClassesRuntime": "True",
+					"enable_new_solver": true
 				},
 				"luau-lsp": {
 					"ignoreGlobs": ["**/_Index/**", "Vendor/Icon/Packages/**", "**/.lune/**"],

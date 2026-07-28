@@ -1,5 +1,4 @@
 --!native
---!optimize 2
 --!strict
 
 local FreeThreads: {thread} = table.create(500)

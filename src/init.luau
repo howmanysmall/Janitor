@@ -8,6 +8,7 @@
 -- roblox-ts support by OverHash and Validark
 -- LinkToInstance fixed by Elttob.
 -- Cleanup edge cases fixed by codesenseAye.
+-- Data-oriented storage rewrite (packed slot arrays + u8 disposal tags).
 
 local FastDefer = require(script.FastDefer)
 local Promise = require(script.Promise)
@@ -23,6 +24,21 @@ local INVALID_METHOD_NAME =
 	"Object is a %* and as such expected `true?` for the method name and instead got %*. Traceback: %*"
 local METHOD_NOT_FOUND_ERROR = "Object %* doesn't have method %*, are you sure you want to add it? Traceback: %*"
 local NOT_A_PROMISE = "Invalid argument #1 to 'Janitor:AddPromise' (Promise expected, got %* (%*)) Traceback: %*"
+
+type BooleanOrString = boolean | string
+
+-- Disposal tags. The disposal method for a value never changes, so it is
+-- resolved exactly once at `Add` time and stored as a u8 in a buffer. The
+-- cleanup hot loop then just reads a byte and branches on an integer - no
+-- `typeof`, no string comparisons, no method sniffing.
+local TAG_CALL = 0
+local TAG_THREAD = 1
+local TAG_DISCONNECT = 2
+local TAG_DESTROY = 3
+local TAG_DESTROY_INSTANCE = 4
+local TAG_CUSTOM = 5
+
+local INITIAL_TAGS_CAPACITY = 16
 
 export type Janitor = typeof(setmetatable({} :: {
 	CurrentlyCleaning: boolean,
@@ -60,7 +76,17 @@ type Private = typeof(setmetatable({} :: {
 	UnsafeThreadCleanup: boolean,
 
 	-- Private
-	[any]: BooleanOrString,
+	-- Packed parallel storage: slot N of `Objects` holds the tracked object,
+	-- byte N - 1 of `Tags` holds its disposal tag. `MethodNames` is sparse and
+	-- only populated for TAG_CUSTOM slots. `IndexToSlot`/`SlotToIndex` service
+	-- the named-index API with O(1) swap-removal.
+	Objects: {any},
+	Tags: buffer,
+	TagsCapacity: number,
+	Size: number,
+	IndexToSlot: {[any]: number},
+	SlotToIndex: {[number]: any},
+	MethodNames: {[number]: BooleanOrString},
 
 	Add: <T>(self: Private, object: T, methodName: BooleanOrString?, index: any?) -> T,
 	AddObject: <T, A...>(
@@ -123,8 +149,6 @@ Janitor.SuppressInstanceReDestroy = false
 Janitor.UnsafeThreadCleanup = false
 (Janitor :: any).__index = Janitor
 
-local Janitors = setmetatable({} :: {[Private]: {[any]: any}}, {__mode = "ks"})
-
 --[=[
 	Whether or not the Janitor is currently cleaning up.
 	@readonly
@@ -149,20 +173,61 @@ local Janitors = setmetatable({} :: {[Private]: {[any]: any}}, {__mode = "ks"})
 	@within Janitor
 ]=]
 
-local TYPE_DEFAULTS = {
+local TYPE_DEFAULTS: {[string]: BooleanOrString} = {
 	["function"] = true;
 	thread = true;
 	RBXScriptConnection = "Disconnect";
 }
+
+-- Internal storage is pooled and recycled on `Destroy`, so in steady state a
+-- create -> add -> cleanup -> destroy cycle performs zero heap allocations and
+-- reuses warm array/buffer capacity. Parallel arrays are used for the pool
+-- itself so that pushing and popping pool entries allocates nothing either.
+local STORE_POOL_CAPACITY = 64
+
+local currentPoolSize = 0
+local poolObjects = table.create(STORE_POOL_CAPACITY) :: {{any}}
+local poolTags = table.create(STORE_POOL_CAPACITY) :: {buffer}
+local poolTagsCapacities = table.create(STORE_POOL_CAPACITY) :: {number}
+local poolIndexToSlot = table.create(STORE_POOL_CAPACITY) :: {{[any]: number}}
+local poolSlotToIndex = table.create(STORE_POOL_CAPACITY) :: {{[number]: any}}
+local poolMethodNames = table.create(STORE_POOL_CAPACITY) :: {{[number]: BooleanOrString}}
 
 --[=[
 	Instantiates a new Janitor object.
 	@return Janitor
 ]=]
 function Janitor.new(): Janitor
-	return setmetatable({
+	local self: Private = setmetatable({
 		CurrentlyCleaning = false;
-	}, Janitor) :: never
+	} :: any, Janitor)
+
+	local storePoolSize = currentPoolSize
+	if storePoolSize > 0 then
+		currentPoolSize = storePoolSize - 1
+		self.Objects = poolObjects[storePoolSize]
+		poolObjects[storePoolSize] = nil
+		self.Tags = poolTags[storePoolSize]
+		poolTags[storePoolSize] = nil
+		self.TagsCapacity = poolTagsCapacities[storePoolSize]
+		poolTagsCapacities[storePoolSize] = nil
+		self.IndexToSlot = poolIndexToSlot[storePoolSize]
+		poolIndexToSlot[storePoolSize] = nil
+		self.SlotToIndex = poolSlotToIndex[storePoolSize]
+		poolSlotToIndex[storePoolSize] = nil
+		self.MethodNames = poolMethodNames[storePoolSize]
+		poolMethodNames[storePoolSize] = nil
+	else
+		self.Objects = {}
+		self.Tags = buffer.create(INITIAL_TAGS_CAPACITY)
+		self.TagsCapacity = INITIAL_TAGS_CAPACITY
+		self.IndexToSlot = {}
+		self.SlotToIndex = {}
+		self.MethodNames = {}
+	end
+
+	self.Size = 0
+	return self :: never
 end
 
 --[=[
@@ -189,98 +254,143 @@ Janitor.instanceof = Janitor.Is
 
 local Destroy = game.Destroy
 
--- very cheeky optimization
-local function Remove(self: Private, index: any): Janitor
-	local this = Janitors[self]
+local function GrowTags(self: Private, size: number): ()
+	local tagsCapacity = self.TagsCapacity
+	repeat
+		tagsCapacity *= 2
+	until tagsCapacity >= size
 
-	if this then
-		local object = this[index]
-		if not object then
-			return self
-		end
-
-		local methodName = self[object]
-		if methodName then
-			if methodName == true then
-				if type(object) == "function" then
-					object()
-				else
-					local wasCancelled: boolean? = nil
-					if coroutine.running() ~= object then
-						wasCancelled = pcall(function()
-							task.cancel(object)
-						end)
-					end
-
-					if not wasCancelled then
-						local toCleanup = object
-						if self.UnsafeThreadCleanup then
-							FastDefer(function()
-								task.cancel(toCleanup)
-							end)
-						else
-							task.defer(function()
-								task.cancel(toCleanup)
-							end)
-						end
-					end
-				end
-			else
-				if methodName == "Destroy" then
-					if self.SuppressInstanceReDestroy and typeof(object) == "Instance" then
-						pcall(Destroy, object)
-					else
-						local destroy = object.Destroy
-						if destroy then
-							destroy(object)
-						end
-					end
-				elseif methodName == "Disconnect" then
-					local disconnect = object.Disconnect
-					if disconnect then
-						disconnect(object)
-					end
-				else
-					local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
-					if objectMethod then
-						objectMethod(object)
-					end
-				end
-			end
-
-			self[object] = nil
-		end
-
-		this[index] = nil
-	end
-
-	return self
+	local newTags = buffer.create(tagsCapacity)
+	buffer.copy(newTags, 0, self.Tags, 0, size - 1)
+	self.Tags = newTags
+	self.TagsCapacity = tagsCapacity
 end
 
-type BooleanOrString = boolean | string
+-- Detaches a slot from storage and returns its disposal information without
+-- running the disposal. The hole is filled by swapping the last slot into it
+-- (O(1)), keeping the array dense so cleanup never has to skip holes. All
+-- bookkeeping (index maps, method names) is patched before any user code can
+-- observe the storage again.
+local function ExtractSlot(self: Private, slot: number): (any, number, BooleanOrString?)
+	local objects = self.Objects
+	local tags = self.Tags
+	local slotToIndex = self.SlotToIndex
+	local methodNames = self.MethodNames
+	local size = self.Size
 
-local function Add<T>(self: Private, object: T, methodName: BooleanOrString?, index: any?): T
-	if index then
-		Remove(self, index)
-
-		local this = Janitors[self]
-		if not this then
-			this = {}
-			Janitors[self] = this
-		end
-
-		this[index] = object
+	local object = objects[slot]
+	local tag = buffer.readu8(tags, slot - 1)
+	local methodName = methodNames[slot]
+	if methodName ~= nil then
+		methodNames[slot] = nil
 	end
 
-	local typeOf = typeof(object)
-	local newMethodName = methodName or TYPE_DEFAULTS[typeOf] or "Destroy"
+	local ownIndex = slotToIndex[slot]
+	if ownIndex ~= nil then
+		slotToIndex[slot] = nil
+		self.IndexToSlot[ownIndex] = nil
+	end
 
-	if typeOf == "function" or typeOf == "thread" then
-		if newMethodName ~= true then
-			warn(string.format(INVALID_METHOD_NAME, typeOf, tostring(newMethodName), debug.traceback(nil, 2)))
+	if slot ~= size then
+		objects[slot] = objects[size]
+		buffer.writeu8(tags, slot - 1, buffer.readu8(tags, size - 1))
+
+		local movedMethodName = methodNames[size]
+		if movedMethodName ~= nil then
+			methodNames[size] = nil
+			methodNames[slot] = movedMethodName
+		end
+
+		local movedIndex = slotToIndex[size]
+		if movedIndex ~= nil then
+			slotToIndex[size] = nil
+			slotToIndex[slot] = movedIndex
+			self.IndexToSlot[movedIndex] = slot
+		end
+	end
+
+	objects[size] = nil
+	self.Size = size - 1
+	return object, tag, methodName
+end
+
+local function DisposeObject(self: Private, object: any, tag: number, methodName: BooleanOrString?): ()
+	if tag == TAG_CALL then
+		object()
+	elseif tag == TAG_DESTROY then
+		local destroy = object.Destroy :: (self: unknown) -> ()
+		if destroy then
+			destroy(object)
+		end
+	elseif tag == TAG_DISCONNECT then
+		local disconnect = object.Disconnect :: (self: unknown) -> ()
+		if disconnect then
+			disconnect(object)
+		end
+	elseif tag == TAG_DESTROY_INSTANCE then
+		if self.SuppressInstanceReDestroy then
+			pcall(Destroy, object)
+		else
+			object:Destroy()
+		end
+	elseif tag == TAG_THREAD then
+		local status = coroutine.status(object)
+		if status == "suspended" then
+			task.cancel(object)
+		elseif status ~= "dead" then
+			-- Cancelling a thread from within itself (or within a thread it is
+			-- currently resuming) would throw, so the cancellation is deferred.
+			if self.UnsafeThreadCleanup then
+				FastDefer(task.cancel, object)
+			else
+				task.defer(task.cancel, object)
+			end
 		end
 	else
-		if not (object :: never)[newMethodName] then
+		local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
+		if objectMethod then
+			objectMethod(object)
+		end
+	end
+end
+
+@native
+local function Remove(self: Private, index: any): Janitor
+	local slot = self.IndexToSlot[index]
+	if slot then
+		local object, tag, methodName = ExtractSlot(self, slot)
+		DisposeObject(self, object, tag, methodName)
+	end
+
+	return self :: Janitor
+end
+
+@native
+local function Add<T>(self: Private, object: T, methodName: BooleanOrString?, index: any?): T
+	if index ~= nil then
+		local previousSlot = self.IndexToSlot[index]
+		if previousSlot then
+			local previousObject, previousTag, previousMethodName = ExtractSlot(self, previousSlot)
+			DisposeObject(self, previousObject, previousTag, previousMethodName)
+		end
+	end
+
+	local tag: number
+	local newMethodName: BooleanOrString
+	local typeOf = type(object)
+
+	if typeOf == "function" or typeOf == "thread" then
+		newMethodName = methodName or true
+		if newMethodName == true then
+			tag = if typeOf == "function" then TAG_CALL else TAG_THREAD
+		else
+			warn(string.format(INVALID_METHOD_NAME, typeOf, tostring(newMethodName), debug.traceback(nil, 2)))
+			tag = TAG_CUSTOM
+		end
+	else
+		local robloxType = if typeOf == "userdata" then typeof(object) else typeOf
+		newMethodName = methodName or TYPE_DEFAULTS[robloxType] or "Destroy"
+		if not (object :: any)[newMethodName] then
 			warn(
 				string.format(
 					METHOD_NOT_FOUND_ERROR,
@@ -290,9 +400,33 @@ local function Add<T>(self: Private, object: T, methodName: BooleanOrString?, in
 				)
 			)
 		end
+
+		if newMethodName == "Destroy" then
+			tag = if robloxType == "Instance" then TAG_DESTROY_INSTANCE else TAG_DESTROY
+		elseif newMethodName == "Disconnect" then
+			tag = TAG_DISCONNECT
+		else
+			tag = TAG_CUSTOM
+		end
 	end
 
-	self[object] = newMethodName
+	local size = self.Size + 1
+	self.Size = size
+	if size > self.TagsCapacity then
+		GrowTags(self, size)
+	end
+
+	self.Objects[size] = object
+	buffer.writeu8(self.Tags, size - 1, tag)
+	if tag == TAG_CUSTOM then
+		self.MethodNames[size] = newMethodName
+	end
+
+	if index ~= nil then
+		self.IndexToSlot[index] = size
+		self.SlotToIndex[size] = index
+	end
+
 	return object
 end
 
@@ -413,12 +547,12 @@ Private.Add = Add
 	@return T -- The object that was passed as the first argument.
 ]=]
 function Janitor:AddObject<T, A...>(constructor: {new: (A...) -> T}, methodName: BooleanOrString?, index: any?, ...: A...): T
-	return Add(self, constructor.new(...), methodName, index)
+	return Add(self :: Private, constructor.new(...), methodName, index)
 end
 
-local function Get(self: Private, index: unknown): any?
-	local this = Janitors[self]
-	return if this then this[index] else nil
+local function Get(self: Private, index: any): any?
+	local slot = self.IndexToSlot[index]
+	return if slot then self.Objects[slot] else nil
 end
 
 --[=[
@@ -450,7 +584,7 @@ end
 	@param index unknown -- The index that the object is stored under.
 	@return unknown? -- This will return the object if it is found, but it won't return anything if it doesn't exist.
 ]=]
-Janitor.Get = Get
+Private.Get = Get
 
 --[=[
 	Adds a [Promise](https://github.com/evaera/roblox-lua-promise) to the
@@ -501,7 +635,7 @@ function Janitor:AddPromise<T...>(promiseObject: Promise<T...>, index: unknown?)
 		uniqueId = newproxy(false)
 	end
 
-	local newPromise = Add(self, Promise.new(function(resolve, _, onCancel)
+	local newPromise = Add(self :: Private, Promise.new(function(resolve, _, onCancel)
 		if onCancel(function()
 			promiseObject:cancel()
 		end) then
@@ -512,8 +646,8 @@ function Janitor:AddPromise<T...>(promiseObject: Promise<T...>, index: unknown?)
 	end), "cancel", uniqueId)
 
 	newPromise:finally(function()
-		if Get(self, uniqueId) == newPromise then
-			Remove(self, uniqueId)
+		if Get(self :: Private, uniqueId) == newPromise then
+			Remove(self :: Private, uniqueId)
 		end
 	end)
 
@@ -583,17 +717,12 @@ Private.Remove = Remove
 	@return Janitor
 ]=]
 function Private:RemoveNoClean(index: any): Janitor
-	local this = Janitors[self]
-
-	if this then
-		local object = this[index]
-		if object then
-			self[object] = nil
-			this[index] = nil
-		end
+	local slot = self.IndexToSlot[index]
+	if slot then
+		ExtractSlot(self, slot)
 	end
 
-	return self
+	return self :: Janitor
 end
 
 --[=[
@@ -638,30 +767,29 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveList(...: any): Janitor
-	local this = Janitors[self]
-	if this then
-		local length = select("#", ...)
-		if length == 1 then
-			return Remove(self, ...)
-		end
-		if length == 2 then
-			local indexA, indexB = ...
-			Remove(self, indexA)
-			Remove(self, indexB)
-			return self
-		end
-		if length == 3 then
-			local indexA, indexB, indexC = ...
-			Remove(self, indexA)
-			Remove(self, indexB)
-			Remove(self, indexC)
-			return self
-		end
+	local length = select("#", ...)
+	if length == 1 then
+		return Remove(self :: Private, ...)
+	end
 
-		for selectIndex = 1, length do
-			local removeObject = select(selectIndex, ...)
-			Remove(self, removeObject)
-		end
+	if length == 2 then
+		local indexA, indexB = ...
+		Remove(self :: Private, indexA)
+		Remove(self :: Private, indexB)
+		return self
+	end
+
+	if length == 3 then
+		local indexA, indexB, indexC = ...
+		Remove(self :: Private, indexA)
+		Remove(self :: Private, indexB)
+		Remove(self :: Private, indexC)
+		return self
+	end
+
+	for selectIndex = 1, length do
+		local index = (select(selectIndex, ...))
+		Remove(self :: Private, index)
 	end
 
 	return self
@@ -709,59 +837,52 @@ end
 	@return Janitor
 ]=]
 function Janitor:RemoveListNoClean(...: any): Janitor
-	local this = Janitors[self]
-	if this then
-		local length = select("#", ...)
-		if length == 1 then
-			local indexA = ...
-			local object = this[indexA]
-			if object then
-				self[object] = nil
-				this[indexA] = nil
-			end
-			return self
+	local this = self :: Private
+	local length = select("#", ...)
+	if length == 1 then
+		local indexA = ...
+		local slotA = this.IndexToSlot[indexA]
+		if slotA then
+			ExtractSlot(this, slotA)
 		end
-		if length == 2 then
-			local indexA, indexB = ...
-			local objectA = this[indexA]
-			if objectA then
-				self[objectA] = nil
-				this[indexA] = nil
-			end
-			local objectB = this[indexB]
-			if objectB then
-				self[objectB] = nil
-				this[indexB] = nil
-			end
-			return self
-		end
-		if length == 3 then
-			local indexA, indexB, indexC = ...
-			local objectA = this[indexA]
-			if objectA then
-				self[objectA] = nil
-				this[indexA] = nil
-			end
-			local objectB = this[indexB]
-			if objectB then
-				self[objectB] = nil
-				this[indexB] = nil
-			end
-			local objectC = this[indexC]
-			if objectC then
-				self[objectC] = nil
-				this[indexC] = nil
-			end
-			return self
-		end
+		return self
+	end
 
-		for selectIndex = 1, length do
-			local index = select(selectIndex, ...)
-			local object = this[index]
-			if object then
-				self[object] = nil
-				this[index] = nil
-			end
+	if length == 2 then
+		local indexA, indexB = ...
+		local slotA = this.IndexToSlot[indexA]
+		if slotA then
+			ExtractSlot(this, slotA)
+		end
+		local slotB = this.IndexToSlot[indexB]
+		if slotB then
+			ExtractSlot(this, slotB)
+		end
+		return self
+	end
+
+	if length == 3 then
+		local indexA, indexB, indexC = ...
+		local slotA = this.IndexToSlot[indexA]
+		if slotA then
+			ExtractSlot(this, slotA)
+		end
+		local slotB = this.IndexToSlot[indexB]
+		if slotB then
+			ExtractSlot(this, slotB)
+		end
+		local slotC = this.IndexToSlot[indexC]
+		if slotC then
+			ExtractSlot(this, slotC)
+		end
+		return self
+	end
+
+	for selectIndex = 1, length do
+		local index = (select(selectIndex, ...))
+		local slot = this.IndexToSlot[index]
+		if slot then
+			ExtractSlot(this, slot)
 		end
 	end
 
@@ -794,8 +915,15 @@ end
 	@return {[any]: any}
 ]=]
 function Janitor:GetAll(): {[any]: any}
-	local this = Janitors[self]
-	return if this then table.freeze(table.clone(this)) else {}
+	local this = self :: Private
+	local objects = this.Objects
+
+	local all: {[any]: any} = {}
+	for index, slot in this.IndexToSlot do
+		all[index] = objects[slot]
+	end
+
+	return table.freeze(all)
 end
 
 --[=[
@@ -821,77 +949,72 @@ end
 	@method Cleanup
 	@within Janitor
 ]=]
+@native
 local function Cleanup(self: Private): ()
 	if not self.CurrentlyCleaning then
+		self.CurrentlyCleaning = true
+
 		local suppressInstanceReDestroy = self.SuppressInstanceReDestroy
 		local unsafeThreadCleanup = self.UnsafeThreadCleanup
 
-		self.CurrentlyCleaning = nil :: never
-		self.SuppressInstanceReDestroy = nil :: never
-		self.UnsafeThreadCleanup = nil :: never
+		local objects = self.Objects
+		local methodNames = self.MethodNames
 
-		local object, methodName = next(self)
-		while object and methodName do
-			if methodName == true then
-				if type(object) == "function" then
-					object()
+		-- Disposal runs in LIFO order (reverse of insertion), popping from the
+		-- end so that user code running inside a disposal can safely Add or
+		-- Remove. `Size` and `Tags` are re-read every iteration because such
+		-- reentrant calls can change them.
+		local size = self.Size
+		while size > 0 do
+			local object = objects[size]
+			local tag = buffer.readu8(self.Tags, size - 1)
+			objects[size] = nil
+			self.Size = size - 1
+
+			if tag == TAG_CALL then
+				object()
+			elseif tag == TAG_DESTROY then
+				local destroy = object.Destroy :: (self: unknown) -> ()
+				if destroy then
+					destroy(object)
+				end
+			elseif tag == TAG_DISCONNECT then
+				local disconnect = object.Disconnect :: (self: unknown) -> ()
+				if disconnect then
+					disconnect(object)
+				end
+			elseif tag == TAG_DESTROY_INSTANCE then
+				if suppressInstanceReDestroy then
+					pcall(Destroy, object)
 				else
-					local wasCancelled: boolean? = nil
-					if coroutine.running() ~= object then
-						wasCancelled = pcall(function()
-							task.cancel(object)
-						end)
-					end
-
-					if not wasCancelled then
-						local toCleanup = object
-						if unsafeThreadCleanup then
-							FastDefer(function()
-								task.cancel(toCleanup)
-							end)
-						else
-							task.defer(function()
-								task.cancel(toCleanup)
-							end)
-						end
+					object:Destroy()
+				end
+			elseif tag == TAG_THREAD then
+				local status = coroutine.status(object)
+				if status == "suspended" then
+					task.cancel(object)
+				elseif status ~= "dead" then
+					if unsafeThreadCleanup then
+						FastDefer(task.cancel, object)
+					else
+						task.defer(task.cancel, object)
 					end
 				end
 			else
-				if methodName == "Destroy" then
-					if self.SuppressInstanceReDestroy and typeof(object) == "Instance" then
-						pcall(Destroy, object)
-					else
-						local destroy = object.Destroy
-						if destroy then
-							destroy(object)
-						end
-					end
-				elseif methodName == "Disconnect" then
-					local disconnect = object.Disconnect
-					if disconnect then
-						disconnect(object)
-					end
-				else
-					local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
-					if objectMethod then
-						objectMethod(object)
-					end
+				local methodName = methodNames[size]
+				methodNames[size] = nil
+				local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
+				if objectMethod then
+					objectMethod(object)
 				end
 			end
 
-			self[object] = nil
-			object, methodName = next(self, object)
+			size = self.Size
 		end
 
-		local this = Janitors[self]
-		if this then
-			table.clear(this)
-			Janitors[self] = nil
-		end
-
+		table.clear(self.IndexToSlot)
+		table.clear(self.SlotToIndex)
 		self.CurrentlyCleaning = false
-		self.SuppressInstanceReDestroy = suppressInstanceReDestroy
-		self.UnsafeThreadCleanup = unsafeThreadCleanup
 	end
 end
 Private.Cleanup = Cleanup
@@ -905,7 +1028,21 @@ Private.Cleanup = Cleanup
 	:::
 ]=]
 function Janitor:Destroy(): ()
-	Cleanup(self)
+	local this = self :: Private
+	Cleanup(this)
+
+	local storePoolSize = currentPoolSize
+	if storePoolSize < STORE_POOL_CAPACITY then
+		storePoolSize += 1
+		currentPoolSize = storePoolSize
+		poolObjects[storePoolSize] = this.Objects
+		poolTags[storePoolSize] = this.Tags
+		poolTagsCapacities[storePoolSize] = this.TagsCapacity
+		poolIndexToSlot[storePoolSize] = this.IndexToSlot
+		poolSlotToIndex[storePoolSize] = this.SlotToIndex
+		poolMethodNames[storePoolSize] = this.MethodNames
+	end
+
 	table.clear(self :: never)
 	setmetatable(self :: any, nil)
 end
@@ -981,12 +1118,12 @@ Private.LinkToInstance = LinkToInstance;
 function Janitor:LinkToInstances(...: Instance): Janitor
 	local manualCleanup = Janitor.new()
 	for index = 1, select("#", ...) do
-		local object = select(index, ...)
+		local object = (select(index, ...))
 		if typeof(object) ~= "Instance" then
 			continue
 		end
 
-		manualCleanup:Add(LinkToInstance(self, object, true), "Disconnect")
+		manualCleanup:Add(LinkToInstance(self :: Private, object, true), "Disconnect")
 	end
 
 	return manualCleanup
