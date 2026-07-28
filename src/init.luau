@@ -8,7 +8,7 @@
 -- roblox-ts support by OverHash and Validark
 -- LinkToInstance fixed by Elttob.
 -- Cleanup edge cases fixed by codesenseAye.
--- Data-oriented storage rewrite (packed slot arrays + u8 disposal tags).
+-- Data-oriented storage rewrite (disposal-partitioned arrays).
 
 local FastDefer = require(script.FastDefer)
 local Promise = require(script.Promise)
@@ -77,6 +77,7 @@ type Private = typeof(setmetatable({} :: {
 	-- `slot * 8 + kind` keys so every partition supports O(1) swap-removal.
 	Partitions: {{any}},
 	Sizes: {number},
+	Oversized: boolean,
 	CustomMethodNames: {[number]: BooleanOrString},
 	IndexToSlot: {[any]: number},
 	SlotToIndex: {[number]: any},
@@ -178,6 +179,16 @@ local TYPE_DEFAULTS: {[string]: BooleanOrString} = {
 -- itself so that pushing and popping pool entries allocates nothing either.
 local STORE_POOL_CAPACITY = 64
 
+-- Luau tables never shrink: table.clear keeps allocated capacity, and the
+-- pool deliberately exploits that to hand out warm arrays. That backfires
+-- for janitors that once held very large partitions (100k+ objects): their
+-- storage would sit in memory forever, get handed to small janitors that
+-- never need it, and every future table.clear would walk the whole oversized
+-- capacity. Any janitor whose partitions grew past this cap has its storage
+-- dropped for the garbage collector at cleanup time and replaced with fresh
+-- tables, instead of being retained or pooled.
+local MAX_RETAINED_CAPACITY = 4096
+
 local currentPoolSize = 0
 local poolPartitions = table.create(STORE_POOL_CAPACITY) :: {{{any}}}
 local poolSizes = table.create(STORE_POOL_CAPACITY) :: {{number}}
@@ -228,6 +239,7 @@ function Janitor.new(): Janitor
 	-- setmetatable would rehash the table multiple times per janitor.
 	local self: Private = setmetatable({
 		CurrentlyCleaning = false;
+		Oversized = false;
 		Partitions = partitions;
 		Sizes = sizes;
 		CustomMethodNames = customMethodNames;
@@ -449,6 +461,12 @@ local function Add<T>(self: Private, object: T, methodName: BooleanOrString?, in
 	local sizes = self.Sizes
 	local size = sizes[kind] + 1
 	sizes[kind] = size
+	-- Partition sizes only ever grow by exactly 1, so this equality fires
+	-- exactly once per crossing of the retained-capacity cap; the common case
+	-- pays one constant comparison and no field access.
+	if size == MAX_RETAINED_CAPACITY + 1 then
+		self.Oversized = true
+	end
 	self.Partitions[kind][size] = object
 	if kind == KIND_CUSTOM then
 		self.CustomMethodNames[size] = newMethodName
@@ -1137,26 +1155,42 @@ local function Cleanup(self: Private): ()
 			and sizes[KIND_DESTROY] == 0
 			and sizes[KIND_INSTANCE] == 0
 
-		-- `partition[1] ~= nil` is true iff the partition was used, so unused
-		-- partitions (including pooled ones with warm capacity) skip the wipe.
-		if disconnects[1] ~= nil then
-			table.clear(disconnects)
-		end
-		if threads[1] ~= nil then
-			table.clear(threads)
-		end
-		if customs[1] ~= nil then
-			table.clear(customs)
-			table.clear(customMethodNames)
-		end
-		if calls[1] ~= nil then
-			table.clear(calls)
-		end
-		if destroys[1] ~= nil then
-			table.clear(destroys)
-		end
-		if instances[1] ~= nil then
-			table.clear(instances)
+		if self.Oversized then
+			-- Some partition grew past MAX_RETAINED_CAPACITY. table.clear
+			-- would keep that capacity alive forever and walk all of it on
+			-- every future cleanup, so the storage is dropped for the garbage
+			-- collector and replaced with fresh tables. This also guarantees
+			-- Destroy never parks oversized arrays in the pool.
+			for kind = 1, KIND_COUNT do
+				partitions[kind] = {}
+			end
+			self.CustomMethodNames = {}
+			self.IndexToSlot = {}
+			self.SlotToIndex = {}
+			self.Oversized = false
+		else
+			-- `partition[1] ~= nil` is true iff the partition was used, so
+			-- unused partitions (including pooled ones with warm capacity)
+			-- skip the wipe.
+			if disconnects[1] ~= nil then
+				table.clear(disconnects)
+			end
+			if threads[1] ~= nil then
+				table.clear(threads)
+			end
+			if customs[1] ~= nil then
+				table.clear(customs)
+				table.clear(customMethodNames)
+			end
+			if calls[1] ~= nil then
+				table.clear(calls)
+			end
+			if destroys[1] ~= nil then
+				table.clear(destroys)
+			end
+			if instances[1] ~= nil then
+				table.clear(instances)
+			end
 		end
 
 		self.CurrentlyCleaning = false
@@ -1177,7 +1211,12 @@ function Janitor:Destroy(): ()
 	Cleanup(this)
 
 	local storePoolSize = currentPoolSize
-	if storePoolSize < STORE_POOL_CAPACITY then
+	-- After a normal Cleanup, Oversized is always false and oversized storage
+	-- has already been replaced with fresh tables. It can only still be true
+	-- here if Cleanup was skipped by its reentrancy guard (Destroy called
+	-- from inside this janitor's own cleanup), in which case pooling the
+	-- storage would be unsafe anyway.
+	if storePoolSize < STORE_POOL_CAPACITY and not this.Oversized then
 		storePoolSize += 1
 		currentPoolSize = storePoolSize
 		poolPartitions[storePoolSize] = this.Partitions
