@@ -96,7 +96,7 @@ function main() {
 
 	# Run tests
 	print-status "Running tests..."
-	run-in-roblox --place "$OUTPUT_FILE" --script "$TEST_SCRIPT"
+	run-in-roblox --place "$OUTPUT_FILE" --script "$TEST_SCRIPT" --ignore-pattern 'HttpError: ConnectFail|cloud_|Unable to load plugin icon'
 
 	print-status "Tests completed successfully"
 }
