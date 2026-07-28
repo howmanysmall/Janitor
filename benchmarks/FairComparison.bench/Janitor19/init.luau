@@ -254,6 +254,7 @@ Janitor.instanceof = Janitor.Is
 
 local Destroy = game.Destroy
 
+@native
 local function GrowTags(self: Private, size: number): ()
 	local tagsCapacity = self.TagsCapacity
 	repeat
@@ -385,27 +386,13 @@ local function Add<T>(self: Private, object: T, methodName: BooleanOrString?, in
 	elseif methodName == "Destroy" and typeOf ~= "function" and typeOf ~= "thread" then
 		newMethodName = "Destroy"
 		if not (object :: never).Destroy then
-			warn(
-				string.format(
-					METHOD_NOT_FOUND_ERROR,
-					tostring(object),
-					"Destroy",
-					debug.traceback(nil, 2)
-				)
-			)
+			warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(object), "Destroy", debug.traceback(nil, 2)))
 		end
 		tag = if typeOf == "userdata" and typeof(object) == "Instance" then TAG_DESTROY_INSTANCE else TAG_DESTROY
 	elseif methodName == "Disconnect" and typeOf ~= "function" and typeOf ~= "thread" then
 		newMethodName = "Disconnect"
 		if not (object :: never).Disconnect then
-			warn(
-				string.format(
-					METHOD_NOT_FOUND_ERROR,
-					tostring(object),
-					"Disconnect",
-					debug.traceback(nil, 2)
-				)
-			)
+			warn(string.format(METHOD_NOT_FOUND_ERROR, tostring(object), "Disconnect", debug.traceback(nil, 2)))
 		end
 		tag = TAG_DISCONNECT
 	elseif typeOf == "function" or typeOf == "thread" then
