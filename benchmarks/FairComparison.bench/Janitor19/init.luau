@@ -190,37 +190,50 @@ local poolSlotToIndex = table.create(STORE_POOL_CAPACITY) :: {{[number]: any}}
 	@return Janitor
 ]=]
 function Janitor.new(): Janitor
-	local self: Private = setmetatable({
-		CurrentlyCleaning = false;
-	} :: any, Janitor)
+	local partitions: {{any}}
+	local sizes: {number}
+	local customMethodNames: {[number]: BooleanOrString}
+	local indexToSlot: {[any]: number}
+	local slotToIndex: {[number]: any}
 
 	local storePoolSize = currentPoolSize
 	if storePoolSize > 0 then
 		currentPoolSize = storePoolSize - 1
-		self.Partitions = poolPartitions[storePoolSize]
+		partitions = poolPartitions[storePoolSize]
 		poolPartitions[storePoolSize] = nil
-		self.Sizes = poolSizes[storePoolSize]
+		sizes = poolSizes[storePoolSize]
 		poolSizes[storePoolSize] = nil
-		self.CustomMethodNames = poolCustomMethodNames[storePoolSize]
+		customMethodNames = poolCustomMethodNames[storePoolSize]
 		poolCustomMethodNames[storePoolSize] = nil
-		self.IndexToSlot = poolIndexToSlot[storePoolSize]
+		indexToSlot = poolIndexToSlot[storePoolSize]
 		poolIndexToSlot[storePoolSize] = nil
-		self.SlotToIndex = poolSlotToIndex[storePoolSize]
+		slotToIndex = poolSlotToIndex[storePoolSize]
 		poolSlotToIndex[storePoolSize] = nil
 		for kind = 1, KIND_COUNT do
-			self.Sizes[kind] = 0
+			sizes[kind] = 0
 		end
 	else
-		local partitions = table.create(KIND_COUNT)
+		partitions = table.create(KIND_COUNT) :: {{any}}
 		for kind = 1, KIND_COUNT do
 			partitions[kind] = {}
 		end
-		self.Partitions = partitions
-		self.Sizes = table.create(KIND_COUNT, 0)
-		self.CustomMethodNames = {}
-		self.IndexToSlot = {}
-		self.SlotToIndex = {}
+		sizes = table.create(KIND_COUNT, 0)
+		customMethodNames = {}
+		indexToSlot = {}
+		slotToIndex = {}
 	end
+
+	-- Constructing the instance with every field in one literal allocates the
+	-- hash part at its final size; assigning fields one at a time after
+	-- setmetatable would rehash the table multiple times per janitor.
+	local self: Private = setmetatable({
+		CurrentlyCleaning = false;
+		Partitions = partitions;
+		Sizes = sizes;
+		CustomMethodNames = customMethodNames;
+		IndexToSlot = indexToSlot;
+		SlotToIndex = slotToIndex;
+	} :: any, Janitor)
 
 	return self :: never
 end
@@ -254,6 +267,7 @@ local Destroy = game.Destroy
 -- (O(1)), keeping the array dense so cleanup never has to skip holes. All
 -- bookkeeping (index maps, method names) is patched before any user code can
 -- observe the storage again.
+@native
 local function ExtractSlot(self: Private, key: number): (any, number, BooleanOrString?)
 	local kind = key % 8
 	local slot = key // 8
@@ -299,6 +313,7 @@ local function ExtractSlot(self: Private, key: number): (any, number, BooleanOrS
 	return object, kind, methodName
 end
 
+@native
 local function DisposeObject(self: Private, object: any, kind: number, methodName: BooleanOrString?): ()
 	if kind == KIND_DISCONNECT then
 		local disconnect = object.Disconnect :: (self: unknown) -> ()
@@ -383,28 +398,57 @@ local function Add<T>(self: Private, object: T, methodName: BooleanOrString?, in
 	else
 		local robloxType = if typeOf == "userdata" then typeof(object) else typeOf
 		newMethodName = methodName or TYPE_DEFAULTS[robloxType] or "Destroy"
-		if not (object :: never)[newMethodName] then
-			warn(
-				string.format(
-					METHOD_NOT_FOUND_ERROR,
-					tostring(object),
-					tostring(newMethodName),
-					debug.traceback(nil, 2)
-				)
-			)
-		end
 
+		-- The membership warn check is a metatable walk for tables and a
+		-- reflection call for Roblox userdata, so it is skipped whenever the
+		-- type already proves the method exists: every Instance has Destroy
+		-- and every RBXScriptConnection has Disconnect.
 		if newMethodName == "Destroy" then
-			kind = if robloxType == "Instance" then KIND_INSTANCE else KIND_DESTROY
+			if robloxType == "Instance" then
+				kind = KIND_INSTANCE
+			else
+				kind = KIND_DESTROY
+				if not (object :: any)[newMethodName] then
+					warn(
+						string.format(
+							METHOD_NOT_FOUND_ERROR,
+							tostring(object),
+							tostring(newMethodName),
+							debug.traceback(nil, 2)
+						)
+					)
+				end
+			end
 		elseif newMethodName == "Disconnect" then
 			kind = KIND_DISCONNECT
+			if robloxType ~= "RBXScriptConnection" and not (object :: any)[newMethodName] then
+				warn(
+					string.format(
+						METHOD_NOT_FOUND_ERROR,
+						tostring(object),
+						tostring(newMethodName),
+						debug.traceback(nil, 2)
+					)
+				)
+			end
 		else
 			kind = KIND_CUSTOM
+			if not (object :: any)[newMethodName] then
+				warn(
+					string.format(
+						METHOD_NOT_FOUND_ERROR,
+						tostring(object),
+						tostring(newMethodName),
+						debug.traceback(nil, 2)
+					)
+				)
+			end
 		end
 	end
 
-	local size = self.Sizes[kind] + 1
-	self.Sizes[kind] = size
+	local sizes = self.Sizes
+	local size = sizes[kind] + 1
+	sizes[kind] = size
 	self.Partitions[kind][size] = object
 	if kind == KIND_CUSTOM then
 		self.CustomMethodNames[size] = newMethodName
@@ -949,6 +993,8 @@ local function Cleanup(self: Private): ()
 		local partitions = self.Partitions
 		local sizes = self.Sizes
 		local customMethodNames = self.CustomMethodNames
+		local indexToSlot = self.IndexToSlot
+		local slotToIndex = self.SlotToIndex
 
 		local disconnects = partitions[KIND_DISCONNECT]
 		local threads = partitions[KIND_THREAD]
@@ -960,23 +1006,40 @@ local function Cleanup(self: Private): ()
 		-- Connections first so no event handler fires mid-teardown; threads
 		-- second so nothing pending can resume if a later user callback yields;
 		-- user code follows while instances are alive; instances are last.
+		--
+		-- Popped slots are not nil'd per item; used partitions are wiped with
+		-- one table.clear after the sweep instead of one write barrier per
+		-- object. Index-map entries ARE released per pop, so a reentrant
+		-- Remove from inside a disposal can never resolve a stale packed key
+		-- into a slot that has already been swept or reused.
 		repeat
-			while sizes[KIND_DISCONNECT] > 0 do
-				local size = sizes[KIND_DISCONNECT]
+			local size = sizes[KIND_DISCONNECT]
+			while size > 0 do
 				local object = disconnects[size]
-				disconnects[size] = nil
 				sizes[KIND_DISCONNECT] = size - 1
+				local key = size * 8 + KIND_DISCONNECT
+				local ownIndex = slotToIndex[key]
+				if ownIndex ~= nil then
+					slotToIndex[key] = nil
+					indexToSlot[ownIndex] = nil
+				end
 				local disconnect = object.Disconnect :: (self: unknown) -> ()
 				if disconnect then
 					disconnect(object)
 				end
+				size = sizes[KIND_DISCONNECT]
 			end
 
-			while sizes[KIND_THREAD] > 0 do
-				local size = sizes[KIND_THREAD]
+			size = sizes[KIND_THREAD]
+			while size > 0 do
 				local object = threads[size]
-				threads[size] = nil
 				sizes[KIND_THREAD] = size - 1
+				local key = size * 8 + KIND_THREAD
+				local ownIndex = slotToIndex[key]
+				if ownIndex ~= nil then
+					slotToIndex[key] = nil
+					indexToSlot[ownIndex] = nil
+				end
 				local status = coroutine.status(object)
 				if status == "suspended" then
 					task.cancel(object)
@@ -987,55 +1050,84 @@ local function Cleanup(self: Private): ()
 						task.defer(task.cancel, object)
 					end
 				end
+				size = sizes[KIND_THREAD]
 			end
 
-			while sizes[KIND_CUSTOM] > 0 do
-				local size = sizes[KIND_CUSTOM]
+			size = sizes[KIND_CUSTOM]
+			while size > 0 do
 				local object = customs[size]
 				local methodName = customMethodNames[size]
-				customs[size] = nil
-				customMethodNames[size] = nil
 				sizes[KIND_CUSTOM] = size - 1
+				local key = size * 8 + KIND_CUSTOM
+				local ownIndex = slotToIndex[key]
+				if ownIndex ~= nil then
+					slotToIndex[key] = nil
+					indexToSlot[ownIndex] = nil
+				end
 				local objectMethod = (object :: never)[methodName] :: (object: unknown) -> ()
 				if objectMethod then
 					objectMethod(object)
 				end
+				size = sizes[KIND_CUSTOM]
 			end
 
-			while sizes[KIND_CALL] > 0 do
-				local size = sizes[KIND_CALL]
+			size = sizes[KIND_CALL]
+			while size > 0 do
 				local object = calls[size]
-				calls[size] = nil
 				sizes[KIND_CALL] = size - 1
+				local key = size * 8 + KIND_CALL
+				local ownIndex = slotToIndex[key]
+				if ownIndex ~= nil then
+					slotToIndex[key] = nil
+					indexToSlot[ownIndex] = nil
+				end
 				object()
+				size = sizes[KIND_CALL]
 			end
 
-			while sizes[KIND_DESTROY] > 0 do
-				local size = sizes[KIND_DESTROY]
+			size = sizes[KIND_DESTROY]
+			while size > 0 do
 				local object = destroys[size]
-				destroys[size] = nil
 				sizes[KIND_DESTROY] = size - 1
+				local key = size * 8 + KIND_DESTROY
+				local ownIndex = slotToIndex[key]
+				if ownIndex ~= nil then
+					slotToIndex[key] = nil
+					indexToSlot[ownIndex] = nil
+				end
 				local destroy = object.Destroy :: (self: unknown) -> ()
 				if destroy then
 					destroy(object)
 				end
+				size = sizes[KIND_DESTROY]
 			end
 
+			size = sizes[KIND_INSTANCE]
 			if suppressInstanceReDestroy then
-				while sizes[KIND_INSTANCE] > 0 do
-					local size = sizes[KIND_INSTANCE]
+				while size > 0 do
 					local object = instances[size]
-					instances[size] = nil
 					sizes[KIND_INSTANCE] = size - 1
+					local key = size * 8 + KIND_INSTANCE
+					local ownIndex = slotToIndex[key]
+					if ownIndex ~= nil then
+						slotToIndex[key] = nil
+						indexToSlot[ownIndex] = nil
+					end
 					pcall(Destroy, object)
+					size = sizes[KIND_INSTANCE]
 				end
 			else
-				while sizes[KIND_INSTANCE] > 0 do
-					local size = sizes[KIND_INSTANCE]
+				while size > 0 do
 					local object = instances[size]
-					instances[size] = nil
 					sizes[KIND_INSTANCE] = size - 1
+					local key = size * 8 + KIND_INSTANCE
+					local ownIndex = slotToIndex[key]
+					if ownIndex ~= nil then
+						slotToIndex[key] = nil
+						indexToSlot[ownIndex] = nil
+					end
 					object:Destroy()
+					size = sizes[KIND_INSTANCE]
 				end
 			end
 		until sizes[KIND_DISCONNECT] == 0
@@ -1045,8 +1137,28 @@ local function Cleanup(self: Private): ()
 			and sizes[KIND_DESTROY] == 0
 			and sizes[KIND_INSTANCE] == 0
 
-		table.clear(self.IndexToSlot)
-		table.clear(self.SlotToIndex)
+		-- `partition[1] ~= nil` is true iff the partition was used, so unused
+		-- partitions (including pooled ones with warm capacity) skip the wipe.
+		if disconnects[1] ~= nil then
+			table.clear(disconnects)
+		end
+		if threads[1] ~= nil then
+			table.clear(threads)
+		end
+		if customs[1] ~= nil then
+			table.clear(customs)
+			table.clear(customMethodNames)
+		end
+		if calls[1] ~= nil then
+			table.clear(calls)
+		end
+		if destroys[1] ~= nil then
+			table.clear(destroys)
+		end
+		if instances[1] ~= nil then
+			table.clear(instances)
+		end
+
 		self.CurrentlyCleaning = false
 	end
 end
