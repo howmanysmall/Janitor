@@ -53,7 +53,7 @@ export type Janitor = typeof(setmetatable({} :: {
 
 	LinkToInstance: (self: Janitor, Object: Instance, allowMultiple: boolean?) -> RBXScriptConnection,
 	LinkToInstances: (self: Janitor, ...Instance) -> Janitor,
-}, {} :: {__call: (self: Janitor) -> ()}))
+}, {} :: {__call: (self: Janitor) -> (), __iter: (self: Janitor) -> (typeof(next), {[any]: any})}))
 type Private = typeof(setmetatable({} :: {
 	CurrentlyCleaning: boolean,
 	SuppressInstanceReDestroy: boolean,
@@ -86,7 +86,7 @@ type Private = typeof(setmetatable({} :: {
 
 	LinkToInstance: (self: Private, object: Instance, allowMultiple: boolean?) -> RBXScriptConnection,
 	LinkToInstances: (self: Private, ...Instance) -> Private,
-}, {} :: {__call: (self: Private) -> ()}))
+}, {} :: {__call: (self: Private) -> (), __iter: (self: Private) -> (typeof(next), {[any]: any})}))
 type Static = {
 	ClassName: "Janitor",
 
@@ -100,6 +100,7 @@ type Static = {
 }
 type PrivateStatic = Static & {
 	__call: (self: Private) -> (),
+	__iter: (self: Private) -> (typeof(next), {[any]: any}),
 	__tostring: (self: Private) -> string,
 }
 
@@ -911,6 +912,16 @@ function Janitor:Destroy(): ()
 end
 
 Private.__call = Cleanup
+
+--[=[
+	Explicit iterator behavior for the Janitor object. Fixes `for key, value in janitor do ... end`
+	invoking the `__call` metamethod (and thus cleaning the Janitor up) instead of iterating over
+	its contents.
+]=]
+local function Iterate(self: Private): (typeof(next), {[any]: any})
+	return next, self:GetAll()
+end
+Private.__iter = Iterate
 
 local function LinkToInstance(self: Private, object: Instance, allowMultiple: boolean?): RBXScriptConnection
 	local indexToUse = if allowMultiple then newproxy(false) else LinkToInstanceIndex
